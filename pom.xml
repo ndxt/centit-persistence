@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <centit.persistence.version>1.0-SNAPSHOT</centit.persistence.version>
+        <jdk.version>1.8</jdk.version>
+        <centit.commons.version>2.2.3-SNAPSHOT</centit.commons.version>
+
+        <log4j.version>2.8.2</log4j.version>
+        <slf4j.version>1.7.9</slf4j.version>
+
+        <spring.version>4.3.9.RELEASE</spring.version>
+        <hibernate.version>5.2.9.Final</hibernate.version>
+        <hibernate.validator.version>5.4.1.Final</hibernate.validator.version>
+        <flyway.version>4.2.0</flyway.version>
+
+        <persistence-api.version>1.0.2</persistence-api.version>
+        <mybatis.version>3.4.4</mybatis.version>
+        <mybatis.spring.version>1.3.1</mybatis.spring.version>
+        <flyway.version>4.2.0</flyway.version>
+
+        <ojdbc6.version>11.2.0.4</ojdbc6.version>
+        <junit.version>4.12</junit.version>
+        <mysql.version>5.1.9</mysql.version>
+    </properties>
+
+
+    <groupId>com.centit.framework</groupId>
+    <artifactId>centit-persistence</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+
+    <name>com.centit.framework:centit-persistence</name>
+    <description>框架持久化包， 有三个子模块分别对应 hibernate、mybatis和spring jdbc template 三个实现方式。
+    </description>
+    <url>https://github.com/ndxt/centit-persistence</url>
+
+    <modules>
+        <module>centit-persistence-core</module>
+        <module>centit-persistence-hibernate</module>
+        <module>centit-persistence-mybatis</module>
+        <module>centit-persistence-jdbc</module>
+    </modules>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>杨淮生</name>
+            <email>codefan@sina.com</email>
+            <organization>centit.com</organization>
+            <organizationUrl>http://www.centit.com</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>
+            scm:git:https://github.com/ndxt/centit-persistence.git
+        </connection>
+        <developerConnection>
+            scm:git:https://github.com/ndxt/centit-persistence.git
+        </developerConnection>
+        <url>https://github.com/ndxt/centit-persistence</url>
+        <tag>v1.12</tag>
+    </scm>
+
+    <!-- mvn deploy -DpomFile=pom.xml -->
+
+<!--
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <name>sonatype-releases</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <name>sonatype-snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+-->
+
+    <distributionManagement>
+        <repository>
+            <id>centit-releases</id>
+            <name>centit-release</name>
+            <url>http://develop.centit.com:8080/nexus/content/repositories/centit-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>centit-snapshots</id>
+            <name>centit-snapshots</name>
+            <url>http://develop.centit.com:8080/nexus/content/repositories/centit-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- 打包时添加源码 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+           <!-- <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.8</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>-->
+        </plugins>
+    </build>
+</project>
