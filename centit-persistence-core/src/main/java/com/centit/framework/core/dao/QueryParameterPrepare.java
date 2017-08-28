@@ -1,12 +1,11 @@
-package com.centit.framework.core.po;
-
-import com.centit.framework.core.dao.PageDesc;
+package com.centit.framework.core.dao;
 
 import java.util.Map;
 
 /**
  * Created by codefan on 17-7-25.
  */
+@SuppressWarnings("unused")
 public abstract class QueryParameterPrepare {
     /**
      * 处理翻页参数
