@@ -16,13 +16,7 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      */
     List<T> listObjects();
 
-    /*
-     * getObjects 为一组查找 T 数组的函数 根据表单中的过滤条件查找符合条件的对象集合
-     *
-     * @param filterDesc
-     *            过滤条件
-     * @return
-     */
+
     /**
      * 根据对象的主键 获得数据库中对应的对象信息
      *
@@ -31,14 +25,7 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      */
     T getObjectById(PK id);
 
-    /**
-     * 保存泛型参数对象
-     *
-     * @param o T
-     */
-    void saveObject(T o);
 
-    
     /**
      * 保存泛型参数对象
      *
@@ -61,12 +48,6 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      */
     void mergeObject(T o);
     
-    
-    /**
-     * 修改之前check一下版本号，不一致抛异常
-     * @param o T
-     */
-    void updateObjectCheckTimestamp(T o);
 
     /**
      * 删除泛型参数对象
@@ -130,31 +111,5 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      * @return 多个属性返回唯一对象
      */
     T getObjectByProperties(Map<String, Object> properties);
-
-    /**
-     * 通过反射调用泛型对象 des 的 copyNotNullProperty("F") 函数，参数为 sou， 要求对象必须有
-     * copyNotNullProperty这个函数，脚手架的反向工程自动生成这个函数 子类可以重写这个函数
-     *
-     * @param des  T
-     * @param sou  T
-     */
-    void copyObjectNotNullProperty(T des, T sou);
-
-    /**
-     * 通过反射调用泛型对象 des 的 copy("F") 函数，参数为 sou， 要求对象必须有
-     * copyNotNullProperty这个函数，脚手架的反向工程自动生成这个函数 子类可以重写这个函数
-     *
-     * @param des  T
-     * @param sou  T
-     */
-    void copyObject(T des, T sou);
-
-    /**
-     * 通过反射调用泛型对象 clearProperties 函数，清楚对象的所有非主键属性的值， 要求对象必须有
-     * clearProperties这个函数，脚手架的反向工程自动生成这个函数 子类可以重写这个函数
-     *
-     * @param des  T
-     */
-    void clearObjectProperties(T des);
 
 }

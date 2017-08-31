@@ -1,5 +1,7 @@
 package com.centit.framework.core.dao;
 
+import com.centit.support.algorithm.NumberBaseOpt;
+
 import java.util.Map;
 
 /**
@@ -9,16 +11,17 @@ import java.util.Map;
 public abstract class QueryParameterPrepare {
     /**
      * 处理翻页参数
+     *
      * @param pageQureyMap pageQureyMap
-     * @param pageDesc pageDesc
-     * @param total total
+     * @param pageDesc     pageDesc
+     * @param total        total
      * @return Map类型
      */
-    public final static Map<String, Object> prepPageParmers
-            (Map<String, Object> pageQureyMap, PageDesc pageDesc, int total) {
+    public final static Map<String, Object> prepPageParams
+    (Map<String, Object> pageQureyMap, PageDesc pageDesc, int total) {
 
-        int pageNo=pageDesc.getPageNo() ;
-        int pageSize=pageDesc.getPageSize();
+        int pageNo = pageDesc.getPageNo();
+        int pageSize = pageDesc.getPageSize();
         int maxPageNo = (total - 1) / pageSize + 1;
         if (maxPageNo < pageNo) {
             pageNo = maxPageNo;// 页码校验
@@ -32,5 +35,19 @@ public abstract class QueryParameterPrepare {
         pageDesc.setTotalRows(total);
         //System.err.println("pageQureyMap========"+JSON.toJSONString(pageQureyMap));
         return pageQureyMap;
+    }
+
+    public final static PageDesc fetckPageDescParams(Map<String, Object> pageQureyMap) {
+        PageDesc pageDesc = new  PageDesc();
+        Integer pageSize = NumberBaseOpt.castObjectToInteger(pageQureyMap.get("maxSize"));
+        if(pageSize!=null)
+            pageDesc.setPage( pageSize );
+
+        Integer startRow = NumberBaseOpt.castObjectToInteger(pageQureyMap.get("maxSize"));
+        if( startRow != null && pageSize!=null && pageSize > 1 ){
+            pageDesc.setPageNo( startRow/pageSize+1);
+        }
+
+        return pageDesc;
     }
 }

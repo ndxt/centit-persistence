@@ -1,6 +1,5 @@
 package com.centit.framework.hibernate.dao;
 
-import com.centit.framework.core.dao.PersistenceException;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.PageDesc;
 import com.centit.framework.core.po.EntityWithDeleteTag;
@@ -10,6 +9,7 @@ import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.KeyValuePair;
+import com.centit.support.database.orm.PersistenceException;
 import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -463,11 +463,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         for(Field field :objFields){
             if(field.isAnnotationPresent(Id.class) ||
             		field.isAnnotationPresent(EmbeddedId.class)){
-            	try {
-					return ReflectionOpt.forceGetFieldValue(poObj, field);
-				} catch (NoSuchFieldException e) {
-					e.printStackTrace();
-				}
+
+				return ReflectionOpt.forceGetFieldValue(poObj, field);
             }
         }
         return null;

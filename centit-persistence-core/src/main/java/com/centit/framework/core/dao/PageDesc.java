@@ -4,6 +4,9 @@ public class PageDesc {
 
     private int totalRows;
     private int pageSize;
+    /**
+     * base 1
+     */
     private int pageNo;
 
     public static PageDesc createNotPaging(){

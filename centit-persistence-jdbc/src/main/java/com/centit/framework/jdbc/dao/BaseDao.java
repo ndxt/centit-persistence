@@ -21,6 +21,10 @@ public interface BaseDao<T extends Serializable, PK extends Serializable>
 
     T getObjectByProperties(Map<String, Object> properties);
 
+    List<T> listObjectsByProperties(Map<String, Object> filterMap);
+
+    List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc);
+
     void updateObject(T o);
 
     void mergeObject(T o) ;
@@ -35,6 +39,6 @@ public interface BaseDao<T extends Serializable, PK extends Serializable>
 
     List<T> pageQuery(Map<String, Object> filterMap) ;
 
-    List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc);
+
 
 }
