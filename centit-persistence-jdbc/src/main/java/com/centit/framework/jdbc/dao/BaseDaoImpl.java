@@ -180,10 +180,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 QueryParameterPrepare.fetckPageDescParams(filterMap) ) ;
     }
 
-    public List<T> listObjects(String sql, Map<String, Object> filterMap){
+    public List<T> listObjectsBySql(String sql, Map<String, Object> filterMap){
 
         QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
-        return getOrmDaoSupport().queryObjectsByNamedParamsSql( sql, qap.getParams(), (Class<T>) getPoClass());
+        return getOrmDaoSupport().queryObjectsByNamedParamsSql( qap.getSql()
+                , qap.getParams(), (Class<T>) getPoClass());
+    }
+
+    public List<T> listObjectsBySql(String sql, Object[] params){
+        return getOrmDaoSupport().queryObjectsByParamsSql( sql, params , (Class<T>) getPoClass());
     }
 
     public List<T> listObjects(Map<String, Object> filterMap) {
