@@ -4,6 +4,7 @@ import com.centit.framework.core.dao.PageDesc;
 import com.centit.framework.core.dao.QueryParameterPrepare;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
+import com.centit.support.database.jsonmaptable.JsonObjectDao;
 import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.OrmDaoSupport;
 import com.centit.support.database.orm.TableMapInfo;
@@ -88,57 +89,65 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return daoSupport;
     }
 
+    protected final JsonObjectDao getJsonObjectDao() {
+        return getOrmDaoSupport().getJsonObjectDao(JpaMetadata.fetchTableMapInfo(getPoClass()) );
+    }
+
+    public Long getSequenceNextValue(final String sequenceName) {
+        return getOrmDaoSupport().getSequenceNextValue(sequenceName);
+    }
+
     public void deleteObject(T o){
-        daoSupport.deleteObject(o);
+        getOrmDaoSupport().deleteObject(o);
     }
 
     public void deleteObjectById(PK id){
-        daoSupport.deleteObjectById(id, getPoClass());
+        getOrmDaoSupport().deleteObjectById(id, getPoClass());
     }
 
     public void saveNewObject(T o){
-        daoSupport.saveNewObject(o);
+        getOrmDaoSupport().saveNewObject(o);
     }
 
     public T getObjectById(PK id){
-        return daoSupport.getObjectById(id,(Class<T>)getPoClass() );
+        return getOrmDaoSupport().getObjectById(id,(Class<T>)getPoClass() );
     }
 
     public T getObjectByProperties(Map<String, Object> properties){
-        return daoSupport.getObjectByProperties(properties,(Class<T>)getPoClass());
+        return getOrmDaoSupport().getObjectByProperties(properties,(Class<T>)getPoClass());
     }
 
     public List<T> listObjectsByProperties(Map<String, Object> filterMap){
-        return daoSupport.listObjectsByProperties( filterMap, (Class<T>)getPoClass());
+        return getOrmDaoSupport().listObjectsByProperties( filterMap, (Class<T>)getPoClass());
     }
 
     public List<T> listObjectsByProperties(Map<String, Object> filterMap, PageDesc pageDesc){
-        pageDesc.setTotalRows(daoSupport.fetchObjectsCount( filterMap, (Class<T>)getPoClass() ) );
-        return daoSupport.listObjectsByProperties( filterMap, (Class<T>)getPoClass(),
+        pageDesc.setTotalRows(getOrmDaoSupport().fetchObjectsCount( filterMap, (Class<T>)getPoClass() ) );
+        return getOrmDaoSupport().listObjectsByProperties( filterMap, (Class<T>)getPoClass(),
                 pageDesc.getRowStart(), pageDesc.getPageSize());
     }
 
     public void updateObject(T o){
-        daoSupport.updateObject(o);
+        getOrmDaoSupport().updateObject(o);
     }
 
     public void mergeObject(T o) {
-        daoSupport.mergeObject(o);
+        getOrmDaoSupport().mergeObject(o);
     }
 
     public List<T> listObjects(){
-        return daoSupport.listAllObjects((Class<T>)getPoClass());
+        return getOrmDaoSupport().listAllObjects((Class<T>)getPoClass());
     }
 
     public int pageCount(String sql, Map<String, Object> filterMap){
         QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
-        return daoSupport.fetchObjectsCount(qap.getSql(), qap.getParams() );
+        return getOrmDaoSupport().fetchObjectsCount(qap.getSql(), qap.getParams() );
     }
 
     public int pageCount(Map<String, Object> filterMap){
         String sql = getQueryFilterString();
         if(StringUtils.isBlank( sql )){
-            return daoSupport.fetchObjectsCount( filterMap, (Class<T>)getPoClass() );
+            return getOrmDaoSupport().fetchObjectsCount( filterMap, (Class<T>)getPoClass() );
         }
         return pageCount(sql, filterMap);
     }
@@ -147,8 +156,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
         QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
         pageDesc.setTotalRows(
-                daoSupport.fetchObjectsCount( QueryUtils.buildGetCountSQL(qap.getSql()),qap.getParams()));
-        return daoSupport.queryObjectsByNamedParamsSql( sql, qap.getParams(), (Class<T>) getPoClass(),
+                getOrmDaoSupport().fetchObjectsCount( QueryUtils.buildGetCountSQL(qap.getSql()),qap.getParams()));
+        return getOrmDaoSupport().queryObjectsByNamedParamsSql( sql, qap.getParams(), (Class<T>) getPoClass(),
                 pageDesc.getRowStart(), pageDesc.getPageSize() );
     }
 
@@ -165,6 +174,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 QueryParameterPrepare.fetckPageDescParams(filterMap) ) ;
     }
 
+
     public List<T> pageQuery(Map<String, Object> filterMap) {
         return pageQuery(filterMap,
                 QueryParameterPrepare.fetckPageDescParams(filterMap) ) ;
@@ -173,7 +183,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public List<T> listObjects(String sql, Map<String, Object> filterMap){
 
         QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
-        return daoSupport.queryObjectsByNamedParamsSql( sql, qap.getParams(), (Class<T>) getPoClass());
+        return getOrmDaoSupport().queryObjectsByNamedParamsSql( sql, qap.getParams(), (Class<T>) getPoClass());
     }
 
     public List<T> listObjects(Map<String, Object> filterMap) {
@@ -182,5 +192,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             return listObjectsByProperties(filterMap);
         }
         return listObjects(sql, filterMap);
+    }
+
+    public List<T> listObjects(String propertyName, Object propertyValue) {
+        return listObjects(QueryUtils.createSqlParamsMap( propertyName, propertyValue));
     }
 }

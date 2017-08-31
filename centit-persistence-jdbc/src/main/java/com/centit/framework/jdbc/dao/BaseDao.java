@@ -11,6 +11,8 @@ import java.util.Map;
 
 public interface BaseDao<T extends Serializable, PK extends Serializable>
 {
+    Long getSequenceNextValue(final String sequenceName);
+
     void deleteObject(T o);
 
     void deleteObjectById(PK id);
@@ -33,12 +35,10 @@ public interface BaseDao<T extends Serializable, PK extends Serializable>
 
     int pageCount(String sql, Map<String, Object> filterMap) ;
 
-    int pageCount(Map<String, Object> filterMap) ;
+    int pageCount(Map<String, Object> filterMap);
 
     List<T> pageQuery(String sql, Map<String, Object> filterMap);
 
-    List<T> pageQuery(Map<String, Object> filterMap) ;
-
-
+    List<T> pageQuery(Map<String, Object> filterMap);
 
 }
