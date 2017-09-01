@@ -7,6 +7,7 @@ import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
 import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.OrmDaoSupport;
+import com.centit.support.database.orm.PersistenceException;
 import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
@@ -31,6 +32,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     protected static Logger logger = LoggerFactory.getLogger(BaseDaoImpl.class);
     private Class<?> poClass = null;
     private Class<?> pkClass = null;
+
+    private DataSource dataSource;
+    private OrmDaoSupport daoSupport;
+
     private final void fetchTypeParams(){
         ParameterizedType genType = (ParameterizedType) getClass()
                 .getGenericSuperclass();
@@ -46,21 +51,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return poClass;
     }
 
-    public String getQueryFilterString(){
-        String querySql = JpaMetadata.getExtendedSql(
-                FileType.getFileExtName(getPoClass().getName())+"_QUERY_0");
-        if(StringUtils.isBlank( querySql))
-            return null;
-        if("[".equals(Lexer.getFirstWord(querySql))){
-            TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-            if(mapInfo==null)
-                return null;
-            querySql = "select " + GeneralJsonObjectDao.buildFieldSql( mapInfo, null) +
-                    " where 1=1 " + querySql;
-        }
-        return querySql;
-    }
-
     public final Class<?> getPkClass() {
         if (pkClass == null) {
             fetchTypeParams();
@@ -68,8 +58,38 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return pkClass;
     }
 
-    private DataSource dataSource;
-    private OrmDaoSupport daoSupport;
+    public String encapsulateFilterToSql(String filterQuery){
+        //QueryUtils.hasOrderBy(filterQuery)
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        if(mapInfo==null)
+            throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION,
+                    "没有对应的元数据信息："+getPoClass().getName());
+
+        return  "select " + GeneralJsonObjectDao.buildFieldSql( mapInfo, null) +
+                " where 1=1 " + filterQuery +
+                ( StringUtils.isBlank( mapInfo.getOrderBy()) ? "" : " order by " +mapInfo.getOrderBy())
+                ;
+    }
+
+    public String getExtendFilterQuerySql(){
+        return JpaMetadata.getExtendedSql(
+                FileType.getFileExtName(getPoClass().getName())+"_QUERY_0");
+    }
+
+    /**
+     * 每个dao都需要重载这个函数已获得自定义的查询条件，否则listObjects、pageQuery就等价与listObjectsByProperties
+     * @return FilterQuery
+     */
+    public String getFilterQuerySql(){
+        String querySql = getExtendFilterQuerySql();
+        if(StringUtils.isBlank( querySql))
+            return null;
+        if("[".equals(Lexer.getFirstWord(querySql))){
+            return encapsulateFilterToSql(querySql);
+        }
+        return querySql;
+    }
+
     /**
      * Set the JDBC DataSource to obtain connections from.
      */
@@ -145,7 +165,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public int pageCount(Map<String, Object> filterMap){
-        String sql = getQueryFilterString();
+        String sql = getFilterQuerySql();
         if(StringUtils.isBlank( sql )){
             return getOrmDaoSupport().fetchObjectsCount( filterMap, (Class<T>)getPoClass() );
         }
@@ -162,7 +182,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public List<T> pageQuery(Map<String, Object> filterMap, PageDesc pageDesc) {
-        String sql = getQueryFilterString();
+        String sql = getFilterQuerySql();
         if(StringUtils.isBlank( sql )){
             return listObjectsByProperties( filterMap, pageDesc);
         }
@@ -192,11 +212,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public List<T> listObjects(Map<String, Object> filterMap) {
-        String sql = getQueryFilterString();
+        String sql = getFilterQuerySql();
         if(StringUtils.isBlank( sql )){
             return listObjectsByProperties(filterMap);
         }
-        return listObjects(sql, filterMap);
+        return listObjectsBySql(sql, filterMap);
     }
 
     public List<T> listObjects(String propertyName, Object propertyValue) {
