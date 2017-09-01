@@ -1,20 +1,23 @@
 package com.centit.framework.jdbc.dao;
 
+import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.core.dao.PageDesc;
 import com.centit.framework.core.dao.QueryParameterPrepare;
+import com.centit.framework.jdbc.orm.JpaMetadata;
+import com.centit.framework.jdbc.orm.OrmDaoUtils;
+import com.centit.framework.jdbc.orm.TableMapInfo;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
-import com.centit.support.database.jsonmaptable.JsonObjectDao;
-import com.centit.support.database.orm.JpaMetadata;
-import com.centit.support.database.orm.OrmDaoSupport;
-import com.centit.support.database.orm.PersistenceException;
-import com.centit.support.database.orm.TableMapInfo;
+import com.centit.support.database.utils.PersistenceException;
 import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
 import com.centit.support.file.FileType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
+import org.springframework.jdbc.core.ConnectionCallback;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.annotation.Resource;
@@ -26,15 +29,52 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused","unchecked"})
 public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializable>
 {
     protected static Logger logger = LoggerFactory.getLogger(BaseDaoImpl.class);
     private Class<?> poClass = null;
     private Class<?> pkClass = null;
 
-    private DataSource dataSource;
-    private OrmDaoSupport daoSupport;
+
+
+    protected JdbcTemplate jdbcTemplate;
+    /**
+     * Set the JDBC DataSource to obtain connections from.
+     */
+    @Resource
+    public void setDataSource(DataSource dataSource) {
+        if (this.jdbcTemplate == null || dataSource != this.jdbcTemplate.getDataSource()) {
+            this.jdbcTemplate = new JdbcTemplate(dataSource);
+        }
+    }
+
+    public final JdbcTemplate getJdbcTemplate() {
+        return this.jdbcTemplate;
+    }
+
+    public final DataSource getDataSource() {
+        return (this.jdbcTemplate != null ? this.jdbcTemplate.getDataSource() : null);
+    }
+    /**
+     * Get a JDBC Connection, either from the current transaction or a new one.
+     * @return the JDBC Connection
+     * @throws CannotGetJdbcConnectionException if the attempt to get a Connection failed
+     * @see org.springframework.jdbc.datasource.DataSourceUtils#getConnection(javax.sql.DataSource)
+     */
+    protected final Connection getConnection() throws CannotGetJdbcConnectionException {
+        return DataSourceUtils.getConnection(getDataSource());
+    }
+
+    /**
+     * Close the given JDBC Connection, created via this DAO's DataSource,
+     * if it isn't bound to the thread.
+     * @param con Connection to close
+     * @see org.springframework.jdbc.datasource.DataSourceUtils#releaseConnection
+     */
+    protected final void releaseConnection(Connection con) {
+        DataSourceUtils.releaseConnection(con, getDataSource());
+    }
 
     private final void fetchTypeParams(){
         ParameterizedType genType = (ParameterizedType) getClass()
@@ -72,7 +112,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public String getExtendFilterQuerySql(){
-        return JpaMetadata.getExtendedSql(
+        return ExtendedQueryPool.getExtendedSql(
                 FileType.getFileExtName(getPoClass().getName())+"_QUERY_0");
     }
 
@@ -90,84 +130,87 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return querySql;
     }
 
-    /**
-     * Set the JDBC DataSource to obtain connections from.
-     */
-    @Resource
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    protected final Connection getConnection() {
-        return DataSourceUtils.getConnection( this.dataSource );
-    }
-
-    public final OrmDaoSupport getOrmDaoSupport()  {
-        if(daoSupport==null && dataSource!=null){
-            daoSupport = new OrmDaoSupport( getConnection() );
-        }
-        return daoSupport;
-    }
-
-    protected final JsonObjectDao getJsonObjectDao() {
-        return getOrmDaoSupport().getJsonObjectDao(JpaMetadata.fetchTableMapInfo(getPoClass()) );
-    }
-
-    public Long getSequenceNextValue(final String sequenceName) {
-        return getOrmDaoSupport().getSequenceNextValue(sequenceName);
-    }
-
     public void deleteObject(T o){
-        getOrmDaoSupport().deleteObject(o);
+       /* Integer execute = */
+       jdbcTemplate.execute(
+               (ConnectionCallback<Integer>) conn ->
+                       OrmDaoUtils.deleteObject(conn, o));
     }
 
     public void deleteObjectById(PK id){
-        getOrmDaoSupport().deleteObjectById(id, getPoClass());
+        jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.deleteObjectById(conn, id, getPoClass()));
     }
 
     public void saveNewObject(T o){
-        getOrmDaoSupport().saveNewObject(o);
+         /* Integer execute = */
+        jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.saveNewObject(conn, o));
     }
 
     public T getObjectById(PK id){
-        return getOrmDaoSupport().getObjectById(id,(Class<T>)getPoClass() );
+        return jdbcTemplate.execute(
+                (ConnectionCallback<T>) conn ->
+                        OrmDaoUtils.getObjectById(conn, id, (Class<T>)getPoClass()));
     }
 
     public T getObjectByProperties(Map<String, Object> properties){
-        return getOrmDaoSupport().getObjectByProperties(properties,(Class<T>)getPoClass());
+        return jdbcTemplate.execute(
+                (ConnectionCallback<T>) conn ->
+                        OrmDaoUtils.getObjectByProperties(conn, properties, (Class<T>)getPoClass()));
     }
 
     public List<T> listObjectsByProperties(Map<String, Object> filterMap){
-        return getOrmDaoSupport().listObjectsByProperties( filterMap, (Class<T>)getPoClass());
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn ->
+                        OrmDaoUtils.listObjectsByProperties(conn, filterMap, (Class<T>)getPoClass()));
     }
 
     public List<T> listObjectsByProperties(Map<String, Object> filterMap, PageDesc pageDesc){
-        pageDesc.setTotalRows(getOrmDaoSupport().fetchObjectsCount( filterMap, (Class<T>)getPoClass() ) );
-        return getOrmDaoSupport().listObjectsByProperties( filterMap, (Class<T>)getPoClass(),
-                pageDesc.getRowStart(), pageDesc.getPageSize());
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn -> {
+                    pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn, filterMap, (Class<T>)getPoClass() ) );
+                    return OrmDaoUtils.listObjectsByProperties( conn, filterMap, (Class<T>)getPoClass(),
+                            pageDesc.getRowStart(), pageDesc.getPageSize());
+                }
+        );
+
     }
 
     public void updateObject(T o){
-        getOrmDaoSupport().updateObject(o);
+        jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.updateObject(conn, o));
     }
 
     public void mergeObject(T o) {
-        getOrmDaoSupport().mergeObject(o);
+        jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.mergeObject(conn, o));
     }
 
     public List<T> listObjects(){
-        return getOrmDaoSupport().listAllObjects((Class<T>)getPoClass());
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn ->
+                        OrmDaoUtils.listAllObjects(conn, (Class<T>)getPoClass()));
     }
 
     public int pageCount(String sql, Map<String, Object> filterMap){
         QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
-        return getOrmDaoSupport().fetchObjectsCount(qap.getSql(), qap.getParams() );
+        return jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.fetchObjectsCount(conn, qap.getSql(), qap.getParams() ));
+
     }
 
     public int pageCount(Map<String, Object> filterMap){
         String sql = getFilterQuerySql();
         if(StringUtils.isBlank( sql )){
-            return getOrmDaoSupport().fetchObjectsCount( filterMap, (Class<T>)getPoClass() );
+            return jdbcTemplate.execute(
+                    (ConnectionCallback<Integer>) conn ->
+                            OrmDaoUtils.fetchObjectsCount(conn, filterMap, (Class<T>)getPoClass()));
         }
         return pageCount(sql, filterMap);
     }
@@ -175,10 +218,14 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public List<T> pageQuery(String sql, Map<String, Object> filterMap, PageDesc pageDesc){
 
         QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
-        pageDesc.setTotalRows(
-                getOrmDaoSupport().fetchObjectsCount( QueryUtils.buildGetCountSQL(qap.getSql()),qap.getParams()));
-        return getOrmDaoSupport().queryObjectsByNamedParamsSql( sql, qap.getParams(), (Class<T>) getPoClass(),
-                pageDesc.getRowStart(), pageDesc.getPageSize() );
+
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn -> {
+                    pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn, QueryUtils.buildGetCountSQL(qap.getSql()),qap.getParams()));
+                    return OrmDaoUtils.queryObjectsByNamedParamsSql(conn, sql, qap.getParams(), (Class<T>) getPoClass(),
+                            pageDesc.getRowStart(), pageDesc.getPageSize() );
+                }
+        );
     }
 
     public List<T> pageQuery(Map<String, Object> filterMap, PageDesc pageDesc) {
@@ -203,12 +250,16 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public List<T> listObjectsBySql(String sql, Map<String, Object> filterMap){
 
         QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
-        return getOrmDaoSupport().queryObjectsByNamedParamsSql( qap.getSql()
-                , qap.getParams(), (Class<T>) getPoClass());
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn ->
+                        OrmDaoUtils.queryObjectsByNamedParamsSql(conn,  qap.getSql() ,
+                                qap.getParams(), (Class<T>) getPoClass()));
     }
 
     public List<T> listObjectsBySql(String sql, Object[] params){
-        return getOrmDaoSupport().queryObjectsByParamsSql( sql, params , (Class<T>) getPoClass());
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn ->
+                        OrmDaoUtils.queryObjectsByParamsSql(conn,  sql, params , (Class<T>) getPoClass()));
     }
 
     public List<T> listObjects(Map<String, Object> filterMap) {
@@ -222,4 +273,5 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public List<T> listObjects(String propertyName, Object propertyValue) {
         return listObjects(QueryUtils.createSqlParamsMap( propertyName, propertyValue));
     }
+
 }
