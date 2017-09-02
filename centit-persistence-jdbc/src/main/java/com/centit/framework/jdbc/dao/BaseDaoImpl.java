@@ -1,22 +1,26 @@
 package com.centit.framework.jdbc.dao;
 
 import com.alibaba.fastjson.JSONArray;
+import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.core.dao.PageDesc;
 import com.centit.framework.core.dao.QueryParameterPrepare;
 import com.centit.support.algorithm.ListOpt;
-import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
+import com.centit.support.database.metadata.SimpleTableField;
+import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.orm.TableMapInfo;
-import com.centit.support.database.utils.DatabaseAccess;
 import com.centit.support.database.utils.PersistenceException;
 import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
 import com.centit.support.file.FileType;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +31,12 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -124,22 +127,140 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 FileType.getFileExtName(getPoClass().getName())+"_QUERY_0");
     }
 
+    public abstract Map<String, String> getFilterField();
+
+
+    private static ImmutablePair<String,String> parseParameter(String sParameter){
+        int e = sParameter.indexOf(')');
+        if(e>0){
+            int b = sParameter.indexOf('(') + 1;
+            /* b =  b<0 ? 0 :  b+1;*/
+            String paramPretreatment = sParameter.substring(b, e).trim();
+            String paramAlias =  sParameter.substring(e+1).trim();
+            return new ImmutablePair<>(paramAlias,paramPretreatment);
+        }else
+            return new ImmutablePair<>(sParameter,null);
+    }
+
+    public static Map<String,Pair<String,String>>
+    getFilterFieldWithPretreatment( Map<String, String> fieldMap) {
+        if(fieldMap==null)
+            return null;
+        Map<String,Pair<String,String>> filterFieldWithPretreatment =
+                new HashMap<>(fieldMap.size()*2) ;
+
+        if(fieldMap==null)
+            return filterFieldWithPretreatment;
+
+        for (Map.Entry<String, String> ent : fieldMap.entrySet()) {
+            if(StringUtils.isNotBlank( ent.getKey() )) {
+                ImmutablePair<String, String> paramMeta =
+                        parseParameter(ent.getKey());
+                filterFieldWithPretreatment.put(paramMeta.left,
+                        new ImmutablePair<>(ent.getValue(), paramMeta.getRight()));
+            }
+        }
+        return filterFieldWithPretreatment;
+    }
+
     /**
      * 每个dao都需要重载这个函数已获得自定义的查询条件，否则listObjects、pageQuery就等价与listObjectsByProperties
      * @return FilterQuery
      */
-    public abstract String getDaoEmbeddedFilter();
+    public String buildFieldFilterSql(String alias){
+        StringBuilder sBuilder= new StringBuilder();
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        boolean addAlias = StringUtils.isNotBlank(alias);
+        Map<String,Pair<String,String>> fieldFilter =
+                getFilterFieldWithPretreatment(getFilterField());
+        for(TableField col : mapInfo.getColumns() ){
+            if(fieldFilter == null || ! fieldFilter.containsKey(col.getPropertyName())) {
+                sBuilder.append(" [:").append(col.getPropertyName()).append("| and ")
+                        .append(col.getColumnName()).append(" = :").append(col.getPropertyName())
+                        .append(" ]");
+            }
+        }
+
+        if(fieldFilter!=null){
+            for (Map.Entry<String, Pair<String,String>> ent : fieldFilter.entrySet()) {
+                String skey = ent.getKey();
+                String sSqlFormat = ent.getValue().getLeft();
+
+                if (skey.startsWith(CodeBook.NO_PARAM_FIX)) {
+                    sBuilder.append(" [").append(skey).append("| and ")
+                            .append(sSqlFormat )
+                            .append(" ]");
+                }else{
+                    String pretreatment = ent.getValue().getRight();
+                    if (sSqlFormat.equalsIgnoreCase(CodeBook.EQUAL_HQL_ID)) {
+                        SimpleTableField col = mapInfo.findFieldByName(skey);
+                        if(col!=null) {
+                            sBuilder.append(" [:");
+                            if (StringUtils.isNotBlank(pretreatment)){
+                                sBuilder.append("(").append(pretreatment).append(")");
+                            }
+                            sBuilder.append(skey).append("| and ")
+                                    .append(col.getColumnName()).append(" = :").append(col.getPropertyName())
+                                    .append(" ]");
+                        }
+                    } else if (sSqlFormat.equalsIgnoreCase(CodeBook.LIKE_HQL_ID)) {
+                        SimpleTableField col = mapInfo.findFieldByName(skey);
+                        if(col!=null) {
+                            sBuilder.append(" [:(")
+                                    .append(StringUtils.isBlank(pretreatment)?"like":pretreatment)
+                                    .append(")").append(skey).append("| and ")
+                                    .append(col.getColumnName()).append(" like :").append(col.getPropertyName())
+                                    .append(" ]");
+                        }
+                    } else if (sSqlFormat.equalsIgnoreCase(CodeBook.IN_HQL_ID)) {
+                        SimpleTableField col = mapInfo.findFieldByName(skey);
+                        if(col!=null) {
+                            sBuilder.append(" [:");
+                            if (StringUtils.isNotBlank(pretreatment)){
+                                sBuilder.append("(").append(pretreatment).append(")");
+                            }
+                            sBuilder.append(skey).append("| and ")
+                                    .append(col.getColumnName()).append(" in (:").append(col.getPropertyName())
+                                    .append(") ]");
+                        }
+                    } else {
+                        if( "[".equals(Lexer.getFirstWord( sSqlFormat))){
+                            sBuilder.append( sSqlFormat );
+                        } else {
+                            sBuilder.append(" [:");
+                            if (StringUtils.isNotBlank(pretreatment)){
+                                sBuilder.append("(").append(pretreatment).append(")");
+                            }
+                            sBuilder.append(skey).append("| and ")
+                                    .append(sSqlFormat)
+                                    .append(" ]");
+                        }
+                    }
+                }// else
+            }// for
+        }//if(fieldFilter!=null)
+        return sBuilder.toString();
+    }
+
+    private String daoEmbeddedFilter;
+    public String buildDefaultFieldFilterSql(){
+        if(daoEmbeddedFilter==null){
+            daoEmbeddedFilter = buildFieldFilterSql(null);
+        }
+        return daoEmbeddedFilter;
+    }
 
     public final String getFilterQuerySql(){
         String querySql = getExtendFilterQuerySql();
-        if(StringUtils.isBlank( querySql))
-            querySql = getDaoEmbeddedFilter();
-        if(StringUtils.isBlank( querySql))
-            return null;
-        if("[".equals(Lexer.getFirstWord(querySql))){
+        if(StringUtils.isBlank( querySql)) {
+            querySql = buildDefaultFieldFilterSql();
             return encapsulateFilterToSql(querySql);
+        }else {
+            if ("[".equals(Lexer.getFirstWord(querySql))) {
+                return encapsulateFilterToSql(querySql);
+            }
+            return querySql;
         }
-        return querySql;
     }
 
     public void saveNewObject(T o){
