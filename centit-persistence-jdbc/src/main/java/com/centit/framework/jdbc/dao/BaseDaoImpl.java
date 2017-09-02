@@ -339,50 +339,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     /* 下面所有的查询都返回 jsonArray */
 
-    public JSONArray listObjectsBySqlAsJson(String querySql, String[] fieldNames , String queryCountSql,
-                                            Map<String, Object> filterMap,  PageDesc pageDesc /*,
-                                      Map<String,KeyValuePair<String,String>> dictionaryMapInfo*/ ) {
-
-        QueryAndNamedParams queryQap = QueryUtils.translateQuery(querySql, filterMap);
-        QueryAndNamedParams queryCountQap = QueryUtils.translateQuery(queryCountSql, filterMap);
-        return jdbcTemplate.execute(
-                (ConnectionCallback<JSONArray>) conn -> {
-                    try {
-                        pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
-                                DatabaseAccess.getScalarObjectQuery(
-                                        conn, queryQap.getSql(), queryQap.getParams())));
-                        return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(),
-                                queryQap.getParams(), fieldNames, pageDesc.getPageNo(), pageDesc.getPageSize());
-                    } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
-                    }
-                });
-    }
-
-    public JSONArray listObjectsBySqlAsJson(String querySql,  String[] fieldNames ,
-                                            Map<String, Object> filterMap,  PageDesc pageDesc) {
-
-        return listObjectsBySqlAsJson(querySql, fieldNames ,
-                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
-    }
-
-
-    public JSONArray listObjectsBySqlAsJson(String querySql,  String queryCountSql,
-                                      Map<String, Object> filterMap,  PageDesc pageDesc ) {
-
-        return listObjectsBySqlAsJson(querySql, null ,  queryCountSql, filterMap,   pageDesc  );
-    }
-
-    public JSONArray listObjectsBySqlAsJson(String querySql,
-                                            Map<String, Object> filterMap,  PageDesc pageDesc ) {
-
-        return listObjectsBySqlAsJson(querySql, null ,
-                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
-    }
-
-
     public JSONArray listObjectsBySqlAsJson(Map<String, Object> filterMap,  PageDesc pageDesc  ) {
 
         String querySql = getFilterQuerySql();
@@ -399,7 +355,12 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 querySql = querySql + " order by " + mapInfo.getOrderBy();
         }
 
-        return listObjectsBySqlAsJson(querySql, q.getRight() ,
+        return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, q.getRight() ,
+                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
+    }
+
+    public JSONArray listObjectsBySqlAsJson(String querySql, Map<String, Object> filterMap,  PageDesc pageDesc  ) {
+        return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, null ,
                 QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
     }
 
