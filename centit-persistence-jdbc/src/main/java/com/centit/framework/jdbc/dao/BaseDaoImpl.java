@@ -4,10 +4,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.core.dao.PageDesc;
 import com.centit.framework.core.dao.QueryParameterPrepare;
+import com.centit.support.algorithm.ListOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.common.KeyValuePair;
+import com.centit.support.database.jsonmaptable.JsonObjectDao;
 import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.OrmDaoUtils;
+import com.centit.support.database.orm.OrmUtils;
 import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
@@ -34,6 +37,7 @@ import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -164,6 +168,30 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.updateObject(conn, o));
     }
 
+    public void updateObject(Collection<String> fields, T object)
+            throws PersistenceException  {
+        jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.updateObject(conn,fields, object));
+    }
+
+    public void batchUpdateObject(Collection<String> fields, T object, Map<String, Object> properties){
+        jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.batchUpdateObject(conn,fields, object,properties));
+    }
+
+
+    public void updateObject(String [] fields , T object)
+            throws PersistenceException  {
+        updateObject(ListOpt.arrayToList(fields),object);
+    }
+
+    public void batchUpdateObject(String [] fields, T object, Map<String, Object> properties){
+        batchUpdateObject(ListOpt.arrayToList(fields), object,properties);
+    }
+
+
     public void mergeObject(T o) {
         jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
@@ -176,10 +204,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.getObjectById(conn, id, (Class<T>)getPoClass()));
     }
 
-    public T getObjectIncludeLzayById(PK id){
+    public T getObjectIncludeLazyById(PK id){
         return jdbcTemplate.execute(
                 (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.getObjectIncludeLzayById(conn, id, (Class<T>)getPoClass()));
+                        OrmDaoUtils.getObjectIncludeLazyById(conn, id, (Class<T>)getPoClass()));
     }
 
 
