@@ -251,6 +251,14 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.getObjectByProperties(conn, properties, (Class<T>)getPoClass()));
     }
 
+    public List<T> listObjectsByProperty(String propertyName, Object value){
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn ->
+                        OrmDaoUtils.listObjectsByProperties(conn,
+                                QueryUtils.createSqlParamsMap(propertyName, value),
+                                (Class<T>)getPoClass()));
+    }
+
     public List<T> listObjectsByProperties(Map<String, Object> filterMap){
         return jdbcTemplate.execute(
                 (ConnectionCallback<List<T>>) conn ->
