@@ -1,5 +1,6 @@
 package com.centit.framework.jdbc.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.PageDesc;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.support.database.utils.QueryUtils;
@@ -112,53 +113,6 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
         baseDao.deleteObjectById(id);
     }
 
-    /**
-     * @param shql      sql,hql语句
-     * @param filterMap 过滤条件
-     * @return listObjects
-     */
-    @Override
-    @Transactional
-    public List<T> listObjects(String shql, Map<String, Object> filterMap) {
-        return baseDao.listObjects();
-    }
-
-    /**
-     * @param filterMap 过滤条件
-     * @return listObjects
-     */
-    @Override
-    @Transactional
-    public List<T> listObjects(Map<String, Object> filterMap) {
-        return baseDao.listObjects(filterMap);
-    }
-
-    /**
-     * 配合 EC Table 设计的一个查询语句
-     *
-     * @param shql      sql,hql语句
-     * @param filterMap 过滤条件
-     * @param pageDesc  分页属性
-     * @return listObjects
-     */
-    @Override
-    @Transactional
-    public List<T> listObjects(String shql, Map<String, Object> filterMap, PageDesc pageDesc) {
-        return baseDao.pageQuery(shql,filterMap,pageDesc);
-    }
-
-    /**
-     * 配合 EC Table 设计的一个查询语句，将 filterMap 组装成对应的Hql语句 调用对应的 getObjects
-     *
-     * @param filterMap 过滤条件
-     * @param pageDesc  分页属性
-     * @return listObjects
-     */
-    @Override
-    @Transactional
-    public List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc) {
-        return baseDao.pageQuery(filterMap,pageDesc);
-    }
 
     /**
      * 根据唯一属性值返回对象
@@ -184,5 +138,18 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
     @Transactional
     public T getObjectByProperties(Map<String, Object> properties) {
         return baseDao.getObjectByProperties(properties);
+    }
+
+    @Override
+    @Transactional
+    public JSONArray listObjectsBySqlAsJson(Map<String, Object> filterMap, PageDesc pageDesc  ){
+        return baseDao.listObjectsBySqlAsJson(filterMap, pageDesc );
+    }
+
+    @Override
+    @Transactional
+    public JSONArray listObjectsBySqlAsJson(String querySql,
+                                            Map<String, Object> filterMap,  PageDesc pageDesc ) {
+        return baseDao.listObjectsBySqlAsJson(querySql, filterMap, pageDesc);
     }
 }

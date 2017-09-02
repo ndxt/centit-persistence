@@ -1,5 +1,6 @@
 package com.centit.framework.jdbc.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.PageDesc;
 
 import java.io.Serializable;
@@ -63,37 +64,6 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      */
     void deleteObjectById(PK id);
 
-    /**
-     * @param shql sql,hql语句
-     * @param filterMap 过滤条件
-     * @return listObjects
-     */
-    List<T> listObjects(String shql, Map<String, Object> filterMap);
-
-    /**
-     * @param filterMap 过滤条件
-     * @return listObjects
-     */
-    List<T> listObjects(Map<String, Object> filterMap);
-
-    /**
-     * 配合 EC Table 设计的一个查询语句
-     *
-     * @param shql sql,hql语句
-     * @param filterMap 过滤条件
-     * @param pageDesc  分页属性
-     * @return listObjects
-     */
-    List<T> listObjects(String shql, Map<String, Object> filterMap, PageDesc pageDesc);
-
-    /**
-     * 配合 EC Table 设计的一个查询语句，将 filterMap 组装成对应的Hql语句 调用对应的 getObjects
-     *
-     * @param filterMap 过滤条件
-     * @param pageDesc  分页属性
-     * @return listObjects
-     */
-    List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc);
 
     /**
      * 根据唯一属性值返回对象
@@ -112,4 +82,9 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      */
     T getObjectByProperties(Map<String, Object> properties);
 
+
+    JSONArray listObjectsBySqlAsJson(Map<String, Object> filterMap, PageDesc pageDesc  );
+
+    JSONArray listObjectsBySqlAsJson(String querySql,
+                                            Map<String, Object> filterMap,  PageDesc pageDesc );
 }
