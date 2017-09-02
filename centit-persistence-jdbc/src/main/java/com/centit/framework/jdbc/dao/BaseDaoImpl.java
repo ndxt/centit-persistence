@@ -403,4 +403,47 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
     }
 
+
+    public JSONArray listObjectsBySqlAsJson(String querySql,  String queryCountSql,
+                                            Object[] params,  PageDesc pageDesc ) {
+
+         return jdbcTemplate.execute(
+                (ConnectionCallback<JSONArray>) conn -> {
+                    try {
+                        pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
+                                DatabaseAccess.getScalarObjectQuery(
+                                        conn, queryCountSql, params)));
+                        return DatabaseAccess.findObjectsAsJSON(conn, querySql ,
+                                params, null, pageDesc.getPageNo(), pageDesc.getPageSize());
+                    } catch (IOException e) {
+                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
+                    } catch (SQLException e) {
+                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    }
+                });
+    }
+
+    public JSONArray listObjectsBySqlAsJson(String querySql,
+                                            Object[] params,  PageDesc pageDesc ) {
+        return listObjectsBySqlAsJson(querySql, QueryUtils.buildGetCountSQLBySubSelect(querySql ),
+                params , pageDesc);
+
+    }
+
+    public JSONArray listObjectsBySqlAsJson(String querySql,  Object[] params ) {
+
+        return jdbcTemplate.execute(
+                (ConnectionCallback<JSONArray>) conn -> {
+                    try {
+
+                        return DatabaseAccess.findObjectsAsJSON(conn, querySql, params);
+                    } catch (IOException e) {
+                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
+                    } catch (SQLException e) {
+                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    }
+                });
+    }
+
+
 }
