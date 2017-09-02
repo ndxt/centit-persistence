@@ -152,10 +152,16 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                        OrmDaoUtils.deleteObject(conn, o));
     }
 
-    public void deleteObjectById(PK id){
+    public void deleteObjectById(Object id){
         jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.deleteObjectById(conn, id, getPoClass()));
+    }
+
+    public void deleteObjectsByProperties(Map<String, Object> filterMap){
+        jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.deleteObjectByProperties(conn, filterMap, getPoClass()));
     }
 
     public void updateObject(T o){
@@ -194,13 +200,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.mergeObject(conn, o));
     }
 
-    public T getObjectById(PK id){
+    public T getObjectById(Object id){
         return jdbcTemplate.execute(
                 (ConnectionCallback<T>) conn ->
                         OrmDaoUtils.getObjectById(conn, id, (Class<T>)getPoClass()));
     }
 
-    public T getObjectIncludeLazyById(PK id){
+    public T getObjectIncludeLazyById(Object id){
         return jdbcTemplate.execute(
                 (ConnectionCallback<T>) conn ->
                         OrmDaoUtils.getObjectIncludeLazyById(conn, id, (Class<T>)getPoClass()));
