@@ -359,4 +359,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
     }
 
+    public JSONArray listObjectsBySqlAsJson(String querySql, Map<String, Object> filterMap,  PageDesc pageDesc  ) {
+        return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, null ,
+                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
+    }
+
 }
