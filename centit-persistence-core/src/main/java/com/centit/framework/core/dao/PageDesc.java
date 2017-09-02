@@ -39,6 +39,12 @@ public class PageDesc {
         this.totalRows = totalRows;
     }
 
+    public void setTotalRows(Integer totalRows) {
+        if(totalRows==null)
+            this.totalRows = 0;
+        this.totalRows = totalRows;
+    }
+
     public int getPageSize() {
         return pageSize;
     }
