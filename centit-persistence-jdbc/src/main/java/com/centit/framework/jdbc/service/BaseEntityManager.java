@@ -82,9 +82,21 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      */
     T getObjectByProperties(Map<String, Object> properties);
 
-
+    /**
+     * 查询数据库，只能查询Po对应的表
+     * @param filterMap 过滤条件
+     * @param pageDesc 分页信息
+     * @return JSONArray
+     */
     JSONArray listObjectsBySqlAsJson(Map<String, Object> filterMap, PageDesc pageDesc  );
 
+    /**
+     * 查询数据库，可以查询任意表
+     * @param querySql  自定义sql语句
+     * @param filterMap 过滤条件
+     * @param pageDesc 分页信息
+     * @return JSONArray
+     */
     JSONArray listObjectsBySqlAsJson(String querySql,
                                             Map<String, Object> filterMap,  PageDesc pageDesc );
 }
