@@ -128,8 +128,12 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * 每个dao都需要重载这个函数已获得自定义的查询条件，否则listObjects、pageQuery就等价与listObjectsByProperties
      * @return FilterQuery
      */
-    public String getFilterQuerySql(){
+    public abstract String getDaoImbededFilter();
+
+    public final String getFilterQuerySql(){
         String querySql = getExtendFilterQuerySql();
+        if(StringUtils.isBlank( querySql))
+            querySql = getDaoImbededFilter();
         if(StringUtils.isBlank( querySql))
             return null;
         if("[".equals(Lexer.getFirstWord(querySql))){
