@@ -44,8 +44,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     private Class<?> poClass = null;
     private Class<?> pkClass = null;
 
-
-
+    protected Map<String, String> filterField = null;
     protected JdbcTemplate jdbcTemplate;
     /**
      * Set the JDBC DataSource to obtain connections from.
