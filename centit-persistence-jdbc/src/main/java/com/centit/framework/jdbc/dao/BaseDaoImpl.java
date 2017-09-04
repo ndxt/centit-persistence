@@ -166,6 +166,16 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         int prePos = 0; int preWordPos = 0;
         String aWord = lex.getAWord();
         boolean addAlias = StringUtils.isNotBlank(alias);
+        //skeep to |
+        if("[".equals(aWord)){
+            aWord = lex.getAWord();
+            while(aWord != null && !"".equals(aWord) && !"|".equals(aWord) ){
+                if("(".equals(aWord)){
+                    lex.seekToRightBracket();
+                }
+                aWord = lex.getAWord();
+            }
+        }
         while (aWord != null && !"".equals(aWord)) {
             if ("select".equalsIgnoreCase(aWord) || "from".equalsIgnoreCase(aWord)
                   /* || "group".equalsIgnoreCase(aWord) || "order".equalsIgnoreCase(aWord)*/ ){
