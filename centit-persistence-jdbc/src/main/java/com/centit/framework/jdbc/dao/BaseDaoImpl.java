@@ -9,7 +9,6 @@ import com.centit.support.algorithm.ListOpt;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.metadata.SimpleTableField;
-import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.orm.TableMapInfo;
@@ -161,24 +160,68 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return filterFieldWithPretreatment;
     }
 
+    public static String translatePropertyNameToColumnName(TableMapInfo mapInfo, String sql , String alias){
+        StringBuilder sqlb = new StringBuilder();
+        Lexer lex = new Lexer(sql,Lexer.LANG_TYPE_SQL);
+        boolean needTranslate = true;
+        int prePos = 0; int preWordPos = 0;
+        String aWord = lex.getAWord();
+        boolean addAlias = StringUtils.isNotBlank(alias);
+        while (aWord != null && !"".equals(aWord)) {
+            if ("select".equalsIgnoreCase(aWord) || "from".equalsIgnoreCase(aWord)
+                  /* || "group".equalsIgnoreCase(aWord) || "order".equalsIgnoreCase(aWord)*/ ){
+                needTranslate = false;
+            }else if ("where".equalsIgnoreCase(aWord)){
+                needTranslate = true;
+            }
+
+            if(!needTranslate){
+                preWordPos = lex.getCurrPos();
+                aWord = lex.getAWord();
+                continue;
+            }
+
+            if (":".equals(aWord)) {
+                lex.getAWord(); // 跳过参数
+                preWordPos = lex.getCurrPos();
+                aWord = lex.getAWord();
+            }
+
+            if(Lexer.isLabel(aWord)){
+                SimpleTableField col = mapInfo.findFieldByName(aWord);
+                if(col!=null) {
+                    if (preWordPos > prePos)
+                        sqlb.append(sql.substring(prePos, preWordPos));
+                    sqlb.append(addAlias?(" "+alias+"."):" ").append(col.getColumnName());
+                }
+            }
+            preWordPos = lex.getCurrPos();
+            aWord = lex.getAWord();
+        }
+
+        sqlb.append(sql.substring(prePos));
+
+        return sqlb.toString();
+    }
+
     /**
      * 每个dao都需要重载这个函数已获得自定义的查询条件，否则listObjects、pageQuery就等价与listObjectsByProperties
      * @return FilterQuery
      */
-    public String buildFieldFilterSql(String alias){
+    public String buildFieldFilterSql(String alias, boolean useDefaultFilter){
         StringBuilder sBuilder= new StringBuilder();
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         boolean addAlias = StringUtils.isNotBlank(alias);
         Map<String,Pair<String,String>> fieldFilter =
                 getFilterFieldWithPretreatment(getFilterField());
-        for(TableField col : mapInfo.getColumns() ){
-            if(fieldFilter == null || ! fieldFilter.containsKey(col.getPropertyName())) {
+        if(useDefaultFilter) {//添加默认的过滤条件
+            mapInfo.getColumns().stream()
+                    .filter(col -> fieldFilter == null || !fieldFilter.containsKey(col.getPropertyName()))
+                    .forEach(col ->
                 sBuilder.append(" [:").append(col.getPropertyName()).append("| and ")
                         .append(col.getColumnName()).append(" = :").append(col.getPropertyName())
-                        .append(" ]");
-            }
+                        .append(" ]"));
         }
-
         if(fieldFilter!=null){
             for (Map.Entry<String, Pair<String,String>> ent : fieldFilter.entrySet()) {
                 String skey = ent.getKey();
@@ -186,7 +229,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
                 if (skey.startsWith(CodeBook.NO_PARAM_FIX)) {
                     sBuilder.append(" [").append(skey).append("| and ")
-                            .append(sSqlFormat )
+                            .append( translatePropertyNameToColumnName(mapInfo, sSqlFormat ,alias) )
                             .append(" ]");
                 }else{
                     String pretreatment = ent.getValue().getRight();
@@ -198,6 +241,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                                 sBuilder.append("(").append(pretreatment).append(")");
                             }
                             sBuilder.append(skey).append("| and ")
+                                    .append(addAlias?(alias+"."):"")
                                     .append(col.getColumnName()).append(" = :").append(col.getPropertyName())
                                     .append(" ]");
                         }
@@ -207,6 +251,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                             sBuilder.append(" [:(")
                                     .append(StringUtils.isBlank(pretreatment)?"like":pretreatment)
                                     .append(")").append(skey).append("| and ")
+                                    .append(addAlias?(alias+"."):"")
                                     .append(col.getColumnName()).append(" like :").append(col.getPropertyName())
                                     .append(" ]");
                         }
@@ -218,19 +263,20 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                                 sBuilder.append("(").append(pretreatment).append(")");
                             }
                             sBuilder.append(skey).append("| and ")
+                                    .append(addAlias?(alias+"."):"")
                                     .append(col.getColumnName()).append(" in (:").append(col.getPropertyName())
                                     .append(") ]");
                         }
                     } else {
-                        if( "[".equals(Lexer.getFirstWord( sSqlFormat))){
-                            sBuilder.append( sSqlFormat );
+                        if( "[".equals(Lexer.getFirstWord(sSqlFormat))){
+                            sBuilder.append( translatePropertyNameToColumnName(mapInfo, sSqlFormat ,alias) );
                         } else {
                             sBuilder.append(" [:");
                             if (StringUtils.isNotBlank(pretreatment)){
                                 sBuilder.append("(").append(pretreatment).append(")");
                             }
                             sBuilder.append(skey).append("| and ")
-                                    .append(sSqlFormat)
+                                    .append(translatePropertyNameToColumnName(mapInfo, sSqlFormat ,alias))
                                     .append(" ]");
                         }
                     }
@@ -243,7 +289,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     private String daoEmbeddedFilter;
     public String buildDefaultFieldFilterSql(){
         if(daoEmbeddedFilter==null){
-            daoEmbeddedFilter = buildFieldFilterSql(null);
+            daoEmbeddedFilter = buildFieldFilterSql(null,false);
         }
         return daoEmbeddedFilter;
     }
