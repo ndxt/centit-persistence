@@ -35,9 +35,9 @@ public class PageDesc {
         return totalRows;
     }
 
-    /*public void setTotalRows(int totalRows) {
+    public void setTotalRows(int totalRows) {
         this.totalRows = totalRows;
-    }*/
+    }
 
     public void setTotalRows(Integer totalRows) {
         this.totalRows = totalRows==null ? 0 : totalRows;

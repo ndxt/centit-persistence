@@ -113,6 +113,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     "没有对应的元数据信息："+getPoClass().getName());
 
         return  "select " + GeneralJsonObjectDao.buildFieldSql( mapInfo, null) +
+                " from " + mapInfo.getTableName() +
                 " where 1=1 " + filterQuery +
                 ( StringUtils.isBlank( mapInfo.getOrderBy()) ? "" : " order by " +mapInfo.getOrderBy())
                 ;
