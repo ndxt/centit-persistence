@@ -460,13 +460,48 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     }
 
-
+    /**
+     * 查询所有数据
+     * @return 返回所有数据 listAllObjects
+     */
     public List<T> listObjects(){
         return jdbcTemplate.execute(
                 (ConnectionCallback<List<T>>) conn ->
                         OrmDaoUtils.listAllObjects(conn, (Class<T>)getPoClass()));
     }
 
+    /**
+     * 根据条件查询对象
+     * @param whereSql 只有 where 部分， 不能有from部分 这个式hibernate的区别
+     * @param params 参数
+     * @return 符合条件的对象
+     */
+    public List<T> listObjectsByFilter(String whereSql, Object[] params){
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        String  fieldsSql  = GeneralJsonObjectDao.buildFieldSql(mapInfo,null);
+        String querySql = "select " + fieldsSql +" from " +mapInfo.getTableName()
+             + " " +whereSql;
+
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn ->
+                        OrmDaoUtils.queryObjectsByParamsSql(conn, querySql , params, (Class<T>)getPoClass()));
+    }
+    /**
+     * 根据条件查询对象
+     * @param whereSql 只有 where 部分， 不能有from部分 这个式hibernate的区别
+     * @param namedParams 命名参数
+     * @return 符合条件的对象
+     */
+    public List<T> listObjectsByFilter(String whereSql, Map<String,Object> namedParams){
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        String  fieldsSql  = GeneralJsonObjectDao.buildFieldSql(mapInfo,null);
+        String querySql = "select " + fieldsSql +" from " +mapInfo.getTableName()
+                + " " +whereSql;
+
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn ->
+                        OrmDaoUtils.queryObjectsByNamedParamsSql(conn, querySql , namedParams, (Class<T>)getPoClass()));
+    }
 
     /**
      * 这个函数仅仅是为了兼容mybatis版本中的查询
