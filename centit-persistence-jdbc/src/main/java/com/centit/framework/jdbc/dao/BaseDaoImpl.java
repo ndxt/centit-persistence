@@ -6,6 +6,7 @@ import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.core.dao.PageDesc;
 import com.centit.framework.core.dao.QueryParameterPrepare;
 import com.centit.support.algorithm.ListOpt;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.metadata.SimpleTableField;
@@ -574,22 +575,48 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Pair<String,String[]> q = GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo,null);
 
-        if(StringUtils.isBlank( querySql )){
-            String filter = GeneralJsonObjectDao.buildFilterSql(mapInfo,null,filterMap.keySet());
-            querySql = "select " + q.getLeft() +" from " +mapInfo.getTableName();
-            if(StringUtils.isNotBlank(filter))
-                querySql = querySql + " where " + filter;
-            if(StringUtils.isNotBlank(mapInfo.getOrderBy()))
-                querySql = querySql + " order by " + mapInfo.getOrderBy();
+        String orderBy = mapInfo.getOrderBy();
+        String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(CodeBook.SELF_ORDER_BY));
+        if(StringUtils.isNotBlank(selfOrderBy)){
+            orderBy = selfOrderBy;
+        }else{
+            String sortField = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_FIELD));
+            if(StringUtils.isNotBlank(sortField)){
+                orderBy = sortField;
+                String sOrder = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_ORDER));
+                if(/*"asc".equalsIgnoreCase(sOrder) ||*/ "desc".equalsIgnoreCase(sOrder))
+                    orderBy = sortField +" "+sOrder;
+            }
         }
 
-        return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, q.getRight() ,
-                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
+        if(StringUtils.isBlank( querySql )) {
+            String filter = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, filterMap.keySet());
+            querySql = "select " + q.getLeft() + " from " + mapInfo.getTableName();
+            if (StringUtils.isNotBlank(filter))
+                querySql = querySql + " where " + filter;
+            if(StringUtils.isNotBlank(orderBy))
+                querySql = querySql + " order by " + orderBy;
+        }else{
+            if(StringUtils.isNotBlank(orderBy)) {
+                querySql = QueryUtils.removeOrderBy(querySql) + " order by " + orderBy;
+            }
+        }
+
+        if(pageDesc!=null && pageDesc.getPageSize()>0) {
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, q.getRight(),
+                    QueryUtils.buildGetCountSQLByReplaceFields(querySql), filterMap, pageDesc);
+        }else{
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, q.getRight(),filterMap);
+        }
     }
 
     public JSONArray listObjectsBySqlAsJson(String querySql, Map<String, Object> filterMap,  PageDesc pageDesc  ) {
-        return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, null ,
-                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
+        if(pageDesc!=null && pageDesc.getPageSize()>0) {
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, null ,
+                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
+        }else{
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, filterMap);
+        }
     }
 
 }

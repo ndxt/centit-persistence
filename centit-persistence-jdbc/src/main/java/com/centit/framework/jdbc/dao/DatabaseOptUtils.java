@@ -122,11 +122,28 @@ public abstract class DatabaseOptUtils {
                 QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
     }
 
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
+                                                   String querySql,  String[] fieldNames ,
+                                                   Map<String, Object> filterMap) {
+
+        QueryAndNamedParams queryQap = QueryUtils.translateQuery(querySql, filterMap);
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<JSONArray>) conn -> {
+                    try {
+                        return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(),
+                                queryQap.getParams(), fieldNames);
+                    } catch (IOException e) {
+                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
+                    } catch (SQLException e) {
+                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    }
+                });
+    }
+
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                             String querySql,  String queryCountSql,
                                             Map<String, Object> filterMap,  PageDesc pageDesc ) {
-
         return listObjectsBySqlAsJson(baseDao, querySql, null ,  queryCountSql, filterMap,   pageDesc  );
     }
 
@@ -170,8 +187,21 @@ public abstract class DatabaseOptUtils {
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
-
                         return DatabaseAccess.findObjectsAsJSON(conn, querySql, params);
+                    } catch (IOException e) {
+                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
+                    } catch (SQLException e) {
+                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    }
+                });
+    }
+
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  Map<String,Object> params ) {
+        QueryAndNamedParams queryQap = QueryUtils.translateQuery(querySql, params);
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<JSONArray>) conn -> {
+                    try {
+                        return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(), queryQap.getParams());
                     } catch (IOException e) {
                         throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
                     } catch (SQLException e) {
