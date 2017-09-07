@@ -494,14 +494,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }else{
             QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
             return jdbcTemplate.execute(
-                    (ConnectionCallback<List<T>>) conn -> {
-                        pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn,
-                                /** 这个地方可以用replaceField 已提高效率 */
-                                QueryUtils.buildGetCountSQLByReplaceFields(qap.getSql()),qap.getParams()));
-                        return OrmDaoUtils.queryObjectsByNamedParamsSql(conn, sql, qap.getParams(), (Class<T>) getPoClass(),
-                                pageDesc.getRowStart(), pageDesc.getPageSize() );
-                    }
-            );
+                    /** 这个地方可以用replaceField 已提高效率
+                     *  pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn,
+                     QueryUtils.buildGetCountSQLByReplaceFields(qap.getSql()),qap.getParams()));
+                     * */
+                    (ConnectionCallback<List<T>>) conn -> OrmDaoUtils
+                            .queryObjectsByNamedParamsSql(conn, sql, qap.getParams(), (Class<T>) getPoClass(),
+                                pageDesc.getRowStart(), pageDesc.getPageSize() ));
         }
     }
 
