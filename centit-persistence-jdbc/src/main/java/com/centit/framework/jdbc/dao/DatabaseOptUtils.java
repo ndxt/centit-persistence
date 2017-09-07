@@ -6,6 +6,7 @@ import com.centit.framework.core.dao.PageDesc;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.orm.JpaMetadata;
+import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.database.utils.*;
 import org.apache.commons.lang3.StringUtils;
@@ -326,4 +327,11 @@ public abstract class DatabaseOptUtils {
                     }
                 });
     }
+
+    public final static Long getSequenceNextValue(BaseDaoImpl<?, ?> baseDao, String sequenceName){
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<Long>) conn ->
+                        OrmDaoUtils.getSequenceNextValue(conn, sequenceName));
+    }
+
 }
