@@ -560,11 +560,17 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         String querySql = "select " + fieldsSql +" from " +mapInfo.getTableName()
                 + " " +whereSql;
 
-        return jdbcTemplate.execute(
-                (ConnectionCallback<List<T>>) conn ->
-                        OrmDaoUtils.queryObjectsByNamedParamsSql(conn, querySql , namedParams, (Class<T>)getPoClass()));
+        return listObjectsBySql(querySql, namedParams);
     }
 
+    public List<T> listObjectsBySql(String querySql, Map<String, Object> namedParams ) {
+
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn ->
+                        OrmDaoUtils.queryObjectsByNamedParamsSql(
+                                conn, querySql , namedParams, (Class<T>)getPoClass()));
+
+    }
 
     /* 下面所有的查询都返回 jsonArray */
 
