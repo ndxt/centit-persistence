@@ -502,7 +502,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                      QueryUtils.buildGetCountSQLByReplaceFields(qap.getSql()),qap.getParams()));
                      * */
                     (ConnectionCallback<List<T>>) conn -> OrmDaoUtils
-                            .queryObjectsByNamedParamsSql(conn, sql, qap.getParams(), (Class<T>) getPoClass(),
+                            .queryObjectsByNamedParamsSql(conn, qap.getSql(), qap.getParams(), (Class<T>) getPoClass(),
                                 pageDesc.getRowStart(), pageDesc.getPageSize() ));
         }
     }
@@ -530,7 +530,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
             return jdbcTemplate.execute(
                     (ConnectionCallback<List<T>>) conn ->
-                            OrmDaoUtils.queryObjectsByNamedParamsSql(conn, sql, qap.getParams(), (Class<T>) getPoClass())
+                            OrmDaoUtils.queryObjectsByNamedParamsSql(conn, qap.getSql(), qap.getParams(), (Class<T>) getPoClass())
             );
         }
     }
