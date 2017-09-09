@@ -4,22 +4,14 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.core.dao.PageDesc;
 import com.centit.support.algorithm.NumberBaseOpt;
-import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
-import com.centit.support.database.orm.JpaMetadata;
-import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.database.utils.*;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ConnectionCallback;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -103,7 +95,7 @@ public abstract class DatabaseOptUtils {
                     try {
                         pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
                                 DatabaseAccess.getScalarObjectQuery(
-                                        conn, queryQap.getSql(), queryQap.getParams())));
+                                        conn, queryCountQap.getSql(), queryCountQap.getParams())));
                         return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(),
                                 queryQap.getParams(), fieldNames, pageDesc.getPageNo(), pageDesc.getPageSize());
                     } catch (IOException e) {

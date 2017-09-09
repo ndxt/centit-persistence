@@ -15,7 +15,15 @@
     <packaging>jar</packaging>
     <description>整合hibernate框架</description>
 
+
+
     <dependencies>
+
+        <dependency>
+            <groupId>c3p0</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>${c3p0.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
@@ -89,4 +97,5 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
 </project>

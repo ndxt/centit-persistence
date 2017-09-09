@@ -84,7 +84,9 @@ public class DataSourceConfig implements EnvironmentAware {
         configuration.setSafeRowBoundsEnabled(false);
         configuration.setMapUnderscoreToCamelCase(true);
         configuration.setAggressiveLazyLoading(false);
-        configuration.setLogImpl(StdOutImpl.class);
+        if(StringRegularOpt.isTrue("jdbc.show.sql")) {
+            configuration.setLogImpl(StdOutImpl.class);
+        }
 
         Properties properties = new Properties();
         properties.setProperty("Oracle","oracle");
