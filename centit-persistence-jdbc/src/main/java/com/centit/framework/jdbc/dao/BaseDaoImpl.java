@@ -476,7 +476,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     (ConnectionCallback<Integer>) conn ->
                             OrmDaoUtils.fetchObjectsCount(conn, filterMap, (Class<T>)getPoClass()));
         }else{
-            QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
+            QueryAndNamedParams qap = QueryUtils.translateQuery(
+                    QueryUtils.buildGetCountSQLByReplaceFields(sql), filterMap);
             return jdbcTemplate.execute(
                     (ConnectionCallback<Integer>) conn ->
                             OrmDaoUtils.fetchObjectsCount(conn, qap.getSql(), qap.getParams() ));
