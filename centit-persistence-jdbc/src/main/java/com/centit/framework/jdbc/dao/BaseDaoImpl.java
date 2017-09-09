@@ -178,6 +178,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 aWord = lex.getAWord();
             }
         }
+
         while (aWord != null && !"".equals(aWord)) {
             if ("select".equalsIgnoreCase(aWord) || "from".equalsIgnoreCase(aWord)
                   /* || "group".equalsIgnoreCase(aWord) || "order".equalsIgnoreCase(aWord)*/ ){
@@ -204,6 +205,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     if (preWordPos > prePos)
                         sqlb.append(sql.substring(prePos, preWordPos));
                     sqlb.append(addAlias?(" "+alias+"."):" ").append(col.getColumnName());
+                    prePos = lex.getCurrPos();
                 }
             }
             preWordPos = lex.getCurrPos();
