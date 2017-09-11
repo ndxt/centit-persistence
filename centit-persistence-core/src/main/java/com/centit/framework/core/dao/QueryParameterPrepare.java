@@ -43,10 +43,13 @@ public abstract class QueryParameterPrepare {
         if(pageSize!=null)
             pageDesc.setPage( pageSize );
 
-        Integer startRow = NumberBaseOpt.castObjectToInteger(pageQureyMap.get("maxSize"));
+        Integer startRow = NumberBaseOpt.castObjectToInteger(pageQureyMap.get("startRow"));
         if( startRow != null && pageSize!=null && pageSize > 1 ){
-            pageDesc.setPageNo( startRow/pageSize+1);
+            pageDesc.setPageNo( startRow/pageSize+1 );
+        }else{
+            pageDesc.setPageNo(1);
         }
+
 
         return pageDesc;
     }
