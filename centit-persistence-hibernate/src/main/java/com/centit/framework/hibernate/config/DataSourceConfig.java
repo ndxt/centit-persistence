@@ -93,6 +93,7 @@ public class DataSourceConfig implements EnvironmentAware {
         hibernateProperties.put("hibernate.dialect", env.getProperty("jdbc.dialect"));
         hibernateProperties.put("hibernate.show_sql", Boolean.parseBoolean(env.getProperty("jdbc.show.sql")));
         hibernateProperties.put("hibernate.id.new_generator_mappings", true);
+        hibernateProperties.put("hibernate.connection.release_mode","after_statement");
         sessionFactory.setHibernateProperties(hibernateProperties);
         String[] packagesToScan = new String[]{"com.centit.*"};
         sessionFactory.setPackagesToScan(packagesToScan);

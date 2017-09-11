@@ -56,8 +56,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     @Transactional(propagation=Propagation.MANDATORY)  
     public Session getCurrentSession(){
         Session s = this.sessionFactory.getCurrentSession();
-        if(s==null||!s.isOpen())
-            s = this.sessionFactory.openSession();        
+        /*if(s==null||!s.isOpen())
+            s = this.sessionFactory.openSession();  */
         return s;
     }
     
