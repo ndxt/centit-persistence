@@ -637,23 +637,13 @@ public abstract class DatabaseOptUtils {
             procDesc.append("?,");
         }
         procDesc.append("?)}");
-        CallableStatement stmt = null;
-        
-        stmt = conn.prepareCall(procDesc.toString());
-        //stmt.getParameterMetaData().
-        for (int i = 0; i < n; i++) {
-            if (paramObjs[i] == null)
-                stmt.setNull(i + 1, Types.NULL);
-            else if (paramObjs[i] instanceof java.util.Date)
-                stmt.setObject(i + 1, DatetimeOpt
-                        .convertSqlDate((java.util.Date) paramObjs[i]));
-            else
-                stmt.setObject(i + 1, paramObjs[i]);
+        try(CallableStatement stmt = conn.prepareCall(procDesc.toString())) {
+            //stmt.getParameterMetaData().
+            DatabaseAccess.setQueryStmtParameters(stmt,paramObjs );
+            stmt.registerOutParameter(n + 1, ProcedureWork.ORACLE_TYPES_CURSOR);
+            stmt.execute();
+            return (ResultSet) stmt.getObject(n + 1);
         }
-        stmt.registerOutParameter(n + 1, ProcedureWork.ORACLE_TYPES_CURSOR);
-        stmt.execute();
-        ResultSet rs = (ResultSet) stmt.getObject(n + 1);
-        return rs;      
     }
     
     public final static ResultSet callProcedureOutRS(BaseDaoImpl<?, ?> baseDao,

@@ -8,6 +8,7 @@ import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.DatabaseAccess;
+import com.centit.support.database.utils.PersistenceException;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
@@ -89,6 +90,7 @@ public abstract class DatabaseOptUtils {
 	  	case DB2:
 	  		return QueryUtils.buildDB2LimitQuerySQL(sql, offset, maxsize);
 	  	case MySql:
+	  	case H2:
 	  		return QueryUtils.buildMySqlLimitQuerySQL(sql, offset, maxsize, false);
 	  	default: 
 	  		return sql;
@@ -311,9 +313,13 @@ public abstract class DatabaseOptUtils {
 
    
     public final static boolean callProcedure(SqlSession sqlSession,
-            String procName, Object... paramObjs) {        
-    	//TODO 用mybatis的方式调用存
-        return true;       
+            String procName, Object... paramObjs) {
+        try {
+            return DatabaseAccess.callProcedure(
+                 sqlSession.getConnection(),procName,paramObjs);
+        } catch (SQLException e) {
+            throw new PersistenceException("call procedure : " + procName ,e);
+        }
     }
     
     
@@ -335,22 +341,12 @@ public abstract class DatabaseOptUtils {
             procDesc.append("?,");
         }
         procDesc.append("?)}");
-        CallableStatement stmt = null;
-        
-        stmt = conn.prepareCall(procDesc.toString());
-        for (int i = 0; i < n; i++) {
-            if (paramObjs[i] == null)
-                stmt.setNull(i + 1, Types.NULL);
-            else if (paramObjs[i] instanceof java.util.Date)
-                stmt.setObject(i + 1, DatetimeOpt
-                        .convertSqlDate((java.util.Date) paramObjs[i]));
-            else
-                stmt.setObject(i + 1, paramObjs[i]);
+        try(CallableStatement stmt = conn.prepareCall(procDesc.toString())) {
+            DatabaseAccess.setQueryStmtParameters(stmt, paramObjs);
+            stmt.registerOutParameter(n + 1, ORACLE_TYPES_CURSOR);
+            stmt.execute();
+            return (ResultSet) stmt.getObject(n + 1);
         }
-        stmt.registerOutParameter(n + 1, ORACLE_TYPES_CURSOR);
-        stmt.execute();
-        ResultSet rs = (ResultSet) stmt.getObject(n + 1);
-        return rs;      
     }
     
     public final static ResultSet callProcedureOutRS(SqlSession sqlSession,
@@ -360,8 +356,12 @@ public abstract class DatabaseOptUtils {
     
     public final static Object callFunction(SqlSession sqlSession,
             String procName,int resultType, Object... paramObjs) {
-    	//TODO 用mybatis的方式调用存
-        return null;       
+        try {
+            return DatabaseAccess.callFunction(
+                    sqlSession.getConnection(),procName,resultType,paramObjs);
+        } catch (SQLException e) {
+            throw new PersistenceException("call procedure : " + procName ,e);
+        }
     }
  
 

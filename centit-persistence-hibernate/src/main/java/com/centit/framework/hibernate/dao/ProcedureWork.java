@@ -69,10 +69,9 @@ public class ProcedureWork implements Work {
             procDesc.append("?");
         }
         procDesc.append(")}");
-        
-        CallableStatement stmt = null;
-        try {
-            stmt = connection.prepareCall(procDesc.toString());
+
+        try (CallableStatement stmt = connection.prepareCall(procDesc.toString())){
+
             for (int i = 0; i < n; i++) {
                 if (paramObjs.get(i) == null)
                     stmt.setNull(i + 1, Types.NULL);

@@ -94,9 +94,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         Map<String,Pair<String,String[]>> filterFieldWithPretreatment =
                 new HashMap<>(fieldMap.size()*2) ;
 
-        if(fieldMap==null)
-            return filterFieldWithPretreatment;
-
         for (Map.Entry<String, String> ent : fieldMap.entrySet()) {
             ImmutablePair<String,String> paramMeta =
                     parseParameter(ent.getKey());
@@ -341,7 +338,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     String errorMsg = "save or update object  failed,"+ 
                             getClassTName() +":" + o.toString() + " be modified out-sync.";
                     logger.error(errorMsg);
-                    throw new RuntimeException(errorMsg);
+                    throw new PersistenceException(
+                            PersistenceException.DATABASE_OUT_SYNC_EXCEPTION,errorMsg);
                 }
                         
                 ((EntityWithTimestamp) o).setLastModifyDate(DatetimeOpt.currentUtilDate());
