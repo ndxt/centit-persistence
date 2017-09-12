@@ -47,7 +47,7 @@ public class ObjectSerializeUserType implements UserType, Serializable {
         if (o == o1) {
             return true;
         }
-        if (o == null || o == null) {
+        if (o == null || o1 == null) {
             return false;
         }
 
@@ -76,18 +76,12 @@ public class ObjectSerializeUserType implements UserType, Serializable {
     public Object nullSafeGet(ResultSet rs, String[] names,
                               SharedSessionContractImplementor session, Object owner)
             throws HibernateException, SQLException{
-        ObjectInputStream ois = null;
-        try {
-            String hexStr = rs.getString(names[0]);
-            ois = new ObjectInputStream(new ByteArrayInputStream(Hex.decodeHex(hexStr.toCharArray())));
-            return ois.readObject();
+        String hexStr = rs.getString(names[0]);
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(Hex.decodeHex(hexStr.toCharArray()));
+             ObjectInputStream ois = new ObjectInputStream(bis)) {
+             return ois.readObject();
         } catch (Exception e) {
             throw new HibernateException(e);
-        } finally {
-            try {
-                ois.close();
-            } catch (IOException e) {
-            }
         }
     }
 
@@ -104,27 +98,18 @@ public class ObjectSerializeUserType implements UserType, Serializable {
     @Override
     public void nullSafeSet(PreparedStatement st, Object value, int index,
                             SharedSessionContractImplementor session) throws HibernateException, SQLException{
-        ObjectOutputStream oos = null;
+
         if (value == null) {
             st.setNull(index, Types.VARCHAR);
         } else {
-            try {
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                oos = new ObjectOutputStream(bos);
+            try(ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                ObjectOutputStream oos = new ObjectOutputStream(bos)) {
                 oos.writeObject(value);
-                oos.close();
-
                 byte[] objectBytes = bos.toByteArray();
                 String hexStr = Hex.encodeHexString(objectBytes);
-
                 st.setString(index, hexStr);
             } catch (Exception e) {
                 throw new HibernateException(e);
-            } finally {
-                try {
-                    oos.close();
-                } catch (IOException e) {
-                }
             }
         }
     }

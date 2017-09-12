@@ -147,9 +147,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         Map<String,Pair<String,String>> filterFieldWithPretreatment =
                 new HashMap<>(fieldMap.size()*2) ;
 
-        if(fieldMap==null)
-            return filterFieldWithPretreatment;
-
         for (Map.Entry<String, String> ent : fieldMap.entrySet()) {
             if(StringUtils.isNotBlank( ent.getKey() )) {
                 ImmutablePair<String, String> paramMeta =

@@ -20,19 +20,21 @@ public abstract class QueryParameterPrepare {
     public final static Map<String, Object> prepPageParams
     (Map<String, Object> pageQureyMap, PageDesc pageDesc, int total) {
 
-        int pageNo = pageDesc.getPageNo();
+        int pageNo = pageDesc.getPageNo()<1?1:pageDesc.getPageNo();
         int pageSize = pageDesc.getPageSize();
-        int maxPageNo = (total - 1) / pageSize + 1;
-        if (maxPageNo < pageNo) {
-            pageNo = maxPageNo;// 页码校验
+        if(total > 0) {
+            int maxPageNo = (total - 1) / pageSize + 1;
+            if (maxPageNo < pageNo) {
+                pageNo = maxPageNo;// 页码校验
+            }
+            //回写总数量
+            pageDesc.setTotalRows(total);
         }
         int start = (pageNo - 1) * pageSize;
         int end = pageNo * pageSize;
         pageQureyMap.put("startRow", new Integer(start));
         pageQureyMap.put("endRow", new Integer(end));
         pageQureyMap.put("maxSize", new Integer(pageSize));
-        //回写总数量
-        pageDesc.setTotalRows(total);
         //System.err.println("pageQureyMap========"+JSON.toJSONString(pageQureyMap));
         return pageQureyMap;
     }

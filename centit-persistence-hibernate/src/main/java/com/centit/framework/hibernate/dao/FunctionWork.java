@@ -55,11 +55,7 @@ public class FunctionWork implements Work {
 			procDesc.append("?");
 		}
 		procDesc.append(")}");
-
-		CallableStatement stmt = null;
-		try {
-			stmt = connection.prepareCall(procDesc.toString());
-
+		try (CallableStatement stmt = connection.prepareCall(procDesc.toString())) {
 			stmt.registerOutParameter(1, resultType);// Types.VARCHAR
 
 			for (int i = 0; i < n; i++) {
