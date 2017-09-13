@@ -29,6 +29,7 @@
         <junit.version>4.12</junit.version>
         <mysql.version>5.1.9</mysql.version>
         <c3p0.version>0.9.1.2</c3p0.version>
+        <proxool.version>0.9.1</proxool.version>
     </properties>
 
 
