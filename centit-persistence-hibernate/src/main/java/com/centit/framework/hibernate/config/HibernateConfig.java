@@ -1,10 +1,11 @@
 package com.centit.framework.hibernate.config;
 
-import com.centit.framework.core.config.DataSourceConfig;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.*;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
@@ -19,7 +20,14 @@ import java.util.Properties;
 @EnableTransactionManagement(proxyTargetClass = true)//启用注解事物管理
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @Lazy
-public class HibernateConfig extends DataSourceConfig {
+public class HibernateConfig implements EnvironmentAware {
+
+    protected Environment env;
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.env = environment;
+    }
 
     /**
      * 注册OpenSessionInViewFilter 过滤器
@@ -36,7 +44,7 @@ public class HibernateConfig extends DataSourceConfig {
     }
 
     @Bean
-    public LocalSessionFactoryBean sessionFactory(DataSource dataSource) {
+    public LocalSessionFactoryBean sessionFactory(@Autowired DataSource dataSource) {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(dataSource);
         Properties hibernateProperties = new Properties();

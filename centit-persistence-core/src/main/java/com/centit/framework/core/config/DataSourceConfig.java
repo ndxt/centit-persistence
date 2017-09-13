@@ -1,17 +1,17 @@
 package com.centit.framework.core.config;
 
 import com.centit.support.algorithm.StringRegularOpt;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.flywaydb.core.Flyway;
-import org.logicalcobwebs.proxool.ProxoolDataSource;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 import javax.sql.DataSource;
 import java.beans.PropertyVetoException;
 
+@Configuration
 public class DataSourceConfig implements EnvironmentAware {
 
     protected Environment env;
@@ -23,7 +23,7 @@ public class DataSourceConfig implements EnvironmentAware {
 
     @Bean(destroyMethod = "close")
     public DataSource dataSource() throws PropertyVetoException {
-        String dataSourcePoolType = env.getProperty("connection.pool.type");
+        /*String dataSourcePoolType = env.getProperty("connection.pool.type");
         if("proxool".equals(dataSourcePoolType)) {
             ProxoolDataSource dataSource = new ProxoolDataSource();
             dataSource.setDriver(env.getProperty("jdbc.driver"));
@@ -51,7 +51,7 @@ public class DataSourceConfig implements EnvironmentAware {
             dataSource.setIdleConnectionTestPeriod(Integer.parseInt(env.getProperty("jdbc.idleConnectionTestPeriod")));
             dataSource.setPreferredTestQuery(env.getProperty("jdbc.validationQuery"));
             return dataSource;
-        }
+        }*/
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName(env.getProperty("jdbc.driver"));
         dataSource.setUrl(env.getProperty("jdbc.url"));

@@ -1,6 +1,5 @@
 package com.centit.framework.mybatis.config;
 
-import com.centit.framework.core.config.DataSourceConfig;
 import com.centit.framework.mybatis.dao.BaseDaoSupport;
 import com.centit.support.algorithm.ListOpt;
 import com.centit.support.algorithm.StringRegularOpt;
@@ -12,7 +11,9 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.*;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -30,7 +31,14 @@ import java.util.Properties;
 @EnableTransactionManagement(proxyTargetClass = true)//启用注解事物管理
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @Lazy
-public class MybatisConfig extends DataSourceConfig {
+public class MybatisConfig implements EnvironmentAware {
+
+    protected Environment env;
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.env = environment;
+    }
 
     @Bean
     public SqlSessionFactoryBean sqlSessionFactory(DataSource dataSource) throws IOException {
