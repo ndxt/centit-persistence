@@ -10,6 +10,8 @@ import java.util.List;
 import org.hibernate.jdbc.Work;
 
 import com.centit.support.algorithm.DatetimeOpt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 调用 存储方法（oracle特有的）
@@ -24,6 +26,8 @@ public class FunctionWork implements Work {
 	private List<Object> paramObjs = new ArrayList<Object>(); // 存储过程涉及参数
 	private int resultType;// java.sql.Types
 	private boolean isSucceedExecuted;
+
+	protected static Logger logger = LoggerFactory.getLogger(FunctionWork.class);
 
 	public FunctionWork(String funcName, int resultType, Object... params) {
 
@@ -73,7 +77,7 @@ public class FunctionWork implements Work {
 
 			isSucceedExecuted = true;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 	}
 

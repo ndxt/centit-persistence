@@ -185,7 +185,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             return (T) getCurrentSession().get(getPoClass(), id);
             //return (T) getCurrentSession().get(getClassTName(), id);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(e.getMessage(), e);
             return null;
             //throw new PersistenceException(PersistenceException.DATABASE_OPERATE_EXCEPTION,e);
         }
@@ -375,7 +375,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 	                String errorMsg = "save or update object failed,"+ 
 	                        getClassTName() +":" + o.toString() + " be modified out-sync.";
 	                logger.error(errorMsg);
-	                throw new RuntimeException(errorMsg);
+	                throw new PersistenceException(errorMsg);
 	            }
         	}
         	
@@ -525,7 +525,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                      String errorMsg = "save or update object failed,"+ 
                              getClassTName() +":" + no.toString() + " be modified out-sync.";
                      logger.error(errorMsg);
-                     throw new RuntimeException(errorMsg);
+                     throw new PersistenceException(errorMsg);
         		}               
         	}
         	//将新纪录中的熟悉copy到dbo中
@@ -1071,7 +1071,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                      QueryUtils.createSqlParamsMap(propertyName, propertyValue),
                      -1,-1);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(e.getMessage(), e);
             return null;
         }
     }
@@ -1111,7 +1111,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     sHql.toString(), properties,-1,-1);
 
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(e.getMessage(), e);
             return null;
         }
     }
