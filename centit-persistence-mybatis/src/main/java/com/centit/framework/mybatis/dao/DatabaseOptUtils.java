@@ -201,6 +201,7 @@ public abstract class DatabaseOptUtils {
         try {
 			return getSequenceNextValueUseTable(sqlSession,sequenceName);
 		} catch (Exception e) {
+            logger.error(e.getMessage(), e);
 			return null;
 		}
     }

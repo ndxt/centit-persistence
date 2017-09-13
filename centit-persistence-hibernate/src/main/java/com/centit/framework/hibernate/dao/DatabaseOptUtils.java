@@ -250,7 +250,7 @@ public abstract class DatabaseOptUtils {
             return String
                     .valueOf(Integer.valueOf(q.list().get(0).toString()) + 1);
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(e.getMessage(), e);
             return "0";
         }
     }
@@ -387,6 +387,7 @@ public abstract class DatabaseOptUtils {
         try {
 			return getSequenceNextValueUseTable(baseDao,sequenceName);
 		} catch (Exception e) {
+            logger.error(e.getMessage(), e);
 			return null;
 		}
     }
@@ -780,7 +781,7 @@ public abstract class DatabaseOptUtils {
         try {
             return baseDao.getCurrentSession().createQuery(shql).list();
         } catch (Exception e) {
-            //logger.error(e.getMessage());
+            logger.error(e.getMessage(), e);
             return null;
         }
     }
@@ -797,7 +798,7 @@ public abstract class DatabaseOptUtils {
         try {
             return baseDao.getCurrentSession().createNativeQuery(ssql).list();
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(e.getMessage(), e);
             return null;
         }
     }
@@ -825,7 +826,7 @@ public abstract class DatabaseOptUtils {
             q.addEntity(objectType);
             return q.list();
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(e.getMessage(), e);
             return null;
         }
 
