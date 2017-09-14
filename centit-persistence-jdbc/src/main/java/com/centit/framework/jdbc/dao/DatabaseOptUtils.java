@@ -100,9 +100,9 @@ public abstract class DatabaseOptUtils {
                         return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(),
                                 queryQap.getParams(), fieldNames, pageDesc.getPageNo(), pageDesc.getPageSize());
                     } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
+                        throw  new PersistenceException(e);
                     } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                        throw  new PersistenceException(e);
                     }
                 });
     }
@@ -126,9 +126,9 @@ public abstract class DatabaseOptUtils {
                         return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(),
                                 queryQap.getParams(), fieldNames);
                     } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
+                        throw  new PersistenceException(e);
                     } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                        throw  new PersistenceException(e);
                     }
                 });
     }
