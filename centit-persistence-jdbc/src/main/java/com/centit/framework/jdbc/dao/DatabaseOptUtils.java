@@ -99,10 +99,8 @@ public abstract class DatabaseOptUtils {
                                         conn, queryCountQap.getSql(), queryCountQap.getParams())));
                         return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(),
                                 queryQap.getParams(), fieldNames, pageDesc.getPageNo(), pageDesc.getPageSize());
-                    } catch (IOException e) {
-                        throw  new PersistenceException(e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
@@ -125,10 +123,8 @@ public abstract class DatabaseOptUtils {
                     try {
                         return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(),
                                 queryQap.getParams(), fieldNames);
-                    } catch (IOException e) {
-                        throw  new PersistenceException(e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
@@ -160,10 +156,8 @@ public abstract class DatabaseOptUtils {
                                         conn, queryCountSql, params)));
                         return DatabaseAccess.findObjectsAsJSON(conn, querySql ,
                                 params, null, pageDesc.getPageNo(), pageDesc.getPageSize());
-                    } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
@@ -181,10 +175,8 @@ public abstract class DatabaseOptUtils {
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
                         return DatabaseAccess.findObjectsAsJSON(conn, querySql, params);
-                    } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
@@ -195,10 +187,8 @@ public abstract class DatabaseOptUtils {
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
                         return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(), queryQap.getParams());
-                    } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
@@ -209,10 +199,8 @@ public abstract class DatabaseOptUtils {
                 (ConnectionCallback<JSONObject>) conn -> {
                     try {
                         return DatabaseAccess.getObjectAsJSON(conn, querySql, params,fieldName);
-                    } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
@@ -228,10 +216,8 @@ public abstract class DatabaseOptUtils {
                 (ConnectionCallback<JSONObject>) conn -> {
                     try {
                         return DatabaseAccess.getObjectAsJSON(conn, querySql, params, fieldName);
-                    } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
@@ -246,10 +232,8 @@ public abstract class DatabaseOptUtils {
                 (ConnectionCallback<JSONObject>) conn -> {
                     try {
                         return DatabaseAccess.getObjectAsJSON(conn, querySql);
-                    } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
@@ -260,10 +244,8 @@ public abstract class DatabaseOptUtils {
                 (ConnectionCallback<Object>) conn -> {
                     try {
                         return DatabaseAccess.getScalarObjectQuery(conn, sSql,values);
-                    } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
@@ -277,10 +259,8 @@ public abstract class DatabaseOptUtils {
                 (ConnectionCallback<Object>) conn -> {
                     try {
                         return DatabaseAccess.getScalarObjectQuery(conn, sSql,values);
-                    } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
@@ -295,10 +275,8 @@ public abstract class DatabaseOptUtils {
                 (ConnectionCallback<Object>) conn -> {
                     try {
                         return DatabaseAccess.getScalarObjectQuery(conn, sSql);
-                    } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
@@ -312,10 +290,8 @@ public abstract class DatabaseOptUtils {
                 (ConnectionCallback<Object>) conn -> {
                     try {
                         return DatabaseAccess.getScalarObjectQuery(conn, sSql, value);
-                    } catch (IOException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_IO_EXCEPTION,e);
-                    } catch (SQLException e) {
-                        throw  new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION,e);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
                     }
                 });
     }
