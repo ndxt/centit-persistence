@@ -40,8 +40,9 @@ public class MybatisConfig implements EnvironmentAware {
         this.env = environment;
     }
 
+    @SuppressWarnings("SpringJavaAutowiringInspection")
     @Bean
-    public SqlSessionFactoryBean sqlSessionFactory(DataSource dataSource) throws IOException {
+    public SqlSessionFactoryBean sqlSessionFactory(@Autowired DataSource dataSource) throws IOException {
         SqlSessionFactoryBean sessionFactory = new SqlSessionFactoryBean();
         org.apache.ibatis.session.Configuration configuration = new org.apache.ibatis.session.Configuration();
         configuration.setLazyLoadingEnabled(true);

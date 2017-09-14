@@ -1,5 +1,6 @@
 package com.centit.framework.jdbc.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.context.annotation.*;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -14,14 +15,14 @@ import javax.sql.DataSource;
 @Lazy
 public class JdbcConfig {
 
+    @SuppressWarnings("SpringJavaAutowiringInspection")
     @Bean
     @DependsOn("flyway")
-    public DataSourceTransactionManager transactionManager(DataSource dataSource) {
+    public DataSourceTransactionManager transactionManager(@Autowired DataSource dataSource) {
         DataSourceTransactionManager transactionManager = new DataSourceTransactionManager();
         transactionManager.setDataSource(dataSource);
         return transactionManager;
     }
-
 
     @Bean
     public PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor() {
@@ -32,7 +33,5 @@ public class JdbcConfig {
     public AutowiredAnnotationBeanPostProcessor autowiredAnnotationBeanPostProcessor() {
         return new AutowiredAnnotationBeanPostProcessor();
     }
-
-
 
 }

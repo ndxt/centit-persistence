@@ -29,20 +29,7 @@ public class HibernateConfig implements EnvironmentAware {
         this.env = environment;
     }
 
-    /**
-     * 注册OpenSessionInViewFilter 过滤器
-     * @param servletContext ServletContext
-     */
-    public static void registerOpenSessionInViewFilter(ServletContext servletContext) {
-        javax.servlet.FilterRegistration.Dynamic openSessionInViewFilter
-                = servletContext.addFilter("openSessionInViewFilter",
-                OpenSessionInViewFilter.class);
-        openSessionInViewFilter.setAsyncSupported(true);
-        openSessionInViewFilter.setInitParameter("flushMode", "AUTO");
-        openSessionInViewFilter.setInitParameter("singleSession", "true");
-        openSessionInViewFilter.addMappingForUrlPatterns(null, false, "*.jsp", "/system/*", "/service/*");
-    }
-
+    @SuppressWarnings("SpringJavaAutowiringInspection")
     @Bean
     public LocalSessionFactoryBean sessionFactory(@Autowired DataSource dataSource) {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
@@ -96,4 +83,17 @@ public class HibernateConfig implements EnvironmentAware {
         return  localValidatorFactoryBean;
     }*/
 
+    /**
+     * 注册OpenSessionInViewFilter 过滤器
+     * @param servletContext ServletContext
+     */
+    public static void registerOpenSessionInViewFilter(ServletContext servletContext) {
+        javax.servlet.FilterRegistration.Dynamic openSessionInViewFilter
+                = servletContext.addFilter("openSessionInViewFilter",
+                OpenSessionInViewFilter.class);
+        openSessionInViewFilter.setAsyncSupported(true);
+        openSessionInViewFilter.setInitParameter("flushMode", "AUTO");
+        openSessionInViewFilter.setInitParameter("singleSession", "true");
+        openSessionInViewFilter.addMappingForUrlPatterns(null, false, "*.jsp", "/system/*", "/service/*");
+    }
 }
