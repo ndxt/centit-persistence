@@ -95,6 +95,7 @@ public class MybatisConfig implements EnvironmentAware {
         return configuerer;
     }
 
+    @SuppressWarnings("SpringJavaAutowiringInspection")
     @Bean
     @DependsOn("flyway")
     public DataSourceTransactionManager transactionManager(DataSource dataSource) {
