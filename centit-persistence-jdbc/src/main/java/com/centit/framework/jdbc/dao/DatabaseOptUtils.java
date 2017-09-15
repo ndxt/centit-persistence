@@ -238,8 +238,8 @@ public abstract class DatabaseOptUtils {
                 });
     }
 
-    public final static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao, String sSql, Map<String,Object> values){
-
+    public final static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao, String sSql,
+                                                    Map<String,Object> values){
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<Object>) conn -> {
                     try {
@@ -252,9 +252,8 @@ public abstract class DatabaseOptUtils {
     /*
      * * 执行一个标量查询
      */
-    public final static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao, String sSql, Object[] values)
-            throws SQLException, IOException {
-
+    public final static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao,
+                                                    String sSql, Object[] values) {
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<Object>) conn -> {
                     try {
@@ -264,7 +263,6 @@ public abstract class DatabaseOptUtils {
                     }
                 });
     }
-
 
     /*
      * * 执行一个标量查询
