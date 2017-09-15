@@ -21,59 +21,59 @@ import java.util.Map;
  */
 public class JsonObjectWork implements JsonObjectDao {
 
-	private TableInfo tableInfo;
-	private BaseDaoImpl<?, ?> baseDao;
+    private TableInfo tableInfo;
+    private BaseDaoImpl<?, ?> baseDao;
 
-	protected static Logger logger = LoggerFactory.getLogger(JsonObjectWork.class);
+    protected static Logger logger = LoggerFactory.getLogger(JsonObjectWork.class);
 
-	public JsonObjectWork(){
-		
-	}
-	
-	public JsonObjectWork(TableInfo tableInfo){
-		this.tableInfo = tableInfo;
-	}
-	
-	public JsonObjectWork(BaseDaoImpl<?, ?> baseDao,TableInfo tableInfo){
-		this.tableInfo = tableInfo;
-		this.baseDao = baseDao;
-	}
-	
-	public void setBaseDao(BaseDaoImpl<?, ?> baseDao) {
-		this.baseDao = baseDao;
-	}
-	public void setTableInfo(TableInfo tableInfo) {
-		this.tableInfo = tableInfo;
-	}
-	
-	private JsonObjectDao createDao(Connection connection){
-		DBType dbtype = DBType.mapDBType(connection);
-		switch (dbtype){
-			case Oracle:
-				return new OracleJsonObjectDao(connection ,tableInfo);
-			case DB2:
-				return new DB2JsonObjectDao(connection ,tableInfo);
-			case SqlServer:
-				return new SqlSvrJsonObjectDao(connection ,tableInfo);
-			case MySql:
-				return new MySqlJsonObjectDao(connection ,tableInfo);
-			case Access:
-			case H2:
-			default:
-				return new OracleJsonObjectDao(connection ,tableInfo);
-				//throw new  SQLException("不支持的数据库类型："+dbtype.toString());
-		}
-	}
-	
-	@Override
-	public TableInfo getTableInfo() {
-		return tableInfo;
-	}
+    public JsonObjectWork(){
 
-	@Override
-	public JSONObject getObjectById(final Object keyValue) throws SQLException, IOException {
+    }
 
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    public JsonObjectWork(TableInfo tableInfo){
+        this.tableInfo = tableInfo;
+    }
+
+    public JsonObjectWork(BaseDaoImpl<?, ?> baseDao,TableInfo tableInfo){
+        this.tableInfo = tableInfo;
+        this.baseDao = baseDao;
+    }
+
+    public void setBaseDao(BaseDaoImpl<?, ?> baseDao) {
+        this.baseDao = baseDao;
+    }
+    public void setTableInfo(TableInfo tableInfo) {
+        this.tableInfo = tableInfo;
+    }
+
+    private JsonObjectDao createDao(Connection connection){
+        DBType dbtype = DBType.mapDBType(connection);
+        switch (dbtype){
+            case Oracle:
+                return new OracleJsonObjectDao(connection ,tableInfo);
+            case DB2:
+                return new DB2JsonObjectDao(connection ,tableInfo);
+            case SqlServer:
+                return new SqlSvrJsonObjectDao(connection ,tableInfo);
+            case MySql:
+                return new MySqlJsonObjectDao(connection ,tableInfo);
+            case Access:
+            case H2:
+            default:
+                return new OracleJsonObjectDao(connection ,tableInfo);
+                //throw new  SQLException("不支持的数据库类型："+dbtype.toString());
+        }
+    }
+
+    @Override
+    public TableInfo getTableInfo() {
+        return tableInfo;
+    }
+
+    @Override
+    public JSONObject getObjectById(final Object keyValue) throws SQLException, IOException {
+
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.getObjectById(keyValue);
@@ -82,11 +82,11 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public JSONObject getObjectById(final Map<String, Object> keyValues) throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public JSONObject getObjectById(final Map<String, Object> keyValues) throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.getObjectById(keyValues);
@@ -95,11 +95,11 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public JSONObject getObjectByProperties(final Map<String, Object> properties) throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public JSONObject getObjectByProperties(final Map<String, Object> properties) throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.getObjectByProperties(properties);
@@ -108,11 +108,11 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public JSONArray listObjectsByProperties(final Map<String, Object> properties) throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public JSONArray listObjectsByProperties(final Map<String, Object> properties) throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.listObjectsByProperties(properties);
@@ -121,13 +121,13 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public JSONArray listObjectsByProperties(final Map<String, Object> properties,
-			final int startPos,final int maxSize)
-			throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public JSONArray listObjectsByProperties(final Map<String, Object> properties,
+            final int startPos,final int maxSize)
+            throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.listObjectsByProperties(properties,startPos,maxSize);
@@ -136,11 +136,11 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public Long fetchObjectsCount(final Map<String, Object> properties) throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public Long fetchObjectsCount(final Map<String, Object> properties) throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.fetchObjectsCount(properties);
@@ -149,43 +149,43 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public int saveNewObject(final Map<String, Object> object) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).saveNewObject(object) );
-	}
+    @Override
+    public int saveNewObject(final Map<String, Object> object) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).saveNewObject(object) );
+    }
 
-	/**
-	 * 更改部分属性
-	 *
-	 * @param fields 更改部分属性 属性名 集合，应为有的Map 不允许 值为null，这样这些属性 用map就无法修改为 null
-	 * @param object Map object
-	 * @return  更改数量
-	 */
-	@Override
-	public int updateObject(final Collection<String> fields, final Map<String, Object> object) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).updateObject(fields, object) );
-	}
+    /**
+     * 更改部分属性
+     *
+     * @param fields 更改部分属性 属性名 集合，应为有的Map 不允许 值为null，这样这些属性 用map就无法修改为 null
+     * @param object Map object
+     * @return  更改数量
+     */
+    @Override
+    public int updateObject(final Collection<String> fields, final Map<String, Object> object) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).updateObject(fields, object) );
+    }
 
-	@Override
-	public int updateObject(final Map<String, Object> object) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).updateObject(object) );
-	}
+    @Override
+    public int updateObject(final Map<String, Object> object) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).updateObject(object) );
+    }
 
-	/**
-	 * 更改部分属性
-	 *
-	 * @param fields 更改部分属性 属性名 集合，应为有的Map 不允许 值为null，这样这些属性 用map就无法修改为 null
-	 * @param object Map object
-	 * @return  更改数量
-	 */
-	@Override
-	public int mergeObject(final Collection<String> fields, final Map<String, Object> object) throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    /**
+     * 更改部分属性
+     *
+     * @param fields 更改部分属性 属性名 集合，应为有的Map 不允许 值为null，这样这些属性 用map就无法修改为 null
+     * @param object Map object
+     * @return  更改数量
+     */
+    @Override
+    public int mergeObject(final Collection<String> fields, final Map<String, Object> object) throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.mergeObject(fields,object);
@@ -194,11 +194,11 @@ public class JsonObjectWork implements JsonObjectDao {
                 return 0;
             }
         });
-	}
+    }
 
-	@Override
-	public int mergeObject(final Map<String, Object> object) throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public int mergeObject(final Map<String, Object> object) throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.mergeObject(object);
@@ -207,88 +207,88 @@ public class JsonObjectWork implements JsonObjectDao {
                 return 0;
             }
         });
-	}
+    }
 
-	@Override
-	public int updateObjectsByProperties(final Map<String, Object> fieldValues, final Map<String, Object> properties)
-			throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public int updateObjectsByProperties(final Map<String, Object> fieldValues, final Map<String, Object> properties)
+            throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             return dao.updateObjectsByProperties(fieldValues,properties);
         });
-	}
+    }
 
-	/**
-	 * 根据条件批量更新 对象
-	 *
-	 * @param fields      更改部分属性 属性名 集合，应为有的Map 不允许 值为null，这样这些属性 用map就无法修改为 null
-	 * @param fieldValues Map fieldValues
-	 * @param properties Map properties
-	 * @throws SQLException SQLException
-	 * @return 批量更新数量
-	 */
-	@Override
-	public int updateObjectsByProperties(final Collection<String> fields,
-										 final Map<String, Object> fieldValues,
-										 final Map<String, Object> properties) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).updateObjectsByProperties(fields,fieldValues,properties) );
-	}
+    /**
+     * 根据条件批量更新 对象
+     *
+     * @param fields      更改部分属性 属性名 集合，应为有的Map 不允许 值为null，这样这些属性 用map就无法修改为 null
+     * @param fieldValues Map fieldValues
+     * @param properties Map properties
+     * @throws SQLException SQLException
+     * @return 批量更新数量
+     */
+    @Override
+    public int updateObjectsByProperties(final Collection<String> fields,
+                                         final Map<String, Object> fieldValues,
+                                         final Map<String, Object> properties) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).updateObjectsByProperties(fields,fieldValues,properties) );
+    }
 
-	@Override
-	public int deleteObjectById(final Object keyValue) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).deleteObjectById(keyValue) );
-	}
+    @Override
+    public int deleteObjectById(final Object keyValue) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).deleteObjectById(keyValue) );
+    }
 
-	@Override
-	public int deleteObjectById(final Map<String, Object> keyValues) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).deleteObjectById(keyValues));
-	}
+    @Override
+    public int deleteObjectById(final Map<String, Object> keyValues) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).deleteObjectById(keyValues));
+    }
 
-	@Override
-	public int deleteObjectsByProperties(final Map<String, Object> properties) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).deleteObjectsByProperties(properties) );
-	}
+    @Override
+    public int deleteObjectsByProperties(final Map<String, Object> properties) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).deleteObjectsByProperties(properties) );
+    }
 
-	@Override
-	public int insertObjectsAsTabulation(final JSONArray objects) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).insertObjectsAsTabulation(objects) );
-	}
+    @Override
+    public int insertObjectsAsTabulation(final JSONArray objects) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).insertObjectsAsTabulation(objects) );
+    }
 
-	@Override
-	public int deleteObjects(final JSONArray objects) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).deleteObjects(objects) );
-	}
+    @Override
+    public int deleteObjects(final JSONArray objects) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).deleteObjects(objects) );
+    }
 
-	@Override
-	public int deleteObjectsAsTabulation(final String propertyName, final Object propertyValue) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).deleteObjectsAsTabulation( propertyName,propertyValue) );
-	}
+    @Override
+    public int deleteObjectsAsTabulation(final String propertyName, final Object propertyValue) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).deleteObjectsAsTabulation( propertyName,propertyValue) );
+    }
 
-	@Override
-	public int deleteObjectsAsTabulation(final Map<String, Object> properties) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).deleteObjectsAsTabulation(properties) );
-	}
+    @Override
+    public int deleteObjectsAsTabulation(final Map<String, Object> properties) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).deleteObjectsAsTabulation(properties) );
+    }
 
-	@Override
-	public int replaceObjectsAsTabulation(final JSONArray newObjects, final JSONArray dbObjects) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public int replaceObjectsAsTabulation(final JSONArray newObjects, final JSONArray dbObjects) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             return dao.replaceObjectsAsTabulation(newObjects,dbObjects);
         });
-	}
+    }
 
-	@Override
-	public int replaceObjectsAsTabulation(final JSONArray newObjects, final String propertyName, final Object propertyValue)
-			throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public int replaceObjectsAsTabulation(final JSONArray newObjects, final String propertyName, final Object propertyValue)
+            throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.replaceObjectsAsTabulation(newObjects,propertyName,propertyValue);
@@ -297,12 +297,12 @@ public class JsonObjectWork implements JsonObjectDao {
                 return 0;
             }
         });
-	}
+    }
 
-	@Override
-	public int replaceObjectsAsTabulation(final JSONArray newObjects, final Map<String, Object> properties)
-			throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public int replaceObjectsAsTabulation(final JSONArray newObjects, final Map<String, Object> properties)
+            throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.replaceObjectsAsTabulation(newObjects,properties);
@@ -311,11 +311,11 @@ public class JsonObjectWork implements JsonObjectDao {
                 return 0;
             }
         });
-	}
+    }
 
-	@Override
-	public Long getSequenceNextValue(final String sequenceName) throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public Long getSequenceNextValue(final String sequenceName) throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.getSequenceNextValue(sequenceName);
@@ -324,11 +324,11 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public List<Object[]> findObjectsBySql(final String sSql, final Object[] values) throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public List<Object[]> findObjectsBySql(final String sSql, final Object[] values) throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.findObjectsBySql(sSql,values);
@@ -337,12 +337,12 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public List<Object[]> findObjectsBySql(final String sSql, final Object[] values, final int pageNo, final int pageSize)
-			throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public List<Object[]> findObjectsBySql(final String sSql, final Object[] values, final int pageNo, final int pageSize)
+            throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.findObjectsBySql(sSql,values,pageNo,pageSize);
@@ -351,12 +351,12 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public List<Object[]> findObjectsByNamedSql(final String sSql, final Map<String, Object> values)
-			throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public List<Object[]> findObjectsByNamedSql(final String sSql, final Map<String, Object> values)
+            throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.findObjectsByNamedSql(sSql,values);
@@ -365,13 +365,13 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public List<Object[]> findObjectsByNamedSql(final String sSql, final Map<String, Object> values, 
-			final int pageNo, final int pageSize)	
-			throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public List<Object[]> findObjectsByNamedSql(final String sSql, final Map<String, Object> values,
+            final int pageNo, final int pageSize)
+            throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.findObjectsByNamedSql(sSql,values,pageNo,pageSize);
@@ -380,12 +380,12 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public JSONArray findObjectsAsJSON(final String sSql, final Object[] values, final String[] fieldnames)
-			throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public JSONArray findObjectsAsJSON(final String sSql, final Object[] values, final String[] fieldnames)
+            throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.findObjectsAsJSON(sSql,values,fieldnames);
@@ -394,13 +394,13 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public JSONArray findObjectsAsJSON(final String sSql, final Object[] values, final String[] fieldnames, 
-			final int pageNo, final int pageSize)
-			throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public JSONArray findObjectsAsJSON(final String sSql, final Object[] values, final String[] fieldnames,
+            final int pageNo, final int pageSize)
+            throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.findObjectsAsJSON(sSql,values,fieldnames,pageNo,pageSize);
@@ -409,13 +409,13 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public JSONArray findObjectsByNamedSqlAsJSON(final String sSql, final Map<String, Object> values,
-			final String[] fieldnames)
-			throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public JSONArray findObjectsByNamedSqlAsJSON(final String sSql, final Map<String, Object> values,
+            final String[] fieldnames)
+            throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.findObjectsByNamedSqlAsJSON(sSql,values,fieldnames);
@@ -424,12 +424,12 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public JSONArray findObjectsByNamedSqlAsJSON(final String sSql, final Map<String, Object> values, 
-			final String[] fieldnames,final int pageNo, final int pageSize) throws SQLException, IOException {
-		return baseDao.getCurrentSession().doReturningWork(connection -> {
+    @Override
+    public JSONArray findObjectsByNamedSqlAsJSON(final String sSql, final Map<String, Object> values,
+            final String[] fieldnames,final int pageNo, final int pageSize) throws SQLException, IOException {
+        return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             try {
                 return dao.findObjectsByNamedSqlAsJSON(sSql,values,fieldnames,pageNo,pageSize);
@@ -438,23 +438,23 @@ public class JsonObjectWork implements JsonObjectDao {
                 return null;
             }
         });
-	}
+    }
 
-	@Override
-	public boolean doExecuteSql(final String sSql) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).doExecuteSql(sSql) );
-	}
+    @Override
+    public boolean doExecuteSql(final String sSql) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).doExecuteSql(sSql) );
+    }
 
-	@Override
-	public int doExecuteSql(final String sSql,final Object[] values) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(connection ->
-				createDao(connection).doExecuteSql(sSql,values));
-	}
+    @Override
+    public int doExecuteSql(final String sSql,final Object[] values) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(connection ->
+                createDao(connection).doExecuteSql(sSql,values));
+    }
 
-	@Override
-	public int doExecuteNamedSql(final String sSql, final Map<String, Object> values) throws SQLException {
-		return baseDao.getCurrentSession().doReturningWork(
-				connection -> createDao(connection).doExecuteNamedSql(sSql,values));
-	}
+    @Override
+    public int doExecuteNamedSql(final String sSql, final Map<String, Object> values) throws SQLException {
+        return baseDao.getCurrentSession().doReturningWork(
+                connection -> createDao(connection).doExecuteNamedSql(sSql,values));
+    }
 }

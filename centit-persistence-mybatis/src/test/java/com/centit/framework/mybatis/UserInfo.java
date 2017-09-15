@@ -4,87 +4,87 @@ public class UserInfo implements java.io.Serializable{
     private static final long serialVersionUID = 1L;
 
     private String userCode; // 用户代码
-	
-	private String userPin; // 用户密码
-	
-	private String isValid; // 状态
-	
-	
-	private String userType; // 用户类别
-	
-	
-	private String loginName; // 用户登录名
-	
-	
-	private String userName; // 用户姓名
-	
-	
-	private String englishName;// 用户英文姓名
-	
-	private String userDesc; // 用户描述
 
-	public String getUserCode() {
-		return userCode;
-	}
+    private String userPin; // 用户密码
 
-	public void setUserCode(String userCode) {
-		this.userCode = userCode;
-	}
+    private String isValid; // 状态
 
-	public String getUserPin() {
-		return userPin;
-	}
 
-	public void setUserPin(String userPin) {
-		this.userPin = userPin;
-	}
+    private String userType; // 用户类别
 
-	public String getIsValid() {
-		return isValid;
-	}
 
-	public void setIsValid(String isValid) {
-		this.isValid = isValid;
-	}
+    private String loginName; // 用户登录名
 
-	public String getUserType() {
-		return userType;
-	}
 
-	public void setUserType(String userType) {
-		this.userType = userType;
-	}
+    private String userName; // 用户姓名
 
-	public String getLoginName() {
-		return loginName;
-	}
 
-	public void setLoginName(String loginName) {
-		this.loginName = loginName;
-	}
+    private String englishName;// 用户英文姓名
 
-	public String getUserName() {
-		return userName;
-	}
+    private String userDesc; // 用户描述
 
-	public void setUserName(String userName) {
-		this.userName = userName;
-	}
+    public String getUserCode() {
+        return userCode;
+    }
 
-	public String getEnglishName() {
-		return englishName;
-	}
+    public void setUserCode(String userCode) {
+        this.userCode = userCode;
+    }
 
-	public void setEnglishName(String englishName) {
-		this.englishName = englishName;
-	}
+    public String getUserPin() {
+        return userPin;
+    }
 
-	public String getUserDesc() {
-		return userDesc;
-	}
+    public void setUserPin(String userPin) {
+        this.userPin = userPin;
+    }
 
-	public void setUserDesc(String userDesc) {
-		this.userDesc = userDesc;
-	}
-	
+    public String getIsValid() {
+        return isValid;
+    }
+
+    public void setIsValid(String isValid) {
+        this.isValid = isValid;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+
+    public String getLoginName() {
+        return loginName;
+    }
+
+    public void setLoginName(String loginName) {
+        this.loginName = loginName;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getEnglishName() {
+        return englishName;
+    }
+
+    public void setEnglishName(String englishName) {
+        this.englishName = englishName;
+    }
+
+    public String getUserDesc() {
+        return userDesc;
+    }
+
+    public void setUserDesc(String userDesc) {
+        this.userDesc = userDesc;
+    }
+
 }

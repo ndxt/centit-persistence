@@ -21,7 +21,7 @@ import java.util.Map;
  */
 @SuppressWarnings("unused")
 public abstract class DatabaseOptUtils {
-	
+
     protected static Logger logger = LoggerFactory.getLogger(DatabaseOptUtils.class);
 
     public final static Object callFunction(BaseDaoImpl<?, ?> baseDao , String procName,
@@ -58,8 +58,8 @@ public abstract class DatabaseOptUtils {
     }
 
     /*
-	 * 直接运行行带参数的 SQL,update delete insert
-	 */
+     * 直接运行行带参数的 SQL,update delete insert
+     */
     public final static int doExecuteSql(BaseDaoImpl<?, ?> baseDao , String sSql, Object[] values) throws SQLException {
 
         return baseDao.getJdbcTemplate().update(sSql,values );

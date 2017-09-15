@@ -8,26 +8,26 @@ import org.mybatis.spring.support.SqlSessionDaoSupport;
 @SuppressWarnings("unused")
 public class BaseDaoSupport extends SqlSessionDaoSupport {
 
-	/**
-	 * 直接调用 getSqlSession().getConnection() 有时返回为空；
-	 * 
-	 * 调用 getSqlSession().getConfiguration().getEnvironment().getDataSource().getConnection()
-	 * 返回的是一个新建的Connection这样和当前的SQLSession不在统一事务中（也不在统一个session中）。
-	 * 
-	 * @return 一个新建的Connection这样和当前的SQLSession不在统一事务中（也不在统一个session中）
-	 */
-	public SqlSession getSqlSessionWithOpenedConnection() {
-		
-		SqlSessionTemplate st = (SqlSessionTemplate) getSqlSession();
+    /**
+     * 直接调用 getSqlSession().getConnection() 有时返回为空；
+     *
+     * 调用 getSqlSession().getConfiguration().getEnvironment().getDataSource().getConnection()
+     * 返回的是一个新建的Connection这样和当前的SQLSession不在统一事务中（也不在统一个session中）。
+     *
+     * @return 一个新建的Connection这样和当前的SQLSession不在统一事务中（也不在统一个session中）
+     */
+    public SqlSession getSqlSessionWithOpenedConnection() {
 
-		return SqlSessionUtils.getSqlSession(
+        SqlSessionTemplate st = (SqlSessionTemplate) getSqlSession();
+
+        return SqlSessionUtils.getSqlSession(
                 st.getSqlSessionFactory(), st.getExecutorType(),
                 st.getPersistenceExceptionTranslator());//.getConnection();
-	}
+    }
 
-	public BaseDaoImpl createBaseDao(){
-		BaseDaoImpl  baseDao = new BaseDaoImpl(getSqlSessionWithOpenedConnection());
-		return baseDao;
-	}
-	
+    public BaseDaoImpl createBaseDao(){
+        BaseDaoImpl  baseDao = new BaseDaoImpl(getSqlSessionWithOpenedConnection());
+        return baseDao;
+    }
+
 }

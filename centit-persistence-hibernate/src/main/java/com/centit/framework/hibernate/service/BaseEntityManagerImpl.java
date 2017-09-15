@@ -20,12 +20,12 @@ import java.util.Map;
  * 2012-2-16
  */
 public abstract class BaseEntityManagerImpl<T extends Serializable, 
- 		PK extends Serializable, D extends BaseDaoImpl<T, PK>> implements
+         PK extends Serializable, D extends BaseDaoImpl<T, PK>> implements
         BaseEntityManager<T, PK> {
 
-	/**
-	 * 对应的Dao层对象
-	 */
+    /**
+     * 对应的Dao层对象
+     */
     protected D baseDao = null;
 
     protected void setBaseDao(D baseDao){

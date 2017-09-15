@@ -31,7 +31,7 @@ import java.util.Map;
  */
 @SuppressWarnings("unused")
 public abstract class DatabaseOptUtils {
-	
+
     protected static Logger logger = LoggerFactory.getLogger(DatabaseOptUtils.class);
     
 
@@ -46,25 +46,25 @@ public abstract class DatabaseOptUtils {
      * @return 保存任意对象，hibernate 托管的对象
      */
     public final static int saveBatchObjects(BaseDaoImpl<?, ?> baseDao,
-            Collection<? extends Object> objects) {	
-    	int i=0;  
-		try {  	
-	        for (Object obj:objects) {	
-	        	if(obj!=null){
-	                baseDao.getCurrentSession().saveOrUpdate(obj);
-	                i++;
-	        	}
-	            //批量刷新数据库，并不是提交事务，只是处罚update操作
-	            if (0 == i % 20) {
-	                flush( baseDao.getCurrentSession());               
-	            }
+            Collection<? extends Object> objects) {
+        int i=0;
+        try {
+            for (Object obj:objects) {
+                if(obj!=null){
+                    baseDao.getCurrentSession().saveOrUpdate(obj);
+                    i++;
+                }
+                //批量刷新数据库，并不是提交事务，只是处罚update操作
+                if (0 == i % 20) {
+                    flush( baseDao.getCurrentSession());
+                }
    
-	        }
-    	}catch (DataAccessException e) {
+            }
+        }catch (DataAccessException e) {
             logger.error(e.getMessage(), e);
                 throw e;
-         }
-		return i;
+        }
+        return i;
     }
 
     /**
@@ -75,25 +75,25 @@ public abstract class DatabaseOptUtils {
      * @return  数量
      */
     public static final int mergeBatchObjects(BaseDaoImpl<?, ?> baseDao,
-            Collection<? extends Object> objects) {		
-    	int i=0;  
-		try {  	
-	        for (Object obj:objects) {	
-	        	if(obj!=null){
-	                baseDao.getCurrentSession().merge(obj);
-	                i++;
-	        	}
-	            //批量刷新数据库，并不是提交事务，只是处罚update操作
-	            if (0 == i % 20) {
-	                flush( baseDao.getCurrentSession());               
-	            }
+            Collection<? extends Object> objects) {
+        int i=0;
+        try {
+            for (Object obj:objects) {
+                if(obj!=null){
+                    baseDao.getCurrentSession().merge(obj);
+                    i++;
+                }
+                //批量刷新数据库，并不是提交事务，只是处罚update操作
+                if (0 == i % 20) {
+                    flush( baseDao.getCurrentSession());
+                }
    
-	        }
-    	}catch (DataAccessException e) {
+            }
+        }catch (DataAccessException e) {
             logger.error(e.getMessage(), e);
                 throw e;
-         }
-		return i;
+        }
+        return i;
     }
 
     /**
@@ -103,25 +103,25 @@ public abstract class DatabaseOptUtils {
      * @return 数量
      */
     public final static int deleteBatchObject(BaseDaoImpl<?, ?> baseDao,
-    		Collection<? extends Object> objects) {
-    	int i=0;  
-		try {  	
-	        for (Object obj:objects) {	
-	        	if(obj!=null){
-	                baseDao.getCurrentSession().delete(obj);
-	                i++;
-	        	}
-	            //批量刷新数据库，并不是提交事务，只是处罚update操作
-	            if (0 == i % 20) {
-	                flush( baseDao.getCurrentSession());               
-	            }
+            Collection<? extends Object> objects) {
+        int i=0;
+        try {
+            for (Object obj:objects) {
+                if(obj!=null){
+                    baseDao.getCurrentSession().delete(obj);
+                    i++;
+                }
+                //批量刷新数据库，并不是提交事务，只是处罚update操作
+                if (0 == i % 20) {
+                    flush( baseDao.getCurrentSession());
+                }
    
-	        }
-    	}catch (DataAccessException e) {
+            }
+        }catch (DataAccessException e) {
             logger.error(e.getMessage(), e);
-                throw e;
-         }
-		return i;
+            throw e;
+        }
+        return i;
     }
 
     /**
@@ -190,8 +190,8 @@ public abstract class DatabaseOptUtils {
 
     
     public final static void setQueryParameters(Query q, Map<String,Object> values) {
-    	if (values != null) {
-       	 	for (String sParam : q.getParameterMetadata().getNamedParameterNames()) {
+        if (values != null) {
+            for (String sParam : q.getParameterMetadata().getNamedParameterNames()) {
                 Object value = values.get(sParam);
                 if (value == null) {
                     q.setParameter(sParam, null);
@@ -202,9 +202,9 @@ public abstract class DatabaseOptUtils {
                 } else {
                     q.setParameter(sParam, value);
                 }
-           }
-       }
-	}
+            }
+        }
+    }
     
     /**
      * 直接运行行带参数的 HQL,update delete insert
@@ -270,7 +270,7 @@ public abstract class DatabaseOptUtils {
                 + sObjectName);
 
         return StringBaseOpt.nextCode(
-        		StringBaseOpt.fillZeroForString(StringBaseOpt.objectToString(q.list().get(0)),
+                StringBaseOpt.fillZeroForString(StringBaseOpt.objectToString(q.list().get(0)),
                 codeLen));
     }
 
@@ -295,10 +295,10 @@ public abstract class DatabaseOptUtils {
      */
     public final static String getCurrValueOfSequence(
             BaseDaoImpl<?, ?> baseDao, String sequenceName) {
-    	Long seq = getNextLongSequence(baseDao, sequenceName);
-    	if(seq==null)
-    		return null;
-    	return seq.toString();
+        Long seq = getNextLongSequence(baseDao, sequenceName);
+        if(seq==null)
+            return null;
+        return seq.toString();
     }
 
     /**
@@ -318,41 +318,41 @@ public abstract class DatabaseOptUtils {
 
     
     /** 用表来模拟sequence 
-	 * create table sequence_table 
-	 * (sequence_Name varchar(100) not null primary key, 
-	 * current_value integer);
+     * create table sequence_table
+     * (sequence_Name varchar(100) not null primary key,
+     * current_value integer);
      * @param baseDao BaseDaoImpl
      * @param sequenceName sequenceName
      * @return  SequenceNextValueUseTable
      * @throws SQLException SQLException
      * @throws IOException IOException
      */
-	public static Long getSequenceNextValueUseTable(final BaseDaoImpl<?, ?> baseDao,final String sequenceName) throws SQLException, IOException {
-		Object object = getSingleObjectBySql(
+    public static Long getSequenceNextValueUseTable(final BaseDaoImpl<?, ?> baseDao,final String sequenceName) throws SQLException, IOException {
+        Object object = getSingleObjectBySql(
                 baseDao,
-				 "SELECT count(1) hasValue from sequence_table "
-				 + " where sequence_Name = ?",
+                 "SELECT count(1) hasValue from sequence_table "
+                 + " where sequence_Name = ?",
                 new Object[]{sequenceName});
-		Long l = NumberBaseOpt.castObjectToLong(object);
-		if(l==0){
-			getSingleObjectBySql(
+        Long l = NumberBaseOpt.castObjectToLong(object);
+        if(l==0){
+            getSingleObjectBySql(
                     baseDao,
-					"insert into sequence_table(sequence_Name,current_value)"
-					+ " values(?,?)", new Object[]{sequenceName,1});
-			return 1l;
-		}else{
-			getSingleObjectBySql(
+                    "insert into sequence_table(sequence_Name,current_value)"
+                    + " values(?,?)", new Object[]{sequenceName,1});
+            return 1l;
+        }else{
+            getSingleObjectBySql(
                     baseDao,
-					"update sequence_table current_value = current_value + 1 "
-					+ "where sequence_Name= ?", new Object[]{sequenceName});
-			object = getSingleObjectBySql(
+                    "update sequence_table current_value = current_value + 1 "
+                    + "where sequence_Name= ?", new Object[]{sequenceName});
+            object = getSingleObjectBySql(
                     baseDao,
-					 "SELECT current_value from sequence_table "
-					 + " where sequence_Name = ?",
-	                 new Object[]{sequenceName});
-		}
-		return NumberBaseOpt.castObjectToLong(object);
-	}
+                     "SELECT current_value from sequence_table "
+                     + " where sequence_Name = ?",
+                     new Object[]{sequenceName});
+        }
+        return NumberBaseOpt.castObjectToLong(object);
+    }
     
     /**
      * 获取sequence的下一个新值 只有oracle DB2支持
@@ -385,11 +385,11 @@ public abstract class DatabaseOptUtils {
         // if("SQLServerDialect".endsWith(dn))
         // sql server 没有 sequence 所以用 GUID 代替
         try {
-			return getSequenceNextValueUseTable(baseDao,sequenceName);
-		} catch (Exception e) {
+            return getSequenceNextValueUseTable(baseDao,sequenceName);
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
-			return null;
-		}
+            return null;
+        }
     }
 
     /**
@@ -494,16 +494,16 @@ public abstract class DatabaseOptUtils {
     
     public final static long getSingleIntByHql(BaseDaoImpl<?, ?> baseDao,
             final String sHql, final Object paramObject) {
-    	 Object obj = getSingleObjectByHql(baseDao, sHql,  paramObject);
-		 if (obj == null)
-	         return 0;
-	     if (obj instanceof Long)
-	         return ((Long) obj).longValue();
-	     if (obj instanceof String)
-	         return Long.valueOf(obj.toString()).longValue();
-	     if (obj instanceof BigDecimal)
-	         return ((BigDecimal) obj).longValue();
-	     return 0;
+         Object obj = getSingleObjectByHql(baseDao, sHql,  paramObject);
+         if (obj == null)
+             return 0;
+         if (obj instanceof Long)
+             return ((Long) obj).longValue();
+         if (obj instanceof String)
+             return Long.valueOf(obj.toString()).longValue();
+         if (obj instanceof BigDecimal)
+             return ((BigDecimal) obj).longValue();
+         return 0;
     }
     
     /**
@@ -559,16 +559,16 @@ public abstract class DatabaseOptUtils {
     
     public final static long getSingleIntBySql(BaseDaoImpl<?, ?> baseDao,
             final String sSql, final Object paramObject) {
-    	 Object obj = getSingleObjectBySql(baseDao, sSql,  paramObject);
-		 if (obj == null)
-	         return 0;
-	     if (obj instanceof Long)
-	         return ((Long) obj).longValue();
-	     if (obj instanceof String)
-	         return Long.valueOf(obj.toString()).longValue();
-	     if (obj instanceof BigDecimal)
-	         return ((BigDecimal) obj).longValue();
-	     return 0;
+         Object obj = getSingleObjectBySql(baseDao, sSql,  paramObject);
+         if (obj == null)
+             return 0;
+         if (obj instanceof Long)
+             return ((Long) obj).longValue();
+         if (obj instanceof String)
+             return Long.valueOf(obj.toString()).longValue();
+         if (obj instanceof BigDecimal)
+             return ((BigDecimal) obj).longValue();
+         return 0;
     }
     
     /**
@@ -663,7 +663,7 @@ public abstract class DatabaseOptUtils {
     }
    
     /**
-  	 *
+       *
      * @param baseDao 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
      * @param shql hql语句，这个语句中的参数用？作为占位符
      * @param values hql语句中的变量值
@@ -672,8 +672,8 @@ public abstract class DatabaseOptUtils {
      */
     public final static List<?> findObjectsByHql(BaseDaoImpl<?, ?> baseDao, String shql,
             Object[] values, PageDesc pageDesc) {
-    	
-    	int startPos = -1;
+
+        int startPos = -1;
         int maxSize = 0;
         if(pageDesc!=null){
             startPos = pageDesc.getRowStart();
@@ -692,14 +692,14 @@ public abstract class DatabaseOptUtils {
         List<?> l = q.list();
         
         if(l != null && pageDesc!=null){
-        	if(maxSize>0){
-		        q = baseDao.getCurrentSession().createQuery(QueryUtils.buildGetCountHQL(shql));
+            if(maxSize>0){
+                q = baseDao.getCurrentSession().createQuery(QueryUtils.buildGetCountHQL(shql));
                 setQueryParameter(q,values);
-		        pageDesc.setTotalRows(Integer.valueOf(q.list().get(0).toString()));
-        	}else
-        		pageDesc.setTotalRows(l.size());
+                pageDesc.setTotalRows(Integer.valueOf(q.list().get(0).toString()));
+            }else
+                pageDesc.setTotalRows(l.size());
         }
-        		
+
         return l;
     }
 
@@ -707,7 +707,7 @@ public abstract class DatabaseOptUtils {
      * 
      * @param baseDao 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
      * @param shql sql语句，这个语句必须用命名参数
-     * @param values	命名参数对应的变量
+     * @param values    命名参数对应的变量
      * @param pageDesc 分页信息，其中的totalRows属性为输出信息，表示总共的记录条数
      * @return List
      */
@@ -731,12 +731,12 @@ public abstract class DatabaseOptUtils {
         List<?> l = q.list();
 
         if(l!=null && pageDesc!=null){
-        	if(maxSize>0){
-	            q = baseDao.getCurrentSession().createQuery(QueryUtils.buildGetCountHQL(shql));
-	            setQueryParameters(q,values);
-	            pageDesc.setTotalRows(Integer.valueOf(q.list().get(0).toString()));
-        	}else
-        		pageDesc.setTotalRows(l.size());
+            if(maxSize>0){
+                q = baseDao.getCurrentSession().createQuery(QueryUtils.buildGetCountHQL(shql));
+                setQueryParameters(q,values);
+                pageDesc.setTotalRows(Integer.valueOf(q.list().get(0).toString()));
+            }else
+                pageDesc.setTotalRows(l.size());
         }
         return l;
     }
@@ -745,7 +745,7 @@ public abstract class DatabaseOptUtils {
      * 查询所有的不分页
      * @param baseDao 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
      * @param shql sql语句，这个语句必须用命名参数
-     * @param values	命名参数对应的变量
+     * @param values    命名参数对应的变量
      * @return List
      */
     public final static List<?> findObjectsByHql(BaseDaoImpl<?, ?> baseDao, String shql,
@@ -757,7 +757,7 @@ public abstract class DatabaseOptUtils {
   
     /**
      * 不分页查询 返回所有的记录
-  	 *
+       *
      * @param baseDao 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
      * @param shql hql语句，这个语句中的参数用？作为占位符
      * @param values hql语句中的变量值
@@ -772,7 +772,7 @@ public abstract class DatabaseOptUtils {
     /**
      * 不分页查询 返回所有的记录
      * 无参数的HQL 
-  	 *
+       *
      * @param baseDao 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
      * @param shql hql语句
      * @return  List
@@ -806,7 +806,7 @@ public abstract class DatabaseOptUtils {
   
     public final static List<?> findObjectsBySql(BaseDaoImpl<?, ?> baseDao,
             String ssql, Object[] values) {
-    	return findObjectsBySql( baseDao,  ssql,
+        return findObjectsBySql( baseDao,  ssql,
                 values,  new PageDesc(-1,-1),null);   
     }
 
@@ -847,7 +847,7 @@ public abstract class DatabaseOptUtils {
     public final static <T> List<T> findObjectsBySql(BaseDaoImpl<?, ?> baseDao, String ssql,
             Object[] values, PageDesc pageDesc, Class<T> objectType) {
         
-    	int startPos = 0;
+        int startPos = 0;
         int maxSize = 0;
         if(pageDesc!=null){
             startPos = pageDesc.getRowStart();
@@ -863,17 +863,17 @@ public abstract class DatabaseOptUtils {
             q.setFirstResult(startPos);
         
         if(objectType!=null)
-        	q.addEntity(objectType);
+            q.addEntity(objectType);
         
         List<T> l = q.list();
 
         if(l!=null && pageDesc!=null){
-        	if(maxSize>0){
-	            q = baseDao.getCurrentSession().createNativeQuery(QueryUtils.buildGetCountSQL(ssql));
+            if(maxSize>0){
+                q = baseDao.getCurrentSession().createNativeQuery(QueryUtils.buildGetCountSQL(ssql));
                 setQueryParameter(q,values);
-	            pageDesc.setTotalRows(Integer.valueOf(q.list().get(0).toString()));
-        	}else
-        		pageDesc.setTotalRows(l.size());
+                pageDesc.setTotalRows(Integer.valueOf(q.list().get(0).toString()));
+            }else
+                pageDesc.setTotalRows(l.size());
         }
         return l;
     }
@@ -896,7 +896,7 @@ public abstract class DatabaseOptUtils {
      * 获取 符合条件的记录数量 
      * @param baseDao 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
      * @param shql sql语句，这个语句必须用命名参数
-     * @param values	命名参数对应的变量
+     * @param values    命名参数对应的变量
      * @return  符合条件的记录数量
      */
     public final static int getHqlReturnObjectCounts(BaseDaoImpl<?, ?> baseDao, String shql,
@@ -925,7 +925,7 @@ public abstract class DatabaseOptUtils {
      * 获取 符合条件的记录数量 
      * @param baseDao 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
      * @param sSql sql语句，这个语句必须用命名参数
-     * @param values	命名参数对应的变量
+     * @param values    命名参数对应的变量
      * @return 符合条件的记录数量
      */    
     public final static int getSqlReturnObjectCounts(BaseDaoImpl<?, ?> baseDao, String sSql,
@@ -966,17 +966,17 @@ public abstract class DatabaseOptUtils {
             q.setFirstResult(startPos);
         
         if(objectType!=null)
-        	q.addEntity(objectType);
+            q.addEntity(objectType);
         
         List<T> l = q.list();
 
         if(l!=null && pageDesc!=null){
-        	if(maxSize>0){
-	            q = baseDao.getCurrentSession().createNativeQuery(QueryUtils.buildGetCountSQL(ssql));
-	            setQueryParameters(q,values);
-	            pageDesc.setTotalRows(Integer.valueOf(q.list().get(0).toString()));
-        	}else
-        		pageDesc.setTotalRows(l.size());
+            if(maxSize>0){
+                q = baseDao.getCurrentSession().createNativeQuery(QueryUtils.buildGetCountSQL(ssql));
+                setQueryParameters(q,values);
+                pageDesc.setTotalRows(Integer.valueOf(q.list().get(0).toString()));
+            }else
+                pageDesc.setTotalRows(l.size());
         }
         return l;
     }
@@ -1014,37 +1014,37 @@ public abstract class DatabaseOptUtils {
      */
     public final static <T> List<T> findObjectsBySql(BaseDaoImpl<?, ?> baseDao, String ssql,
             Object[] values, Class<T> objectType) {
-    	return findObjectsBySql( baseDao,  ssql,
+        return findObjectsBySql( baseDao,  ssql,
                 values,  new PageDesc(-1,-1),objectType);
     }
     
     public final static List<?> findObjectsBySql(BaseDaoImpl<?, ?> baseDao, String ssql,
             Object[] values, PageDesc pageDesc) {
-    	return findObjectsBySql( baseDao,  ssql,
+        return findObjectsBySql( baseDao,  ssql,
                 values,pageDesc,null);
     }
     
     public final static JSONArray findObjectsAsJSONByHql(BaseDaoImpl<?, ?> baseDao, String shql,
                                                          String [] fieldnames, Object[] values, PageDesc pageDesc) {
-    	
-    	List<?> dataList = findObjectsByHql(baseDao,shql,values,pageDesc);
-    	if(dataList==null || dataList.size()==0)
-    		return null;
-    	
-    	String [] fieldNames  = fieldnames;
-    	if(fieldNames==null){
-	    	 List<String> fields = QueryUtils.getSqlFiledNames(shql);
-	         if(fields==null || fields.size()<1)
-	             return null;
-	         fieldNames = fields.toArray(new String[fields.size()]);
-    	}
+
+        List<?> dataList = findObjectsByHql(baseDao,shql,values,pageDesc);
+        if(dataList==null || dataList.size()==0)
+            return null;
+
+        String [] fieldNames  = fieldnames;
+        if(fieldNames==null){
+             List<String> fields = QueryUtils.getSqlFiledNames(shql);
+             if(fields==null || fields.size()<1)
+                 return null;
+             fieldNames = fields.toArray(new String[fields.size()]);
+        }
 
         JSONArray ja = new JSONArray();
         for(int j=0; j<dataList.size();j++ ){
             JSONObject jo = new JSONObject();
             for(int i=0;i<fieldNames.length;i++){
-            	Object obj = DatabaseAccess.fetchLobField( ((Object[])dataList.get(j) )[i],false);
-            	jo.put(fieldNames[i], obj);	
+                Object obj = DatabaseAccess.fetchLobField( ((Object[])dataList.get(j) )[i],false);
+                jo.put(fieldNames[i], obj);
             }
             ja.add(jo);
    
@@ -1055,18 +1055,18 @@ public abstract class DatabaseOptUtils {
     
     public final static JSONArray findObjectsAsJSONByHql(BaseDaoImpl<?, ?> baseDao, String shql,
                                                          String [] fieldnames, Map<String,Object> values, PageDesc pageDesc) {
-    	
-    	List<?> dataList = findObjectsByHql(baseDao,shql,values,pageDesc);
-    	if(dataList==null || dataList.size()==0)
-    		return null;
-    	
-    	String [] fieldNames  = fieldnames;
-    	if(fieldNames==null){
-	    	 List<String> fields = QueryUtils.getSqlFiledNames(shql);
-	         if(fields==null || fields.size()<1)
-	             return null;
-	         fieldNames = fields.toArray(new String[fields.size()]);
-    	}
+
+        List<?> dataList = findObjectsByHql(baseDao,shql,values,pageDesc);
+        if(dataList==null || dataList.size()==0)
+            return null;
+
+        String [] fieldNames  = fieldnames;
+        if(fieldNames==null){
+             List<String> fields = QueryUtils.getSqlFiledNames(shql);
+             if(fields==null || fields.size()<1)
+                 return null;
+             fieldNames = fields.toArray(new String[fields.size()]);
+        }
 
         JSONArray ja = new JSONArray();
         for(int j=0; j<dataList.size();j++ ){
@@ -1074,9 +1074,9 @@ public abstract class DatabaseOptUtils {
                 ja.add(((Object [])dataList.get(j))[0]);
             }else{*/
                 JSONObject jo = new JSONObject();
-                for(int i=0;i<fieldNames.length;i++){                	
+                for(int i=0;i<fieldNames.length;i++){
                     jo.put(fieldNames[i],
-                    		DatabaseAccess.fetchLobField( ((Object [])dataList.get(j))[i],false));
+                            DatabaseAccess.fetchLobField( ((Object [])dataList.get(j))[i],false));
                 }
                 ja.add(jo);
             //}      
@@ -1117,18 +1117,18 @@ public abstract class DatabaseOptUtils {
      */
     public final static JSONArray findObjectsAsJSONBySql(BaseDaoImpl<?, ?> baseDao, String ssql,
                                                          String [] fieldnames, Object[] values, PageDesc pageDesc) {
-    	
-    	List<?> dataList = findObjectsBySql(baseDao,ssql,values,pageDesc,null);
-    	if(dataList==null || dataList.size()==0)
-    		return null;
-    	
-    	String [] fieldNames  = fieldnames;
-    	if(fieldNames==null){
-	    	 List<String> fields = QueryUtils.getSqlFiledNames(ssql);
-	         if(fields==null || fields.size()<1)
-	             return null;
-	         fieldNames = fields.toArray(new String[fields.size()]);
-    	}
+
+        List<?> dataList = findObjectsBySql(baseDao,ssql,values,pageDesc,null);
+        if(dataList==null || dataList.size()==0)
+            return null;
+
+        String [] fieldNames  = fieldnames;
+        if(fieldNames==null){
+             List<String> fields = QueryUtils.getSqlFiledNames(ssql);
+             if(fields==null || fields.size()<1)
+                 return null;
+             fieldNames = fields.toArray(new String[fields.size()]);
+        }
 
         JSONArray ja = new JSONArray();
         for(int j=0; j<dataList.size();j++ ){
@@ -1138,7 +1138,7 @@ public abstract class DatabaseOptUtils {
                 JSONObject jo = new JSONObject();
                 for(int i=0;i<fieldNames.length;i++){
                     jo.put(fieldNames[i], DatabaseAccess.fetchLobField(
-                    		((Object [])dataList.get(j))[i],false));
+                            ((Object [])dataList.get(j))[i],false));
                 }
                 ja.add(jo);
             //}      
@@ -1160,18 +1160,18 @@ public abstract class DatabaseOptUtils {
      */
     public final static JSONArray findObjectsAsJSONBySql(BaseDaoImpl<?, ?> baseDao, String ssql,
                                                          String [] fieldnames, Map<String,Object> values, PageDesc pageDesc) {
-    	
-    	List<?> dataList = findObjectsBySql(baseDao,ssql,values,pageDesc,null);
-    	if(dataList==null || dataList.size()==0)
-    		return null;
-    	
-    	String [] fieldNames  = fieldnames;
-    	if(fieldNames==null){
-	    	 List<String> fields = QueryUtils.getSqlFiledNames(ssql);
-	         if(fields==null || fields.size()<1)
-	             return null;
-	         fieldNames = fields.toArray(new String[fields.size()]);
-    	}
+
+        List<?> dataList = findObjectsBySql(baseDao,ssql,values,pageDesc,null);
+        if(dataList==null || dataList.size()==0)
+            return null;
+
+        String [] fieldNames  = fieldnames;
+        if(fieldNames==null){
+             List<String> fields = QueryUtils.getSqlFiledNames(ssql);
+             if(fields==null || fields.size()<1)
+                 return null;
+             fieldNames = fields.toArray(new String[fields.size()]);
+        }
 
         JSONArray ja = new JSONArray();
         for(int j=0; j<dataList.size();j++ ){
@@ -1181,8 +1181,8 @@ public abstract class DatabaseOptUtils {
                 JSONObject jo = new JSONObject();
                 for(int i=0;i<fieldNames.length;i++){
                     jo.put(fieldNames[i], 
-                    		DatabaseAccess.fetchLobField(
-                    				((Object [])dataList.get(j))[i],false));
+                            DatabaseAccess.fetchLobField(
+                                    ((Object [])dataList.get(j))[i],false));
                 }
                 ja.add(jo);
             //}      

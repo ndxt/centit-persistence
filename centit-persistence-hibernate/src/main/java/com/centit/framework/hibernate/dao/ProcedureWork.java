@@ -20,9 +20,9 @@ import com.centit.support.algorithm.DatetimeOpt;
  *
  */
 public class ProcedureWork implements Work {
-	
-	public static final int ORACLE_TYPES_CURSOR = -10; // oracle.jdbc.OracleTypes.CURSOR
-	
+
+    public static final int ORACLE_TYPES_CURSOR = -10; // oracle.jdbc.OracleTypes.CURSOR
+
     private String procName; // 存储过程语句
     private ResultSet rs = null; // 返回结果集
     private List<Object> paramObjs = new ArrayList<Object>(); // 存储过程涉及参数
@@ -91,7 +91,7 @@ public class ProcedureWork implements Work {
                 this.rs = (ResultSet) stmt.getObject(n + 1);
             isSucceedExecuted = true;
         } catch (SQLException e) {
-        	logger.error(e.getMessage(),e);//e.printStackTrace();
+            logger.error(e.getMessage(),e);//e.printStackTrace();
         }
     }
 }

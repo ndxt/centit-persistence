@@ -27,9 +27,9 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public abstract class DatabaseOptUtils {
-	
-	public static final int ORACLE_TYPES_CURSOR = -10; // oracle.jdbc.OracleTypes.CURSOR
-	
+
+    public static final int ORACLE_TYPES_CURSOR = -10; // oracle.jdbc.OracleTypes.CURSOR
+
     protected static Logger logger = LoggerFactory.getLogger(DatabaseOptUtils.class);
     
 
@@ -44,7 +44,7 @@ public abstract class DatabaseOptUtils {
      * @throws SQLException SQLException
      */
     public final static void doExecuteSql(SqlSession sqlSession, String sSql) throws SQLException {
-    	DatabaseAccess.doExecuteSql(sqlSession.getConnection(), sSql);
+        DatabaseAccess.doExecuteSql(sqlSession.getConnection(), sSql);
     }
 
     /**
@@ -56,7 +56,7 @@ public abstract class DatabaseOptUtils {
      */
     public final static void doExecuteSql(SqlSession sqlSession, String sSql,
             Object[] values) throws SQLException {
-    	DatabaseAccess.doExecuteSql(sqlSession.getConnection(), sSql,values);
+        DatabaseAccess.doExecuteSql(sqlSession.getConnection(), sSql,values);
     }
 
 
@@ -70,7 +70,7 @@ public abstract class DatabaseOptUtils {
      */
     public final static void doExecuteSql(SqlSession sqlSession, String sSql,
             Map<String,Object> values) throws SQLException {
-    	DatabaseAccess.doExecuteNamedSql(sqlSession.getConnection(), sSql,values);
+        DatabaseAccess.doExecuteNamedSql(sqlSession.getConnection(), sSql,values);
     }
     
 
@@ -82,19 +82,19 @@ public abstract class DatabaseOptUtils {
      * @return 获取分页语句
      */
     public final static String buildLimitQuerySQL(DBType dbType,String sql,int offset,int maxsize){
-    	switch(dbType){
-	  	case SqlServer:
-	  		return QueryUtils.buildSqlServerLimitQuerySQL(sql, offset, maxsize);
-	  	case Oracle:
-	  		return QueryUtils.buildOracleLimitQuerySQL(sql, offset, maxsize, false);
-	  	case DB2:
-	  		return QueryUtils.buildDB2LimitQuerySQL(sql, offset, maxsize);
-	  	case MySql:
-	  	case H2:
-	  		return QueryUtils.buildMySqlLimitQuerySQL(sql, offset, maxsize, false);
-	  	default: 
-	  		return sql;
-	  }
+        switch(dbType){
+          case SqlServer:
+              return QueryUtils.buildSqlServerLimitQuerySQL(sql, offset, maxsize);
+          case Oracle:
+              return QueryUtils.buildOracleLimitQuerySQL(sql, offset, maxsize, false);
+          case DB2:
+              return QueryUtils.buildDB2LimitQuerySQL(sql, offset, maxsize);
+          case MySql:
+          case H2:
+              return QueryUtils.buildMySqlLimitQuerySQL(sql, offset, maxsize, false);
+          default:
+              return sql;
+      }
     }
     /**
      * 获取sequence的当前值 只有oracle DB2支持
@@ -106,10 +106,10 @@ public abstract class DatabaseOptUtils {
      */
     public final static String getCurrValueOfSequence(
             SqlSession sqlSession, String sequenceName) throws SQLException, IOException {
-    	Long seq = getNextLongSequence(sqlSession, sequenceName);
-    	if(seq==null)
-    		return null;
-    	return seq.toString();
+        Long seq = getNextLongSequence(sqlSession, sequenceName);
+        if(seq==null)
+            return null;
+        return seq.toString();
     }
 
     /**
@@ -131,41 +131,41 @@ public abstract class DatabaseOptUtils {
 
     
     /** 用表来模拟sequence 
-	 * create table sequence_table 
-	 * (sequence_Name varchar(100) not null primary key, 
-	 * current_value integer);
+     * create table sequence_table
+     * (sequence_Name varchar(100) not null primary key,
+     * current_value integer);
      * @param sqlSession sqlSession
      * @param sequenceName sequenceName
      * @throws IOException  IOException
      * @throws SQLException SQLException
      * @return 结果集数量
      */
-	public static Long getSequenceNextValueUseTable(final SqlSession sqlSession,final String sequenceName) throws SQLException, IOException {
-		Object object = getSingleObjectBySql(
+    public static Long getSequenceNextValueUseTable(final SqlSession sqlSession,final String sequenceName) throws SQLException, IOException {
+        Object object = getSingleObjectBySql(
                 sqlSession,
-				 "SELECT count(1) hasValue from sequence_table "
-				 + " where sequence_Name = ?",
+                 "SELECT count(1) hasValue from sequence_table "
+                 + " where sequence_Name = ?",
                 new Object[]{sequenceName});
-		Long l = NumberBaseOpt.castObjectToLong(object);
-		if(l==0){
-			getSingleObjectBySql(
+        Long l = NumberBaseOpt.castObjectToLong(object);
+        if(l==0){
+            getSingleObjectBySql(
                     sqlSession,
-					"insert into sequence_table(sequence_Name,current_value)"
-					+ " values(?,?)", new Object[]{sequenceName,1});
-			return 1l;
-		}else{
-			getSingleObjectBySql(
+                    "insert into sequence_table(sequence_Name,current_value)"
+                    + " values(?,?)", new Object[]{sequenceName,1});
+            return 1l;
+        }else{
+            getSingleObjectBySql(
                     sqlSession,
-					"update sequence_table current_value = current_value + 1 "
-					+ "where sequence_Name= ?", new Object[]{sequenceName});
-			object = getSingleObjectBySql(
+                    "update sequence_table current_value = current_value + 1 "
+                    + "where sequence_Name= ?", new Object[]{sequenceName});
+            object = getSingleObjectBySql(
                     sqlSession,
-					 "SELECT current_value from sequence_table "
-					 + " where sequence_Name = ?",
-	                 new Object[]{sequenceName});
-		}
-		return NumberBaseOpt.castObjectToLong(object);
-	}
+                     "SELECT current_value from sequence_table "
+                     + " where sequence_Name = ?",
+                     new Object[]{sequenceName});
+        }
+        return NumberBaseOpt.castObjectToLong(object);
+    }
     
     /**
      * 获取sequence的下一个新值 只有oracle DB2支持
@@ -199,11 +199,11 @@ public abstract class DatabaseOptUtils {
         // if("SQLServerDialect".endsWith(dn))
         // sql server 没有 sequence 所以用 GUID 代替
         try {
-			return getSequenceNextValueUseTable(sqlSession,sequenceName);
-		} catch (Exception e) {
+            return getSequenceNextValueUseTable(sqlSession,sequenceName);
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
-			return null;
-		}
+            return null;
+        }
     }
 
     /**
@@ -228,28 +228,28 @@ public abstract class DatabaseOptUtils {
 
     public final static Object getSingleObjectBySql(SqlSession sqlSession,
             final String sSql) throws SQLException, IOException {
-    	return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql);
+        return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql);
     }
 
     public final static Object getSingleObjectBySql(SqlSession sqlSession,
             final String sSql, final Object paramObject)  throws SQLException, IOException {
-    	return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql,paramObject);
+        return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql,paramObject);
     }
 
     public final static Object getSingleObjectBySql(SqlSession sqlSession,
             final String sSql, final Object[] paramObjects)  throws SQLException, IOException {
-    	return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql,paramObjects);
+        return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql,paramObjects);
     }
 
     public final static Object getSingleObjectBySql(SqlSession sqlSession,
             final String sSql, final String paramName, final Object paramObject)  throws SQLException, IOException {
-    	return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql,
-    			QueryUtils.createSqlParamsMap(paramName,paramObject));
+        return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql,
+                QueryUtils.createSqlParamsMap(paramName,paramObject));
     }
 
     public final static Object getSingleObjectBySql(SqlSession sqlSession,
             final String sSql, final Map<String, Object> paramObjects) throws SQLException, IOException {
-    	return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql,paramObjects);
+        return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql,paramObjects);
     }
 
     
@@ -279,16 +279,16 @@ public abstract class DatabaseOptUtils {
     
     public final static long getSingleIntBySql(SqlSession sqlSession,
             final String sSql, final Object paramObject) throws SQLException, IOException {
-    	 Object obj = getSingleObjectBySql(sqlSession, sSql,  paramObject);
-		 if (obj == null)
-	         return 0;
-	     if (obj instanceof Long)
-	         return ((Long) obj).longValue();
-	     if (obj instanceof String)
-	         return Long.valueOf(obj.toString()).longValue();
-	     if (obj instanceof BigDecimal)
-	         return ((BigDecimal) obj).longValue();
-	     return 0;
+         Object obj = getSingleObjectBySql(sqlSession, sSql,  paramObject);
+         if (obj == null)
+             return 0;
+         if (obj instanceof Long)
+             return ((Long) obj).longValue();
+         if (obj instanceof String)
+             return Long.valueOf(obj.toString()).longValue();
+         if (obj instanceof BigDecimal)
+             return ((BigDecimal) obj).longValue();
+         return 0;
     }
     
    
@@ -352,7 +352,7 @@ public abstract class DatabaseOptUtils {
     
     public final static ResultSet callProcedureOutRS(SqlSession sqlSession,
             String procName, Object... paramObjs) throws SQLException {
-    	return callProcedureOutRS(sqlSession.getConnection(), procName, paramObjs);
+        return callProcedureOutRS(sqlSession.getConnection(), procName, paramObjs);
     }
     
     public final static Object callFunction(SqlSession sqlSession,
@@ -376,7 +376,7 @@ public abstract class DatabaseOptUtils {
      * @throws SQLException  SQLException
      */
     public final static List<Object[]> findObjectsBySql(SqlSession sqlSession, String sSql) throws SQLException, IOException {
-    	return DatabaseAccess.findObjectsBySql(sqlSession.getConnection(), sSql);
+        return DatabaseAccess.findObjectsBySql(sqlSession.getConnection(), sSql);
     }
 
   
@@ -389,8 +389,8 @@ public abstract class DatabaseOptUtils {
      * @return 用原生SQL 查询数据库 objectType 如果没有的话可以为NULL
      */
     public final static <T> List<T> findObjectsBySql(SqlSession sqlSession,
-            String ssql, Class<T> objectType) {    	
-    	 BaseDaoImpl mapper = new BaseDaoImpl(sqlSession);
+            String ssql, Class<T> objectType) {
+         BaseDaoImpl mapper = new BaseDaoImpl(sqlSession);
          return  mapper.selectList(ssql,objectType);
     }
    
@@ -408,7 +408,7 @@ public abstract class DatabaseOptUtils {
      */
     public final static int getSqlReturnObjectCounts(SqlSession sqlSession, String sSql,
             Object[] values) throws SQLException, IOException { 
-    	Object obj = DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(), sSql,values);
+        Object obj = DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(), sSql,values);
         return Integer.valueOf(obj.toString());
     }
     
@@ -416,15 +416,15 @@ public abstract class DatabaseOptUtils {
      * 获取 符合条件的记录数量 
      * @param sqlSession 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
      * @param sSql sql语句，这个语句必须用命名参数
-     * @param values	命名参数对应的变量
+     * @param values    命名参数对应的变量
      * @return 符合条件的记录数量
      * @throws IOException IOException
      * @throws SQLException SQLException
      */    
     public final static int getSqlReturnObjectCounts(SqlSession sqlSession, String sSql,
             Map<String, Object> values) throws SQLException, IOException {
-    	Object obj = DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(), sSql,values);
-    	return Integer.valueOf(obj.toString());
+        Object obj = DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(), sSql,values);
+        return Integer.valueOf(obj.toString());
     }
     // -----------------------------------------------------------------------------------
 
@@ -440,8 +440,8 @@ public abstract class DatabaseOptUtils {
     public final static List<?> findObjectsBySql(SqlSession sqlSession, String ssql,
             Map<String, Object> values, PageDesc pageDesc,Class<?> objectType) {
         
-    	String pageSql;
-    	int startPos = 0;
+        String pageSql;
+        int startPos = 0;
         int maxSize = 0;
         if(pageDesc!=null){
             startPos = pageDesc.getRowStart();
@@ -450,27 +450,27 @@ public abstract class DatabaseOptUtils {
                     DBType.mapDBType(sqlSession.getConnection()),
                     ssql,startPos,maxSize);
         }else{
-        	pageSql = ssql;
+            pageSql = ssql;
         }
         
         BaseDaoImpl mapper = new BaseDaoImpl(sqlSession);
         List<?> listT = null;
         if(objectType==null){
-        	listT = mapper.selectList(pageSql,values);
+            listT = mapper.selectList(pageSql,values);
         }else{
-        	listT = mapper.selectList(pageSql,values ,objectType);
+            listT = mapper.selectList(pageSql,values ,objectType);
         }
         
         if(listT!=null && pageDesc!=null){
-        	if(maxSize>0){
-        		List<Map<String, Object>> rowSumMap =
-        				mapper.selectList(QueryUtils.buildGetCountSQL(ssql),values);
-        		if( rowSumMap !=null && rowSumMap.size()>0)
-        			pageDesc.setTotalRows(Integer.valueOf(rowSumMap.get(0).get("rowcount").toString()));
-        		else
-        			pageDesc.setTotalRows(listT.size());
-        	}else
-        		pageDesc.setTotalRows(listT.size());
+            if(maxSize>0){
+                List<Map<String, Object>> rowSumMap =
+                        mapper.selectList(QueryUtils.buildGetCountSQL(ssql),values);
+                if( rowSumMap !=null && rowSumMap.size()>0)
+                    pageDesc.setTotalRows(Integer.valueOf(rowSumMap.get(0).get("rowcount").toString()));
+                else
+                    pageDesc.setTotalRows(listT.size());
+            }else
+                pageDesc.setTotalRows(listT.size());
         }
         return listT;
     }
@@ -510,18 +510,18 @@ public abstract class DatabaseOptUtils {
      */
     public final static JSONArray findObjectsAsJSONBySql(SqlSession sqlSession, String ssql,
                                                          String [] fieldnames, Map<String,Object> values, PageDesc pageDesc) {
-    	
-    	List<?> dataList = findObjectsBySql(sqlSession,ssql,values,pageDesc,null);
-    	if(dataList==null || dataList.size()==0)
-    		return null;
-    	
-    	String [] fieldNames  = fieldnames;
-    	if(fieldNames==null){
-	    	 List<String> fields = QueryUtils.getSqlFiledNames(ssql);
-	         if(fields==null || fields.size()<1)
-	             return null;
-	         fieldNames = fields.toArray(new String[fields.size()]);
-    	}
+
+        List<?> dataList = findObjectsBySql(sqlSession,ssql,values,pageDesc,null);
+        if(dataList==null || dataList.size()==0)
+            return null;
+
+        String [] fieldNames  = fieldnames;
+        if(fieldNames==null){
+             List<String> fields = QueryUtils.getSqlFiledNames(ssql);
+             if(fields==null || fields.size()<1)
+                 return null;
+             fieldNames = fields.toArray(new String[fields.size()]);
+        }
 
         JSONArray ja = new JSONArray();
         for(int j=0; j<dataList.size();j++ ){
@@ -531,8 +531,8 @@ public abstract class DatabaseOptUtils {
                 JSONObject jo = new JSONObject();
                 for(int i=0;i<fieldNames.length;i++){
                     jo.put(fieldNames[i], 
-                    		DatabaseAccess.fetchLobField(
-                    				((Object [])dataList.get(j))[i],false));
+                            DatabaseAccess.fetchLobField(
+                                    ((Object [])dataList.get(j))[i],false));
                 }
                 ja.add(jo);
             //}      

@@ -20,75 +20,75 @@ import com.centit.support.database.utils.QueryUtils;
 
 public class TestMybatis {
 
-	public static SqlSessionFactory createSqlSessionFactory(){
-		PooledDataSource dataSource =new PooledDataSource();
-		dataSource.setDriver("oracle.jdbc.driver.OracleDriver");
-		dataSource.setUrl("jdbc:oracle:thin:@192.168.131.81:1521:orcl");
-		dataSource.setUsername("workflow");
-		dataSource.setPassword("workflow");
-		
-		TransactionFactory transactionFactory = new JdbcTransactionFactory();
-		Environment environment = new Environment("develpment",transactionFactory,dataSource);
-		
-		Configuration  configuration = new Configuration(environment);
-		
-		configuration.addMapper(UserInfoDao.class);
-		
-		SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);  
-		
-		return sqlSessionFactory;
-	}
-	
-	public static void main(String[] args) {
-		testNativeSql();
-	}
-	
-	
-	/**
-	 *  public abstract class SqlSessionDaoSupport extends DaoSupport {
-	 * 
-	    getSqlSession().getConfiguration().getEnvironment().getDataSource().getConnection()
-	   
-	    SqlSessionTemplate st = (SqlSessionTemplate) getSqlSession();
+    public static SqlSessionFactory createSqlSessionFactory(){
+        PooledDataSource dataSource =new PooledDataSource();
+        dataSource.setDriver("oracle.jdbc.driver.OracleDriver");
+        dataSource.setUrl("jdbc:oracle:thin:@192.168.131.81:1521:orcl");
+        dataSource.setUsername("workflow");
+        dataSource.setPassword("workflow");
 
-		Connection connection = SqlSessionUtils.getSqlSession(
+        TransactionFactory transactionFactory = new JdbcTransactionFactory();
+        Environment environment = new Environment("develpment",transactionFactory,dataSource);
+
+        Configuration  configuration = new Configuration(environment);
+
+        configuration.addMapper(UserInfoDao.class);
+
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
+
+        return sqlSessionFactory;
+    }
+
+    public static void main(String[] args) {
+        testNativeSql();
+    }
+
+
+    /**
+     *  public abstract class SqlSessionDaoSupport extends DaoSupport {
+     *
+        getSqlSession().getConfiguration().getEnvironment().getDataSource().getConnection()
+
+        SqlSessionTemplate st = (SqlSessionTemplate) getSqlSession();
+
+        Connection connection = SqlSessionUtils.getSqlSession(
                 st.getSqlSessionFactory(), st.getExecutorType(),
                 st.getPersistenceExceptionTranslator()).getConnection();
-	 */
-	
-	public static void testNativeSql() {
-		SqlSessionFactory sqlSessionFactory = createSqlSessionFactory();  
-	   
+     */
+
+    public static void testNativeSql() {
+        SqlSessionFactory sqlSessionFactory = createSqlSessionFactory();
+
         //定义 sqlSession  
         SqlSession sqlSession = null;  
         try {  
             //用sqlSessionFactory创建sqlSession  
             sqlSession = sqlSessionFactory.openSession();           
      
-        	Connection connection =sqlSession.getConnection();        	
-        	
-        	List<Object[]> users = DatabaseAccess.findObjectsByNamedSql(connection,
+            Connection connection =sqlSession.getConnection();
+
+            List<Object[]> users = DatabaseAccess.findObjectsByNamedSql(connection,
             "select userCode,userPin,userName,isValid,userType,loginName,englishName,userDesc "
-			+ " from f_userinfo where userCode like :uc and loginName like :ln",
-			QueryUtils.createSqlParamsMap("uc","U00%","ln","%o%","pp","notUse"));
+            + " from f_userinfo where userCode like :uc and loginName like :ln",
+            QueryUtils.createSqlParamsMap("uc","U00%","ln","%o%","pp","notUse"));
             
             //打印信息  
             System.out.println(users.size());  
         } catch (SQLException |IOException e) {
-			e.printStackTrace();
-		} finally {  
+            e.printStackTrace();
+        } finally {
             //使用完后要记得关闭sqlSession资源  
             if (sqlSession != null) {  
                 sqlSession.close();  
             }  
             System.out.println("done!");  
         }  
-	}
-	
-	
-	public static void testSqlMapper() {
-		SqlSessionFactory sqlSessionFactory = createSqlSessionFactory();  
-	   
+    }
+
+
+    public static void testSqlMapper() {
+        SqlSessionFactory sqlSessionFactory = createSqlSessionFactory();
+
         //定义 sqlSession  
         SqlSession sqlSession = null;  
         try {  
@@ -99,16 +99,16 @@ public class TestMybatis {
             
             /*List<ParameterMapping> params = new ArrayList<>();
             params.add(new ParameterMapping.Builder(sqlSession.getConfiguration(),
-            		"uc", String.class).expression("U00%").build());
+                    "uc", String.class).expression("U00%").build());
             params.add(new ParameterMapping.Builder(sqlSession.getConfiguration(),
-            		"ln", String.class).expression("%o%").build());
+                    "ln", String.class).expression("%o%").build());
             */
             
             List<UserInfo> users = mapper.selectList(
             "select userCode,userPin,userName,isValid,userType,loginName,englishName,userDesc "
-			+ " from f_userinfo where userCode like #{uc} and loginName like #{ln}",
-			QueryUtils.createSqlParamsMap("uc","U00%","ln","%o%","pp","notUse"),
-			UserInfo.class);
+            + " from f_userinfo where userCode like #{uc} and loginName like #{ln}",
+            QueryUtils.createSqlParamsMap("uc","U00%","ln","%o%","pp","notUse"),
+            UserInfo.class);
             
             //打印信息  
             System.out.println(users.size());  
@@ -119,11 +119,11 @@ public class TestMybatis {
             }  
             System.out.println("done!");  
         }  
-	}
-	
-	public static void testSelectUser() {
-		SqlSessionFactory sqlSessionFactory = createSqlSessionFactory();  
-		   
+    }
+
+    public static void testSelectUser() {
+        SqlSessionFactory sqlSessionFactory = createSqlSessionFactory();
+
         //定义 sqlSession  
         SqlSession sqlSession = null;  
         try {  
@@ -141,6 +141,6 @@ public class TestMybatis {
                 sqlSession.close();  
             }  
         }  
-	}
+    }
 
 }
