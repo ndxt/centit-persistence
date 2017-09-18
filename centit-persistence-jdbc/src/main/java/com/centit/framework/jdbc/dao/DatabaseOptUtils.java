@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.ConnectionCallback;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -300,4 +301,61 @@ public abstract class DatabaseOptUtils {
                         OrmDaoUtils.getSequenceNextValue(conn, sequenceName));
     }
 
+
+    /**
+     * 保存任意对象，hibernate 托管的对象
+     * @param baseDao BaseDaoImpl
+     * @param objects Collection objects
+     * @return 保存任意对象，hibernate 托管的对象
+     */
+    public final static int batchSaveNewObjects(BaseDaoImpl<?, ?> baseDao,
+                                             Collection<? extends Object> objects) {
+
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<Integer>) conn -> {
+                    int successSaved=0;
+                    for(Object o : objects) {
+                        successSaved += OrmDaoUtils.saveNewObject(conn, o);
+                    }
+                    return successSaved;
+                });
+    }
+
+    /**
+     * 保存任意对象，hibernate 托管的对象
+     * @param baseDao BaseDaoImpl
+     * @param objects Collection objects
+     * @return 保存任意对象，hibernate 托管的对象
+     */
+    public final static int batchUpdateObjects(BaseDaoImpl<?, ?> baseDao,
+                                                Collection<? extends Object> objects) {
+
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<Integer>) conn -> {
+                    int successUpdated=0;
+                    for(Object o : objects) {
+                        successUpdated += OrmDaoUtils.updateObject(conn, o);
+                    }
+                    return successUpdated;
+                });
+    }
+
+    /**
+     * 保存任意对象，hibernate 托管的对象
+     * @param baseDao BaseDaoImpl
+     * @param objects Collection objects
+     * @return 保存任意对象，hibernate 托管的对象
+     */
+    public final static int batchMergeObjects(BaseDaoImpl<?, ?> baseDao,
+                                               Collection<? extends Object> objects) {
+
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<Integer>) conn -> {
+                    int successMerged=0;
+                    for(Object o : objects) {
+                        successMerged += OrmDaoUtils.mergeObject(conn, o);
+                    }
+                    return successMerged;
+                });
+    }
 }
