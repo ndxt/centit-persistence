@@ -305,10 +305,10 @@ public abstract class DatabaseOptUtils {
 
 
     /**
-     * 保存任意对象，hibernate 托管的对象
+     * 保存任意对象
      * @param baseDao BaseDaoImpl
      * @param objects Collection objects
-     * @return 保存任意对象，hibernate 托管的对象
+     * @return 保存任意对象数量
      */
     public final static int batchSaveNewObjects(BaseDaoImpl<?, ?> baseDao,
                                              Collection<? extends Object> objects) {
@@ -324,10 +324,10 @@ public abstract class DatabaseOptUtils {
     }
 
     /**
-     * 保存任意对象，hibernate 托管的对象
+     * 更新任意对象
      * @param baseDao BaseDaoImpl
      * @param objects Collection objects
-     * @return 保存任意对象，hibernate 托管的对象
+     * @return 更新对象数量
      */
     public final static int batchUpdateObjects(BaseDaoImpl<?, ?> baseDao,
                                                 Collection<? extends Object> objects) {
@@ -343,10 +343,10 @@ public abstract class DatabaseOptUtils {
     }
 
     /**
-     * 保存任意对象，hibernate 托管的对象
+     * 保存或者更新任意对象 ，每次都先判断是否存在
      * @param baseDao BaseDaoImpl
      * @param objects Collection objects
-     * @return 保存任意对象，hibernate 托管的对象
+     * @return merge对象数量
      */
     public final static int batchMergeObjects(BaseDaoImpl<?, ?> baseDao,
                                                Collection<? extends Object> objects) {
@@ -358,6 +358,25 @@ public abstract class DatabaseOptUtils {
                         successMerged += OrmDaoUtils.mergeObject(conn, o);
                     }
                     return successMerged;
+                });
+    }
+
+    /**
+     * 批量删除对象
+     * @param baseDao BaseDaoImpl
+     * @param objects Collection objects
+     * @return 批量删除对象数量
+     */
+    public final static int batchDeleteObjects(BaseDaoImpl<?, ?> baseDao,
+                                              Collection<? extends Object> objects) {
+
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<Integer>) conn -> {
+                    int successDeleted=0;
+                    for(Object o : objects) {
+                        successDeleted += OrmDaoUtils.deleteObject(conn, o);
+                    }
+                    return successDeleted;
                 });
     }
 }
