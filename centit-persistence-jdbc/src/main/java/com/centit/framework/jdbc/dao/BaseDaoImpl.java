@@ -29,7 +29,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.annotation.Resource;
-import javax.management.Query;
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -453,14 +452,21 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public List<T> listObjectsByProperties(Map<String, Object> filterMap, PageDesc pageDesc){
-        return jdbcTemplate.execute(
-                (ConnectionCallback<List<T>>) conn -> {
-                    pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn, filterMap, (Class<T>)getPoClass() ) );
-                    return OrmDaoUtils.listObjectsByProperties( conn, filterMap, (Class<T>)getPoClass(),
-                            pageDesc.getRowStart(), pageDesc.getPageSize());
-                }
-        );
-
+        if(pageDesc!=null && pageDesc.getPageSize()>0 && pageDesc.getPageNo()>0) {
+            return jdbcTemplate.execute(
+                    (ConnectionCallback<List<T>>) conn -> {
+                        pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn, filterMap, (Class<T>) getPoClass()));
+                        return OrmDaoUtils.listObjectsByProperties(conn, filterMap, (Class<T>) getPoClass(),
+                                pageDesc.getRowStart(), pageDesc.getPageSize());
+                    }
+            );
+        }else{
+            List<T> objList = listObjectsByProperties(filterMap);
+            if(pageDesc!=null && objList !=null){
+                pageDesc.setTotalRows( objList.size());
+            }
+            return objList;
+        }
     }
 
     /**
@@ -582,22 +588,32 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      */
     @Deprecated
     public List<T> listObjectsByFilter(String whereSql, Object[] params, PageDesc pageDesc){
-        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        String  fieldsSql  = GeneralJsonObjectDao.buildFieldSql(mapInfo,null);
-        String querySql = "select " + fieldsSql +" from " +mapInfo.getTableName()
-                + " " +whereSql;
+        if(pageDesc!=null && pageDesc.getPageSize()>0 && pageDesc.getPageNo()>0) {
 
-        pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
-                DatabaseOptUtils.getScalarObjectQuery( this,
-                        "select count(1) from " +
-                        mapInfo.getTableName() + " " + QueryUtils.removeOrderBy( whereSql),
-                        params))
-        );
-        return jdbcTemplate.execute(
-                (ConnectionCallback<List<T>>) conn ->
-                        OrmDaoUtils.queryObjectsByParamsSql(
-                                conn, querySql , params, (Class<T>)getPoClass(),
-                                pageDesc.getRowStart(), pageDesc.getPageSize()));
+            TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+            String fieldsSql = GeneralJsonObjectDao.buildFieldSql(mapInfo, null);
+            String querySql = "select " + fieldsSql + " from " + mapInfo.getTableName()
+                    + " " + whereSql;
+
+            pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
+                    DatabaseOptUtils.getScalarObjectQuery(this,
+                            "select count(1) from " +
+                                    mapInfo.getTableName() + " " + QueryUtils.removeOrderBy(whereSql),
+                            params))
+            );
+
+            return jdbcTemplate.execute(
+                    (ConnectionCallback<List<T>>) conn ->
+                            OrmDaoUtils.queryObjectsByParamsSql(
+                                    conn, querySql, params, (Class<T>) getPoClass(),
+                                    pageDesc.getRowStart(), pageDesc.getPageSize()));
+        }else{
+            List<T> objList = listObjectsByFilter(whereSql, params);
+            if(pageDesc!=null && objList !=null){
+                pageDesc.setTotalRows( objList.size());
+            }
+            return objList;
+        }
     }
 
     /**
@@ -609,20 +625,28 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      */
     @Deprecated
     public List<T> listObjectsByFilter(String whereSql, Map<String,Object> namedParams, PageDesc pageDesc){
-        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        String  fieldsSql  = GeneralJsonObjectDao.buildFieldSql(mapInfo,null);
-        String querySql = "select " + fieldsSql +" from " +mapInfo.getTableName()
-                + " " +whereSql;
 
-        pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
-                DatabaseOptUtils.getScalarObjectQuery( this, "select count(1) from " +
-                        mapInfo.getTableName() + " " + QueryUtils.removeOrderBy( whereSql),namedParams))
-        );
-        return jdbcTemplate.execute(
-                (ConnectionCallback<List<T>>) conn ->
-                        OrmDaoUtils.queryObjectsByNamedParamsSql(
-                                conn, querySql , namedParams, (Class<T>)getPoClass(),
-                                pageDesc.getRowStart(), pageDesc.getPageSize()));
+        if(pageDesc!=null && pageDesc.getPageSize()>0 && pageDesc.getPageNo()>0) {
+            TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+            String  fieldsSql  = GeneralJsonObjectDao.buildFieldSql(mapInfo,null);
+            String querySql = "select " + fieldsSql +" from " +mapInfo.getTableName()
+                    + " " +whereSql;
+            pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
+                    DatabaseOptUtils.getScalarObjectQuery(this, "select count(1) from " +
+                            mapInfo.getTableName() + " " + QueryUtils.removeOrderBy(whereSql), namedParams))
+            );
+            return jdbcTemplate.execute(
+                    (ConnectionCallback<List<T>>) conn ->
+                            OrmDaoUtils.queryObjectsByNamedParamsSql(
+                                    conn, querySql, namedParams, (Class<T>) getPoClass(),
+                                    pageDesc.getRowStart(), pageDesc.getPageSize()));
+        }else{
+            List<T> objList = listObjectsByFilter(whereSql, namedParams);
+            if(pageDesc!=null && objList !=null){
+                pageDesc.setTotalRows( objList.size());
+            }
+            return objList;
+        }
     }
 
     public List<T> listObjectsBySql(String querySql, Map<String, Object> namedParams ) {
