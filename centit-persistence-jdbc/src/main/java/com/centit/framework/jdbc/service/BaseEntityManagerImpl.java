@@ -143,7 +143,7 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
     @Override
     @Transactional
     public JSONArray listObjectsBySqlAsJson(Map<String, Object> filterMap, PageDesc pageDesc  ){
-        return baseDao.listObjectsBySqlAsJson(filterMap, pageDesc );
+        return baseDao.listObjectsAsJson(filterMap, pageDesc );
     }
 
     @Override

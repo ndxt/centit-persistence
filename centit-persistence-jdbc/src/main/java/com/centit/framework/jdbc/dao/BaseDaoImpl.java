@@ -489,12 +489,16 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return
      */
     public List<T> pageQuery(Map<String, Object> filterMap) {
-        String sql = getFilterQuerySql();
+        String querySql = getFilterQuerySql();
         PageDesc pageDesc = QueryParameterPrepare.fetckPageDescParams(filterMap);
-        if(StringUtils.isBlank( sql )){
+        if(StringUtils.isBlank( querySql )){
             return listObjectsByProperties( filterMap, pageDesc);
         }else{
-            QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
+            String selfOrderBy = fetchSelfOrderSql(filterMap);
+            if(StringUtils.isNotBlank(selfOrderBy)) {
+                querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
+            }
+            QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, filterMap);
             return jdbcTemplate.execute(
                     /** 这个地方可以用replaceField 已提高效率
                      *  pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn,
@@ -626,6 +630,20 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     }
 
+    private static String fetchSelfOrderSql(Map<String, Object> filterMap){
+        String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(CodeBook.SELF_ORDER_BY));
+        if(StringUtils.isBlank(selfOrderBy)){
+            String sortField = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_FIELD));
+            if(StringUtils.isNotBlank(sortField)){
+                selfOrderBy = sortField;
+                String sOrder = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_ORDER));
+                if(/*"asc".equalsIgnoreCase(sOrder) ||*/ "desc".equalsIgnoreCase(sOrder))
+                    selfOrderBy = sortField +" "+sOrder;
+            }
+        }
+        return selfOrderBy;
+    }
+
     /* 下面所有的查询都返回 jsonArray */
 
     public JSONArray listObjectsAsJson(Map<String, Object> filterMap,  PageDesc pageDesc  ) {
@@ -635,38 +653,35 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Pair<String,String[]> q = GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo,null);
 
-        String orderBy = mapInfo.getOrderBy();
-        String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(CodeBook.SELF_ORDER_BY));
-        if(StringUtils.isNotBlank(selfOrderBy)){
-            orderBy = selfOrderBy;
-        }else{
-            String sortField = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_FIELD));
-            if(StringUtils.isNotBlank(sortField)){
-                orderBy = sortField;
-                String sOrder = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_ORDER));
-                if(/*"asc".equalsIgnoreCase(sOrder) ||*/ "desc".equalsIgnoreCase(sOrder))
-                    orderBy = sortField +" "+sOrder;
-            }
-        }
+        String selfOrderBy = fetchSelfOrderSql(filterMap);
+        Map<String, Object> paramsMap = filterMap;
 
         if(StringUtils.isBlank( querySql )) {
+
             String filter = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, filterMap.keySet());
             querySql = "select " + q.getLeft() + " from " + mapInfo.getTableName();
             if (StringUtils.isNotBlank(filter))
                 querySql = querySql + " where " + filter;
+
+            String orderBy = StringUtils.isBlank(selfOrderBy)?mapInfo.getOrderBy():selfOrderBy;
             if(StringUtils.isNotBlank(orderBy))
                 querySql = querySql + " order by " + orderBy;
         }else{
-            if(StringUtils.isNotBlank(orderBy)) {
-                querySql = QueryUtils.removeOrderBy(querySql) + " order by " + orderBy;
+
+            if(StringUtils.isNotBlank(selfOrderBy)) {
+                querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
             }
+
+            QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, filterMap);
+            querySql = qap.getQuery();
+            paramsMap = qap.getParams();
         }
 
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
             return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, q.getRight(),
-                    QueryUtils.buildGetCountSQLByReplaceFields(querySql), filterMap, pageDesc);
+                    QueryUtils.buildGetCountSQLByReplaceFields(querySql), paramsMap, pageDesc);
         }else{
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, q.getRight(),filterMap);
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, q.getRight(),paramsMap);
         }
     }
 
