@@ -526,11 +526,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回符合条件的对象
      */
     public List<T> listObjects(Map<String, Object> filterMap){
-        String sql = getFilterQuerySql();
-        if(StringUtils.isBlank( sql )){
+        String querySql = getFilterQuerySql();
+        if(StringUtils.isBlank( querySql )){
             return listObjectsByProperties( filterMap);
         }else{
-            QueryAndNamedParams qap = QueryUtils.translateQuery( sql, filterMap);
+            String selfOrderBy = fetchSelfOrderSql(filterMap);
+            if(StringUtils.isNotBlank(selfOrderBy)) {
+                querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
+            }
+            QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, filterMap);
             return jdbcTemplate.execute(
                     (ConnectionCallback<List<T>>) conn ->
                             OrmDaoUtils.queryObjectsByNamedParamsSql(conn, qap.getSql(), qap.getParams(), (Class<T>) getPoClass())
