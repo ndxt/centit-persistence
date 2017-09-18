@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
+@SuppressWarnings("unused")
 public interface BaseDao<T extends Serializable, PK extends Serializable>
 {
     Long getSequenceNextValue(final String sequenceName);

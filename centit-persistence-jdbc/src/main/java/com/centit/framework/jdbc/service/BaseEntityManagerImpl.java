@@ -19,6 +19,7 @@ import java.util.Map;
  * @author codefan
  * 2012-2-16
  */
+@SuppressWarnings("unused")
 public abstract class BaseEntityManagerImpl<T extends Serializable,
          PK extends Serializable, D extends BaseDaoImpl<T, PK>> implements
         BaseEntityManager<T, PK> {

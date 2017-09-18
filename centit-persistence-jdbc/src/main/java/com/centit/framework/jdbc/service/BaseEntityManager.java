@@ -6,7 +6,7 @@ import com.centit.framework.core.dao.PageDesc;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
+@SuppressWarnings("unused")
 public interface BaseEntityManager<T extends Serializable, PK extends Serializable> {
 
 
