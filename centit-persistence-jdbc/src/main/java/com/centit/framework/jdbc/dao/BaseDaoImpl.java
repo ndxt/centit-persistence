@@ -565,6 +565,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return listObjectsBySql(querySql, namedParams);
     }
 
+    /**
+     * 由于性能问题，不推荐使用这个方法，分页查询一般都是用于前端展示的，建议使用  listObjectsByFilterAsJson
+     * @param whereSql 查询po 所以只有套写 where 以后部分
+     * @param params 查询参数
+     * @param pageDesc 分页信息
+     * @return 返回对象
+     */
     @Deprecated
     public List<T> listObjectsByFilter(String whereSql, Object[] params, PageDesc pageDesc){
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
@@ -585,6 +592,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                                 pageDesc.getRowStart(), pageDesc.getPageSize()));
     }
 
+    /**
+     * 由于性能问题，不推荐使用这个方法，分页查询一般都是用于前端展示的，建议使用  listObjectsByFilterAsJson
+     * @param whereSql 查询po 所以只有套写 where 以后部分
+     * @param namedParams 查询参数
+     * @param pageDesc 分页信息
+     * @return 返回对象
+     */
     @Deprecated
     public List<T> listObjectsByFilter(String whereSql, Map<String,Object> namedParams, PageDesc pageDesc){
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
@@ -614,7 +628,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     /* 下面所有的查询都返回 jsonArray */
 
-    public JSONArray listObjectsBySqlAsJson(Map<String, Object> filterMap,  PageDesc pageDesc  ) {
+    public JSONArray listObjectsAsJson(Map<String, Object> filterMap,  PageDesc pageDesc  ) {
 
         String querySql = getFilterQuerySql();
 
@@ -656,12 +670,63 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
-    public JSONArray listObjectsBySqlAsJson(String querySql, Map<String, Object> filterMap,  PageDesc pageDesc  ) {
+    public JSONArray listObjectsBySqlAsJson(String querySql, Map<String, Object> namedParams,  PageDesc pageDesc  ) {
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
             return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, null ,
-                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
+                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams,   pageDesc  );
         }else{
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, filterMap);
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, namedParams);
+        }
+    }
+
+    public JSONArray listObjectsBySqlAsJson(String querySql, Object[] params,  PageDesc pageDesc  ) {
+        if(pageDesc!=null && pageDesc.getPageSize()>0) {
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql,
+                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), params,   pageDesc  );
+        }else{
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, params);
+        }
+    }
+
+    /**
+     *
+     * @param whereSql 查询po 所以只有套写 where 以后部分
+     * @param namedParams 查询参数
+     * @param pageDesc 分页信息
+     * @return 返回JSONArray
+     */
+    public JSONArray listObjectsByFilterAsJson(String whereSql,  Map<String, Object> namedParams, PageDesc pageDesc){
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        Pair<String,String[]>  fieldsDesc = GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo,null);
+        String querySql = "select " + fieldsDesc.getLeft() +" from " +mapInfo.getTableName()
+                + " " +whereSql;
+
+        if(pageDesc!=null && pageDesc.getPageSize()>0) {
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, fieldsDesc.getRight() ,
+                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams,   pageDesc  );
+        }else{
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, fieldsDesc.getRight(), namedParams);
+        }
+    }
+
+    /**
+     *
+     * @param whereSql 查询po 所以只有套写 where 以后部分
+     * @param params 查询参数
+     * @param pageDesc 分页信息
+     * @return 返回JSONArray
+     */
+    public JSONArray listObjectsByFilterAsJson(String whereSql,  Object[] params, PageDesc pageDesc){
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        Pair<String,String[]>  fieldsDesc = GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo,null);
+        String querySql = "select " + fieldsDesc.getLeft() +" from " +mapInfo.getTableName()
+                + " " +whereSql;
+
+        if(pageDesc!=null && pageDesc.getPageSize()>0) {
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, fieldsDesc.getRight() ,
+                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), params,   pageDesc  );
+        }else{
+            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, params, fieldsDesc.getRight());
         }
     }
 

@@ -145,9 +145,8 @@ public abstract class DatabaseOptUtils {
     }
 
 
-
-    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  String queryCountSql,
-                                            Object[] params,  PageDesc pageDesc ) {
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql, String[] fieldNames,
+                                                   String queryCountSql, Object[] params,  PageDesc pageDesc ) {
 
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<JSONArray>) conn -> {
@@ -156,11 +155,18 @@ public abstract class DatabaseOptUtils {
                                 DatabaseAccess.getScalarObjectQuery(
                                         conn, queryCountSql, params)));
                         return DatabaseAccess.findObjectsAsJSON(conn, querySql ,
-                                params, null, pageDesc.getPageNo(), pageDesc.getPageSize());
+                                params, fieldNames, pageDesc.getPageNo(), pageDesc.getPageSize());
                     } catch (SQLException | IOException e) {
                         throw new PersistenceException(e);
                     }
                 });
+    }
+
+
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  String queryCountSql,
+                                            Object[] params,  PageDesc pageDesc ) {
+
+        return listObjectsBySqlAsJson(baseDao,  querySql, null,  queryCountSql, params,   pageDesc );
     }
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,String querySql,
@@ -168,6 +174,18 @@ public abstract class DatabaseOptUtils {
         return listObjectsBySqlAsJson(baseDao, querySql, QueryUtils.buildGetCountSQLBySubSelect(querySql ),
                 params , pageDesc);
 
+    }
+
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  Object[] params, String[] fieldnames) {
+
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<JSONArray>) conn -> {
+                    try {
+                        return DatabaseAccess.findObjectsAsJSON(conn, querySql, params, fieldnames);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
+                    }
+                });
     }
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  Object[] params ) {
