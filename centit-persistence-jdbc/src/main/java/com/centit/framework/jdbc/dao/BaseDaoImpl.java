@@ -6,6 +6,7 @@ import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.core.dao.PageDesc;
 import com.centit.framework.core.dao.QueryParameterPrepare;
 import com.centit.support.algorithm.ListOpt;
+import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
@@ -28,6 +29,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.annotation.Resource;
+import javax.management.Query;
 import javax.sql.DataSource;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -561,6 +563,44 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 + " " +whereSql;
 
         return listObjectsBySql(querySql, namedParams);
+    }
+
+    @Deprecated
+    public List<T> listObjectsByFilter(String whereSql, Object[] params, PageDesc pageDesc){
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        String  fieldsSql  = GeneralJsonObjectDao.buildFieldSql(mapInfo,null);
+        String querySql = "select " + fieldsSql +" from " +mapInfo.getTableName()
+                + " " +whereSql;
+
+        pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
+                DatabaseOptUtils.getScalarObjectQuery( this,
+                        "select count(1) from " +
+                        mapInfo.getTableName() + " " + QueryUtils.removeOrderBy( whereSql),
+                        params))
+        );
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn ->
+                        OrmDaoUtils.queryObjectsByParamsSql(
+                                conn, querySql , params, (Class<T>)getPoClass(),
+                                pageDesc.getRowStart(), pageDesc.getPageSize()));
+    }
+
+    @Deprecated
+    public List<T> listObjectsByFilter(String whereSql, Map<String,Object> namedParams, PageDesc pageDesc){
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        String  fieldsSql  = GeneralJsonObjectDao.buildFieldSql(mapInfo,null);
+        String querySql = "select " + fieldsSql +" from " +mapInfo.getTableName()
+                + " " +whereSql;
+
+        pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
+                DatabaseOptUtils.getScalarObjectQuery( this, "select count(1) from " +
+                        mapInfo.getTableName() + " " + QueryUtils.removeOrderBy( whereSql),namedParams))
+        );
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn ->
+                        OrmDaoUtils.queryObjectsByNamedParamsSql(
+                                conn, querySql , namedParams, (Class<T>)getPoClass(),
+                                pageDesc.getRowStart(), pageDesc.getPageSize()));
     }
 
     public List<T> listObjectsBySql(String querySql, Map<String, Object> namedParams ) {
