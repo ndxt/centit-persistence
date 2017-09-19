@@ -1,6 +1,7 @@
 package com.centit.framework.jdbc.service;
 
 import com.alibaba.fastjson.JSONArray;
+import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.support.database.utils.QueryUtils;
@@ -151,6 +152,6 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
     @Transactional
     public JSONArray listObjectsBySqlAsJson(String querySql,
                                             Map<String, Object> filterMap,  PageDesc pageDesc ) {
-        return baseDao.listObjectsBySqlAsJson(querySql, filterMap, pageDesc);
+        return DatabaseOptUtils.listObjectsBySqlAsJson(baseDao, querySql, filterMap, pageDesc);
     }
 }
