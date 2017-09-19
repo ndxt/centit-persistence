@@ -89,17 +89,14 @@ public abstract class DatabaseOptUtils {
                                             String querySql, String[] fieldNames , String queryCountSql,
                                             Map<String, Object> filterMap, PageDesc pageDesc /*,
                                       Map<String,KeyValuePair<String,String>> dictionaryMapInfo*/ ) {
-
-        QueryAndNamedParams queryQap = QueryUtils.translateQuery(querySql, filterMap);
-        QueryAndNamedParams queryCountQap = QueryUtils.translateQuery(queryCountSql, filterMap);
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
                         pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
                                 DatabaseAccess.getScalarObjectQuery(
-                                        conn, queryCountQap.getSql(), queryCountQap.getParams())));
-                        return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(),
-                                queryQap.getParams(), fieldNames, pageDesc.getPageNo(), pageDesc.getPageSize());
+                                        conn, queryCountSql, filterMap)));
+                        return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, querySql,
+                                filterMap, fieldNames, pageDesc.getPageNo(), pageDesc.getPageSize());
                     } catch (SQLException | IOException e) {
                         throw new PersistenceException(e);
                     }
@@ -117,13 +114,11 @@ public abstract class DatabaseOptUtils {
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                                    String querySql,  String[] fieldNames ,
                                                    Map<String, Object> filterMap) {
-
-        QueryAndNamedParams queryQap = QueryUtils.translateQuery(querySql, filterMap);
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
-                        return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(),
-                                queryQap.getParams(), fieldNames);
+                        return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, querySql,
+                                filterMap, fieldNames);
                     } catch (SQLException | IOException e) {
                         throw new PersistenceException(e);
                     }
@@ -201,11 +196,10 @@ public abstract class DatabaseOptUtils {
     }
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  Map<String,Object> params ) {
-        QueryAndNamedParams queryQap = QueryUtils.translateQuery(querySql, params);
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
-                        return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, queryQap.getSql(), queryQap.getParams());
+                        return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, querySql, params);
                     } catch (SQLException | IOException e) {
                         throw new PersistenceException(e);
                     }
