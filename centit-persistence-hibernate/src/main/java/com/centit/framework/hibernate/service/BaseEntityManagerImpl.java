@@ -1,6 +1,6 @@
 package com.centit.framework.hibernate.service;
 
-import com.centit.framework.core.dao.PageDesc;
+import com.centit.support.database.utils.PageDesc;
 import com.centit.framework.hibernate.dao.BaseDaoImpl;
 import com.centit.support.algorithm.ReflectionOpt;
 import org.slf4j.Logger;

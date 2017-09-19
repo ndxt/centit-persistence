@@ -1,6 +1,6 @@
 package com.centit.framework.hibernate.dao;
 
-import com.centit.framework.core.dao.PageDesc;
+import com.centit.support.database.utils.PageDesc;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public interface BaseDao<T extends Serializable, PK extends Serializable>
 {
     void deleteObject(T o);

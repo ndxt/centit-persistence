@@ -1,7 +1,7 @@
 package com.centit.framework.hibernate.dao;
 
 import com.centit.framework.core.dao.CodeBook;
-import com.centit.framework.core.dao.PageDesc;
+import com.centit.support.database.utils.PageDesc;
 import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.framework.core.po.EntityWithTimestamp;
 import com.centit.support.algorithm.DatetimeOpt;

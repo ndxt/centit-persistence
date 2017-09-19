@@ -1,6 +1,6 @@
 package com.centit.framework.hibernate.service;
 
-import com.centit.framework.core.dao.PageDesc;
+import com.centit.support.database.utils.PageDesc;
 
 import java.io.Serializable;
 import java.util.List;
