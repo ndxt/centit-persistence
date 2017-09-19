@@ -392,6 +392,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.getObjectIncludeLazyById(conn, id, (Class<T>)getPoClass()));
     }
 
+    public T getObjectCascade(Object id){
+        return jdbcTemplate.execute(
+                (ConnectionCallback<T>) conn ->
+                        OrmDaoUtils.getObjectCascade(conn, id, (Class<T>)getPoClass()));
+    }
 
     public T fetchObjectLazyColumn(T o, String columnName){
         return jdbcTemplate.execute(
