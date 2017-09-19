@@ -25,7 +25,7 @@ public abstract class DatabaseOptUtils {
 
     protected static Logger logger = LoggerFactory.getLogger(DatabaseOptUtils.class);
 
-    public final static Object callFunction(BaseDaoImpl<?, ?> baseDao , String procName,
+    public static Object callFunction(BaseDaoImpl<?, ?> baseDao , String procName,
                                             int sqlType, Object... paramObjs){
         try {
             return baseDao.getJdbcTemplate().execute(
@@ -81,22 +81,22 @@ public abstract class DatabaseOptUtils {
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(new QueryAndNamedParams(sSql, values));
         return doExecuteSql(baseDao, qap.getSql(), qap.getParams());
     }
-
+    
 
     /* 下面所有的查询都返回 jsonArray */
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                             String querySql, String[] fieldNames , String queryCountSql,
-                                            Map<String, Object> filterMap, PageDesc pageDesc /*,
+                                            Map<String, Object> namedParams, PageDesc pageDesc /*,
                                       Map<String,KeyValuePair<String,String>> dictionaryMapInfo*/ ) {
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
                         pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
                                 DatabaseAccess.getScalarObjectQuery(
-                                        conn, queryCountSql, filterMap)));
+                                        conn, queryCountSql, namedParams)));
                         return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, querySql,
-                                filterMap, fieldNames, pageDesc.getPageNo(), pageDesc.getPageSize());
+                                namedParams, fieldNames, pageDesc.getPageNo(), pageDesc.getPageSize());
                     } catch (SQLException | IOException e) {
                         throw new PersistenceException(e);
                     }
@@ -105,20 +105,20 @@ public abstract class DatabaseOptUtils {
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                             String querySql,  String[] fieldNames ,
-                                            Map<String, Object> filterMap,  PageDesc pageDesc) {
+                                            Map<String, Object> namedParams,  PageDesc pageDesc) {
 
         return listObjectsBySqlAsJson(baseDao, querySql, fieldNames ,
-                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
+                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams,   pageDesc  );
     }
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                                    String querySql,  String[] fieldNames ,
-                                                   Map<String, Object> filterMap) {
+                                                   Map<String, Object> namedParams) {
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
                         return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, querySql,
-                                filterMap, fieldNames);
+                                namedParams, fieldNames);
                     } catch (SQLException | IOException e) {
                         throw new PersistenceException(e);
                     }
@@ -128,17 +128,34 @@ public abstract class DatabaseOptUtils {
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                             String querySql,  String queryCountSql,
-                                            Map<String, Object> filterMap,  PageDesc pageDesc ) {
-        return listObjectsBySqlAsJson(baseDao, querySql, null ,  queryCountSql, filterMap,   pageDesc  );
+                                            Map<String, Object> namedParams,  PageDesc pageDesc ) {
+        return listObjectsBySqlAsJson(baseDao, querySql, null ,  queryCountSql, namedParams,   pageDesc  );
     }
 
-    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,String querySql,
-                                            Map<String, Object> filterMap,  PageDesc pageDesc ) {
 
-        return listObjectsBySqlAsJson(baseDao, querySql, null ,
-                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), filterMap,   pageDesc  );
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  Map<String,Object> params ) {
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<JSONArray>) conn -> {
+                    try {
+                        return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, querySql, params);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
+                    }
+                });
     }
 
+
+
+
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,
+                                            Map<String, Object> namedParams,  PageDesc pageDesc  ) {
+        if(pageDesc!=null && pageDesc.getPageSize()>0) {
+            return DatabaseOptUtils.listObjectsBySqlAsJson(baseDao, querySql, null ,
+                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams,   pageDesc  );
+        }else{
+            return DatabaseOptUtils.listObjectsBySqlAsJson(baseDao, querySql, namedParams);
+        }
+    }
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql, String[] fieldNames,
                                                    String queryCountSql, Object[] params,  PageDesc pageDesc ) {
@@ -157,18 +174,26 @@ public abstract class DatabaseOptUtils {
                 });
     }
 
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
+                                                   String querySql,  String[] fieldNames ,
+                                                   Object[] params) {
+
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<JSONArray>) conn -> {
+                    try {
+                        return DatabaseAccess.findObjectsAsJSON(conn, querySql,
+                                params, fieldNames);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
+                    }
+                });
+    }
+
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  String queryCountSql,
                                             Object[] params,  PageDesc pageDesc ) {
 
         return listObjectsBySqlAsJson(baseDao,  querySql, null,  queryCountSql, params,   pageDesc );
-    }
-
-    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,String querySql,
-                                            Object[] params,  PageDesc pageDesc ) {
-        return listObjectsBySqlAsJson(baseDao, querySql, QueryUtils.buildGetCountSQLBySubSelect(querySql ),
-                params , pageDesc);
-
     }
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  Object[] params, String[] fieldnames) {
@@ -194,17 +219,79 @@ public abstract class DatabaseOptUtils {
                     }
                 });
     }
+ 
 
-    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  Map<String,Object> params ) {
-        return baseDao.getJdbcTemplate().execute(
-                (ConnectionCallback<JSONArray>) conn -> {
-                    try {
-                        return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, querySql, params);
-                    } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
-                    }
-                });
+
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql, Object[] params,  PageDesc pageDesc  ) {
+        if(pageDesc!=null && pageDesc.getPageSize()>0) {
+            return DatabaseOptUtils.listObjectsBySqlAsJson(baseDao, querySql,
+                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), params,   pageDesc  );
+        }else{
+            return DatabaseOptUtils.listObjectsBySqlAsJson(baseDao, querySql, params);
+        }
     }
+
+
+    public static JSONArray listObjectsByParamsDriverSqlAsJson(BaseDaoImpl<?, ?> baseDao,
+                                                        String querySql, String[] fieldNames , String queryCountSql,
+                                                        Map<String, Object> namedParams, PageDesc pageDesc  ) {
+        QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
+        Map<String, Object> paramsMap = qap.getParams();
+        QueryAndNamedParams countQap = QueryUtils.translateQuery( queryCountSql, namedParams);
+        paramsMap.putAll(countQap.getParams());
+
+        return listObjectsBySqlAsJson(baseDao, qap.getQuery(), fieldNames , countQap.getQuery(),
+                paramsMap, pageDesc);
+
+    }
+
+
+    public static JSONArray listObjectsByParamsDriverSqlAsJson(BaseDaoImpl<?, ?> baseDao,
+                                                   String querySql,  String[] fieldNames ,
+                                                   Map<String, Object> namedParams,  PageDesc pageDesc) {
+        QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
+        
+        return listObjectsBySqlAsJson(baseDao,  qap.getQuery(), fieldNames ,
+                QueryUtils.buildGetCountSQLByReplaceFields( qap.getQuery() ), qap.getParams(),   pageDesc  );
+    }
+
+    public static JSONArray listObjectsByParamsDriverSqlAsJson(BaseDaoImpl<?, ?> baseDao,
+                                                   String querySql,  String[] fieldNames ,
+                                                   Map<String, Object> namedParams) {
+        
+        QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
+
+        return listObjectsBySqlAsJson( baseDao,
+                qap.getQuery(),  fieldNames, qap.getParams());
+    }
+
+
+    public static JSONArray listObjectsByParamsDriverSqlAsJson(BaseDaoImpl<?, ?> baseDao,
+                                                   String querySql,  String queryCountSql,
+                                                   Map<String, Object> namedParams,  PageDesc pageDesc ) {
+        
+        return listObjectsByParamsDriverSqlAsJson(baseDao, querySql, 
+                null ,  queryCountSql, namedParams,   pageDesc  );
+    }
+
+
+    public static JSONArray listObjectsByParamsDriverSqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,
+                                                               Map<String,Object> namedParams ) {
+
+        QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
+
+        return listObjectsBySqlAsJson( baseDao, qap.getQuery(), qap.getParams());
+    }
+
+
+    public static JSONArray listObjectsByParamsDriverSqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,
+                                            Map<String, Object> namedParams,  PageDesc pageDesc  ) {
+        QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
+
+        return listObjectsBySqlAsJson(baseDao, qap.getQuery(),
+                                        qap.getParams(), pageDesc);
+    }
+
 
     public static JSONObject getObjectBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,
                                                   Object[] params, String [] fieldName) {
@@ -251,7 +338,7 @@ public abstract class DatabaseOptUtils {
                 });
     }
 
-    public final static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao, String sSql,
+    public static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao, String sSql,
                                                     Map<String,Object> values){
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<Object>) conn -> {
@@ -265,7 +352,7 @@ public abstract class DatabaseOptUtils {
     /*
      * * 执行一个标量查询
      */
-    public final static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao,
+    public static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao,
                                                     String sSql, Object[] values) {
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<Object>) conn -> {
@@ -280,7 +367,7 @@ public abstract class DatabaseOptUtils {
     /*
      * * 执行一个标量查询
      */
-    public final static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao, String sSql)
+    public static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao, String sSql)
             throws SQLException, IOException {
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<Object>) conn -> {
@@ -295,7 +382,7 @@ public abstract class DatabaseOptUtils {
     /*
      * * 执行一个标量查询
      */
-    public final static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao, String sSql,Object value)
+    public static Object getScalarObjectQuery(BaseDaoImpl<?, ?> baseDao, String sSql,Object value)
             throws SQLException, IOException {
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<Object>) conn -> {
@@ -307,7 +394,7 @@ public abstract class DatabaseOptUtils {
                 });
     }
 
-    public final static Long getSequenceNextValue(BaseDaoImpl<?, ?> baseDao, String sequenceName){
+    public static Long getSequenceNextValue(BaseDaoImpl<?, ?> baseDao, String sequenceName){
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<Long>) conn ->
                         OrmDaoUtils.getSequenceNextValue(conn, sequenceName));
@@ -320,7 +407,7 @@ public abstract class DatabaseOptUtils {
      * @param objects Collection objects
      * @return 保存任意对象数量
      */
-    public final static int batchSaveNewObjects(BaseDaoImpl<?, ?> baseDao,
+    public static int batchSaveNewObjects(BaseDaoImpl<?, ?> baseDao,
                                              Collection<? extends Object> objects) {
 
         return baseDao.getJdbcTemplate().execute(
@@ -339,7 +426,7 @@ public abstract class DatabaseOptUtils {
      * @param objects Collection objects
      * @return 更新对象数量
      */
-    public final static int batchUpdateObjects(BaseDaoImpl<?, ?> baseDao,
+    public static int batchUpdateObjects(BaseDaoImpl<?, ?> baseDao,
                                                 Collection<? extends Object> objects) {
 
         return baseDao.getJdbcTemplate().execute(
@@ -358,7 +445,7 @@ public abstract class DatabaseOptUtils {
      * @param objects Collection objects
      * @return merge对象数量
      */
-    public final static int batchMergeObjects(BaseDaoImpl<?, ?> baseDao,
+    public static int batchMergeObjects(BaseDaoImpl<?, ?> baseDao,
                                                Collection<? extends Object> objects) {
 
         return baseDao.getJdbcTemplate().execute(
@@ -377,7 +464,7 @@ public abstract class DatabaseOptUtils {
      * @param objects Collection objects
      * @return 批量删除对象数量
      */
-    public final static int batchDeleteObjects(BaseDaoImpl<?, ?> baseDao,
+    public static int batchDeleteObjects(BaseDaoImpl<?, ?> baseDao,
                                               Collection<? extends Object> objects) {
 
         return baseDao.getJdbcTemplate().execute(

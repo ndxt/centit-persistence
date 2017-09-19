@@ -395,7 +395,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public T getObjectCascadeById(Object id){
         return jdbcTemplate.execute(
                 (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.getObjectCascade(conn, id, (Class<T>)getPoClass()));
+                        OrmDaoUtils.getObjectCascadeById(conn, id, (Class<T>)getPoClass()));
+    }
+
+    public T getObjectCascadeShallowById(Object id){
+        return jdbcTemplate.execute(
+                (ConnectionCallback<T>) conn ->
+                        OrmDaoUtils.getObjectCascadeShallowById(conn, id, (Class<T>)getPoClass()));
     }
 
     public T fetchObjectLazyColumn(T o, String columnName){
@@ -718,23 +724,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
-    public JSONArray listObjectsBySqlAsJson(String querySql, Map<String, Object> namedParams,  PageDesc pageDesc  ) {
-        if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, null ,
-                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams,   pageDesc  );
-        }else{
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, namedParams);
-        }
-    }
 
-    public JSONArray listObjectsBySqlAsJson(String querySql, Object[] params,  PageDesc pageDesc  ) {
-        if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql,
-                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), params,   pageDesc  );
-        }else{
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, params);
-        }
-    }
 
     /**
      *
