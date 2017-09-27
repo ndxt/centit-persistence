@@ -6,6 +6,7 @@ import java.util.Map;
 
 /**
  * Created by codefan on 17-7-25.
+ * @author codefan
  */
 @SuppressWarnings("unused")
 public abstract class QueryParameterPrepare {
@@ -17,8 +18,8 @@ public abstract class QueryParameterPrepare {
      * @param total        total
      * @return Map类型
      */
-    public final static Map<String, Object> prepPageParams
-    (Map<String, Object> pageQureyMap, PageDesc pageDesc, int total) {
+    public static Map<String, Object> prepPageParams
+    (Map<String, Object> pageQureyMap, com.centit.support.database.utils.PageDesc pageDesc, int total) {
 
         int pageNo = pageDesc.getPageNo()<1?1:pageDesc.getPageNo();
         int pageSize = pageDesc.getPageSize();
@@ -32,15 +33,15 @@ public abstract class QueryParameterPrepare {
         }
         int start = (pageNo - 1) * pageSize;
         int end = pageNo * pageSize;
-        pageQureyMap.put("startRow", new Integer(start));
-        pageQureyMap.put("endRow", new Integer(end));
-        pageQureyMap.put("maxSize", new Integer(pageSize));
+        pageQureyMap.put("startRow",start);
+        pageQureyMap.put("endRow", end);
+        pageQureyMap.put("maxSize",pageSize);
         //System.err.println("pageQureyMap========"+JSON.toJSONString(pageQureyMap));
         return pageQureyMap;
     }
 
-    public final static PageDesc fetckPageDescParams(Map<String, Object> pageQureyMap) {
-        PageDesc pageDesc = new  PageDesc();
+    public static com.centit.support.database.utils.PageDesc fetckPageDescParams(Map<String, Object> pageQureyMap) {
+        com.centit.support.database.utils.PageDesc pageDesc = new  com.centit.support.database.utils.PageDesc();
         Integer pageSize = NumberBaseOpt.castObjectToInteger(pageQureyMap.get("maxSize"));
         if(pageSize!=null)
             pageDesc.setPage( pageSize );
