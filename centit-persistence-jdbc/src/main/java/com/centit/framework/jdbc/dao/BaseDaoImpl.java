@@ -359,7 +359,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         /* Integer execute = */
         if(EntityWithDeleteTag.class.isAssignableFrom(getPoClass())){
             T o = getObjectById(id);
-            deleteObject(o);
+            ((EntityWithDeleteTag) o).setDeleted(true);
+            this.updateObject(o);
         }else{
             deleteObjectForceById(id);
         }
