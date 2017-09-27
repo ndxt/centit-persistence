@@ -3,6 +3,7 @@ package com.centit.framework.jdbc.dao;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.ExtendedQueryPool;
+import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.framework.core.dao.QueryParameterPrepare;
 import com.centit.support.algorithm.ListOpt;
@@ -325,23 +326,57 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.saveNewObject(conn, o));
     }
 
-    public void deleteObject(T o){
+    public void deleteObjectForce(T o){
        /* Integer execute = */
        jdbcTemplate.execute(
                (ConnectionCallback<Integer>) conn ->
                        OrmDaoUtils.deleteObject(conn, o));
     }
 
-    public void deleteObjectById(Object id){
+    public void deleteObjectForceById(Object id){
         jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.deleteObjectById(conn, id, getPoClass()));
     }
 
-    public void deleteObjectsByProperties(Map<String, Object> filterMap){
+    public void deleteObjectsForceByProperties(Map<String, Object> filterMap){
         jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.deleteObjectByProperties(conn, filterMap, getPoClass()));
+    }
+
+    public void deleteObject(T o){
+      /* Integer execute = */
+        if(o instanceof EntityWithDeleteTag) {
+            ((EntityWithDeleteTag) o).setDeleted(true);
+            this.updateObject(o);
+        }else{
+            deleteObjectForce(o);
+        }
+    }
+
+    public void deleteObjectById(Object id){
+        /* Integer execute = */
+        if(EntityWithDeleteTag.class.isAssignableFrom(getPoClass())){
+            T o = getObjectById(id);
+            deleteObject(o);
+        }else{
+            deleteObjectForceById(id);
+        }
+    }
+
+    public void deleteObjectsByProperties(Map<String, Object> filterMap){
+        if(EntityWithDeleteTag.class.isAssignableFrom(getPoClass())){
+            List<T> deleteList = listObjectsByProperties(filterMap);
+            if(deleteList !=null){
+                for(T obj : deleteList){
+                    ((EntityWithDeleteTag) obj).setDeleted(true);
+                    this.updateObject(obj);
+                }
+            }
+        }else{
+            deleteObjectsForceByProperties(filterMap);
+        }
     }
 
     public void updateObject(T o){
