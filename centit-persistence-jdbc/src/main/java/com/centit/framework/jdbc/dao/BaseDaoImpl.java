@@ -217,6 +217,17 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     /**
+     * 将属性名称转换为字段名称
+     * @param propertyName 属性名称
+     * @return 字段名称
+     */
+    public String translatePropertyNameToColumnName(String propertyName ){
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        SimpleTableField field = mapInfo.findFieldByName(propertyName);
+        return field==null?propertyName:field.getColumnName();
+    }
+
+    /**
      * 每个dao都需要重载这个函数已获得自定义的查询条件，否则listObjects、pageQuery就等价与listObjectsByProperties
      * @return FilterQuery
      */
