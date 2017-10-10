@@ -152,7 +152,7 @@ public abstract class DatabaseOptUtils {
                     sqlSession,
                     "insert into sequence_table(sequence_Name,current_value)"
                     + " values(?,?)", new Object[]{sequenceName,1});
-            return 1l;
+            return 1L;
         }else{
             getSingleObjectBySql(
                     sqlSession,
@@ -195,6 +195,8 @@ public abstract class DatabaseOptUtils {
                 return Long.valueOf(getSingleObjectBySql(
                         sqlSession, "SELECT sequence_nextval ('" + sequenceName + "');")
                         .toString());
+            default:
+                break;
         }
         // if("SQLServerDialect".endsWith(dn))
         // sql server 没有 sequence 所以用 GUID 代替

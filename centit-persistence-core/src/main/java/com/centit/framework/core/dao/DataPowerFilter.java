@@ -223,8 +223,8 @@ public class DataPowerFilter {
         StringBuilder checkStatement= new StringBuilder();
         String sWord = varMorp.getAWord();
         int prePos = 0;
-        while( sWord!=null && ! sWord.equals("") ){
-            if( sWord.equals("[")){
+        while( sWord!=null && ! "".equals(sWord) ){
+            if( "[".equals(sWord)){
                 int curPos = varMorp.getCurrPos();
                 if(curPos-1>prePos)
                     checkStatement.append( filter.substring(prePos, curPos-1));
@@ -243,7 +243,7 @@ public class DataPowerFilter {
 
                 checkStatement.append(QueryUtils.buildObjectStringForQuery(fieldValue));
 
-            }else if( sWord.equals("{")){
+            }else if( "{".equals(sWord)){
                 int curPos = varMorp.getCurrPos();
                 if(curPos-1>prePos)
                     checkStatement.append( filter.substring(prePos, curPos-1));

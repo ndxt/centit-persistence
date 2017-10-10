@@ -339,7 +339,7 @@ public abstract class DatabaseOptUtils {
                     baseDao,
                     "insert into sequence_table(sequence_Name,current_value)"
                     + " values(?,?)", new Object[]{sequenceName,1});
-            return 1l;
+            return 1L;
         }else{
             getSingleObjectBySql(
                     baseDao,
