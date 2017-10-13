@@ -996,9 +996,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     /**
      * 为了和 myBatis 兼容
-     * @param sHql
-     * @param filterMap
-     * @return
+     * @param sHql HQL语句
+     * @param filterMap 过滤条件
+     * @return 总行数
      */
     @Transactional
     public int pageCount(String sHql , Map<String, Object> filterMap) {
@@ -1031,7 +1031,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
 
         QueryAndNamedParams hql = builderHqlAndNamedParams(sHql, filterMap);
-        List<T> listObjs = listObjectsByNamedHql(hql.getHql(), hql.getParams(),
+        List<T> listObjs = listObjectsByNamedHql(hql.getQuery(), hql.getParams(),
                 startPos, maxSize);
 
         return listObjs;

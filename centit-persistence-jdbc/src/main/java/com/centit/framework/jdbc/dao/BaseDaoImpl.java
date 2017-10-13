@@ -51,6 +51,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     protected JdbcTemplate jdbcTemplate;
     /**
      * Set the JDBC DataSource to obtain connections from.
+     * @param dataSource  数据源
      */
     @Resource
     public void setDataSource(DataSource dataSource) {
@@ -218,7 +219,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
      /**
      * 每个dao都需要重载这个函数已获得自定义的查询条件，否则listObjects、pageQuery就等价与listObjectsByProperties
-     * @return FilterQuery
+     * @param alias  数据库表别名
+      * @param useDefaultFilter  使用默认过滤器
+      * @return FilterQuery
      */
     public String buildFieldFilterSql(String alias, boolean useDefaultFilter){
         StringBuilder sBuilder= new StringBuilder();
@@ -518,8 +521,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     /**
      * 这个函数仅仅是为了兼容mybatis版本中的查询
-     * @param filterMap
-     * @return
+     * @param filterMap 过滤条件
+     * @return 总行数
      */
     public int pageCount(Map<String, Object> filterMap){
         String sql = getFilterQuerySql();
@@ -538,8 +541,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     /**
      * 这个函数仅仅是为了兼容mybatis版本中的查询
-     * @param filterMap
-     * @return
+     * @param filterMap 过滤条件
+     * @return 分页数据
      */
     public List<T> pageQuery(Map<String, Object> filterMap) {
         String querySql = getFilterQuerySql();
@@ -558,7 +561,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                      QueryUtils.buildGetCountSQLByReplaceFields(qap.getSql()),qap.getParams()));
                      * */
                     (ConnectionCallback<List<T>>) conn -> OrmDaoUtils
-                            .queryObjectsByNamedParamsSql(conn, qap.getSql(), qap.getParams(), (Class<T>) getPoClass(),
+                            .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass(),
                                 pageDesc.getRowStart(), pageDesc.getPageSize() ));
         }
     }

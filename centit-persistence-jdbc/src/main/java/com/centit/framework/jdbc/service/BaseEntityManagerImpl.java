@@ -63,7 +63,7 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
      * 保存泛型参数对象
      *
      * @param o T
-     * @return Serializable
+     * Serializable
      */
     @Override
     @Transactional

@@ -1,7 +1,5 @@
 package com.centit.framework.core.dao;
 
-import com.centit.support.database.metadata.SimpleTableField;
-import com.centit.support.database.metadata.SimpleTableReference;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.xml.IgnoreDTDEntityResolver;
 import org.apache.commons.lang3.StringUtils;
@@ -12,13 +10,12 @@ import org.dom4j.io.SAXReader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by codefan on 17-8-27.
+ * @author codefan
  */
 @SuppressWarnings("unused")
 public abstract class ExtendedQueryPool {

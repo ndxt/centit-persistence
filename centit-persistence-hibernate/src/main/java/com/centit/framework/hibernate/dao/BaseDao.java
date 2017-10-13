@@ -168,9 +168,9 @@ public interface BaseDao<T extends Serializable, PK extends Serializable>
 
     /**
     * 为了和 myBatis 兼容
-    * @param sHql
-    * @param filterMap
-    * @return
+    * @param sHql Hql 语句
+    * @param filterMap 过滤条件
+    * @return int 总记录数
     */
     int pageCount(String sHql , Map<String, Object> filterMap);
 

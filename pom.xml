@@ -7,9 +7,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <centit.persistence.version>1.0-SNAPSHOT</centit.persistence.version>
+        <centit.persistence.version>1.0</centit.persistence.version>
         <jdk.version>1.8</jdk.version>
-        <centit.commons.version>2.2.3-SNAPSHOT</centit.commons.version>
+        <centit.commons.version>2.2.4</centit.commons.version>
 
         <log4j.version>2.8.2</log4j.version>
         <slf4j.version>1.7.9</slf4j.version>
@@ -36,12 +36,17 @@
     <groupId>com.centit.framework</groupId>
     <artifactId>centit-persistence</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <name>com.centit.framework:centit-persistence</name>
     <description>框架持久化包， 有三个子模块分别对应 hibernate、mybatis和spring jdbc template 三个实现方式。
     </description>
     <url>https://github.com/ndxt/centit-persistence</url>
+
+    <organization>
+        <name>江苏南大先腾信息产业股份有限公司</name>
+        <url>www.centit.com</url>
+    </organization>
 
     <modules>
         <module>centit-persistence-core</module>
@@ -79,7 +84,6 @@
 
     <!-- mvn deploy -DpomFile=pom.xml -->
 
-<!--
     <distributionManagement>
         <repository>
             <id>ossrh</id>
@@ -92,9 +96,8 @@
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
--->
 
-    <distributionManagement>
+    <!--<distributionManagement>
         <repository>
             <id>centit-releases</id>
             <name>centit-release</name>
@@ -105,10 +108,11 @@
             <name>centit-snapshots</name>
             <url>http://develop.centit.com:8080/nexus/content/repositories/centit-snapshots/</url>
         </snapshotRepository>
-    </distributionManagement>
+    </distributionManagement>-->
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -120,6 +124,14 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.20.1</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
             <!-- 打包时添加源码 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -135,7 +147,7 @@
                 </executions>
             </plugin>
 
-           <!-- <plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.10.4</version>
@@ -164,7 +176,6 @@
                 </executions>
             </plugin>
 
-
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -175,7 +186,8 @@
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
-            </plugin>-->
+            </plugin>
+
         </plugins>
     </build>
 </project>
