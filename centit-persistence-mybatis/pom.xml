@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>centit-persistence-mybatis</artifactId>
-    <name>com.centit.framework:framework-persistence-mybatis</name>
+    <name>com.centit.framework:centit-persistence-mybatis</name>
     <packaging>jar</packaging>
     <description>整合mybatis框架</description>
 

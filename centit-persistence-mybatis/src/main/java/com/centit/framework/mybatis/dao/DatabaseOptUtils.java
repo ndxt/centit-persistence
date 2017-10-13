@@ -76,6 +76,7 @@ public abstract class DatabaseOptUtils {
 
     /**
      * 获取分页语句
+     * @param dbType 数据库类型
      * @param sql sql
      * @param offset offset
      * @param maxsize 等同于 pageSize

@@ -11,7 +11,7 @@
 
     <artifactId>centit-persistence-jdbc</artifactId>
 
-    <name>com.centit.framework:framework-persistence-jdbc</name>
+    <name>com.centit.framework:centit-persistence-jdbc</name>
     <packaging>jar</packaging>
     <description>南大先腾自己的Orm框架，借用spring-jdbc管理链接和事物</description>
 
