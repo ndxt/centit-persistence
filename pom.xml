@@ -7,9 +7,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <centit.persistence.version>1.0</centit.persistence.version>
+        <centit.persistence.version>1.0.1-SNAPSHOT</centit.persistence.version>
         <jdk.version>1.8</jdk.version>
-        <centit.commons.version>2.2.4</centit.commons.version>
+        <centit.commons.version>2.2.5-SNAPSHOT</centit.commons.version>
 
         <log4j.version>2.8.2</log4j.version>
         <slf4j.version>1.7.9</slf4j.version>
@@ -36,7 +36,7 @@
     <groupId>com.centit.framework</groupId>
     <artifactId>centit-persistence</artifactId>
     <packaging>pom</packaging>
-    <version>1.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <name>com.centit.framework:centit-persistence</name>
     <description>框架持久化包， 有三个子模块分别对应 hibernate、mybatis和spring jdbc template 三个实现方式。
@@ -90,25 +90,25 @@
             <name>sonatype-releases</name>
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
-        <snapshotRepository>
+        <!--<snapshotRepository>
             <id>ossrh</id>
             <name>sonatype-snapshots</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 
-    <!--<distributionManagement>
+    <distributionManagement>
         <repository>
             <id>centit-releases</id>
             <name>centit-release</name>
             <url>http://develop.centit.com:8080/nexus/content/repositories/centit-releases/</url>
-        </repository>
+        </repository>-->
         <snapshotRepository>
             <id>centit-snapshots</id>
             <name>centit-snapshots</name>
             <url>http://develop.centit.com:8080/nexus/content/repositories/centit-snapshots/</url>
         </snapshotRepository>
-    </distributionManagement>-->
+    </distributionManagement>
 
     <build>
         <plugins>
