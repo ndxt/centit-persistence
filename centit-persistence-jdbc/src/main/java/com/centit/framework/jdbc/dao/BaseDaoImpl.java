@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.core.po.EntityWithDeleteTag;
-import com.centit.support.database.utils.PageDesc;
+import com.centit.support.database.utils.*;
 import com.centit.framework.core.dao.QueryParameterPrepare;
 import com.centit.support.algorithm.ListOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
@@ -15,9 +15,6 @@ import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.orm.TableMapInfo;
-import com.centit.support.database.utils.PersistenceException;
-import com.centit.support.database.utils.QueryAndNamedParams;
-import com.centit.support.database.utils.QueryUtils;
 import com.centit.support.file.FileType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -550,7 +547,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if(StringUtils.isBlank( querySql )){
             return listObjectsByProperties( filterMap, pageDesc);
         }else{
-            String selfOrderBy = fetchSelfOrderSql(filterMap);
+            String selfOrderBy = fetchSelfOrderSql(querySql, filterMap);
             if(StringUtils.isNotBlank(selfOrderBy)) {
                 querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
             }
@@ -586,7 +583,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if(StringUtils.isBlank( querySql )){
             return listObjectsByProperties( filterMap);
         }else{
-            String selfOrderBy = fetchSelfOrderSql(filterMap);
+            String selfOrderBy = fetchSelfOrderSql(querySql, filterMap);
             if(StringUtils.isNotBlank(selfOrderBy)) {
                 querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
             }
@@ -708,15 +705,19 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     }
 
-    private static String fetchSelfOrderSql(Map<String, Object> filterMap){
+    private static String fetchSelfOrderSql(String querySql, Map<String, Object> filterMap){
         String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(CodeBook.SELF_ORDER_BY));
         if(StringUtils.isBlank(selfOrderBy)){
             String sortField = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_FIELD));
             if(StringUtils.isNotBlank(sortField)){
-                selfOrderBy = sortField;
-                String sOrder = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_ORDER));
-                if(/*"asc".equalsIgnoreCase(sOrder) ||*/ "desc".equalsIgnoreCase(sOrder))
-                    selfOrderBy = sortField +" "+sOrder;
+                sortField = DatabaseOptUtils.mapFieldToColumnPiece(querySql, sortField);
+                if(sortField != null){
+                    selfOrderBy = sortField;
+                    String sOrder = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_ORDER));
+                    if(/*"asc".equalsIgnoreCase(sOrder) ||*/ "desc".equalsIgnoreCase(sOrder)) {
+                        selfOrderBy = sortField + " desc";
+                    }
+                }
             }
         }
         return selfOrderBy;
@@ -731,7 +732,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Pair<String,String[]> q = GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo,null);
 
-        String selfOrderBy = fetchSelfOrderSql(filterMap);
+        String selfOrderBy = fetchSelfOrderSql(querySql ,filterMap);
         Map<String, Object> paramsMap = filterMap;
 
         if(StringUtils.isBlank( querySql )) {

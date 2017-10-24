@@ -2,10 +2,14 @@ package com.centit.framework.jdbc.dao;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.centit.framework.core.dao.CodeBook;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.utils.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -14,6 +18,7 @@ import org.springframework.jdbc.core.ConnectionCallback;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -79,9 +84,26 @@ public abstract class DatabaseOptUtils {
     public final static int doExecuteNamedSql(BaseDaoImpl<?, ?> baseDao , String sSql, Map<String, Object> values)
             throws SQLException {
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(new QueryAndNamedParams(sSql, values));
-        return doExecuteSql(baseDao, qap.getSql(), qap.getParams());
+        return doExecuteSql(baseDao, qap.getQuery(), qap.getParams());
     }
-    
+
+    /**
+     * 在sql语句中找到属性对应的字段语句
+     * @param querySql sql语句
+     * @param fieldName 属性
+     * @return 返回的对应这个属性的语句，如果找不到返回 null
+     */
+    public static String mapFieldToColumnPiece(String querySql, String fieldName){
+        List<Pair<String,String>> fields = QueryUtils.getSqlFieldNamePieceMap(querySql);
+        for(Pair<String,String> field : fields ){
+            if(fieldName.equalsIgnoreCase(field.getLeft()) ||
+                    fieldName.equals(DatabaseAccess.mapColumnNameToField(field.getKey())) ||
+                    fieldName.equalsIgnoreCase(field.getRight())){
+                return  field.getRight();
+            }
+        }
+        return null;
+    }
 
     /* 下面所有的查询都返回 jsonArray */
 
