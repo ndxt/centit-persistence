@@ -239,6 +239,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 String skey = ent.getKey();
                 String sSqlFormat = ent.getValue().getLeft();
 
+                if (CodeBook.ORDER_BY_HQL_ID.equalsIgnoreCase(skey ) )
+                    continue;
+
                 if (skey.startsWith(CodeBook.NO_PARAM_FIX)) {
                     sBuilder.append(" [").append(skey).append("| and ")
                             .append( translatePropertyNameToColumnName(mapInfo, sSqlFormat ,alias) )
