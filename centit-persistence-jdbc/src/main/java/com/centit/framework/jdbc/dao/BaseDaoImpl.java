@@ -593,7 +593,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, filterMap);
             return jdbcTemplate.execute(
                     (ConnectionCallback<List<T>>) conn ->
-                            OrmDaoUtils.queryObjectsByNamedParamsSql(conn, qap.getSql(), qap.getParams(), (Class<T>) getPoClass())
+                            OrmDaoUtils.queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass())
             );
         }
     }
