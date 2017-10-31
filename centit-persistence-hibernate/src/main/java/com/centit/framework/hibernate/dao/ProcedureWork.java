@@ -77,7 +77,7 @@ public class ProcedureWork implements Work {
                     stmt.setNull(i + 1, Types.NULL);
                 else if (paramObjs.get(i) instanceof java.util.Date)
                     stmt.setObject(i + 1, DatetimeOpt
-                            .convertSqlDate((java.util.Date) paramObjs.get(i)));
+                            .convertToSqlTimestamp((java.util.Date) paramObjs.get(i)));
                 else
                     stmt.setObject(i + 1, paramObjs.get(i));
             }

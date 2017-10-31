@@ -66,7 +66,7 @@ public class FunctionWork implements Work {
                 if (paramObjs.get(i) == null)
                     stmt.setNull(i + 2, Types.NULL);
                 else if (paramObjs.get(i) instanceof java.util.Date)
-                    stmt.setObject(i + 2, DatetimeOpt.convertSqlDate((java.util.Date) paramObjs.get(i)));
+                    stmt.setObject(i + 2, DatetimeOpt.convertToSqlTimestamp((java.util.Date) paramObjs.get(i)));
                 else
                     stmt.setObject(i + 2, paramObjs.get(i));
             }
