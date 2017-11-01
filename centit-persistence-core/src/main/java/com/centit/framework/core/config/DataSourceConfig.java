@@ -5,13 +5,11 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.flywaydb.core.Flyway;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 import javax.sql.DataSource;
 import java.beans.PropertyVetoException;
 
-@Configuration
 public class DataSourceConfig implements EnvironmentAware {
 
     protected Environment env;
@@ -22,7 +20,7 @@ public class DataSourceConfig implements EnvironmentAware {
     }
 
     @Bean(destroyMethod = "close")
-    public DataSource dataSource() throws PropertyVetoException {
+    public BasicDataSource dataSource() throws PropertyVetoException {
         /*String dataSourcePoolType = env.getProperty("connection.pool.type");
         if("proxool".equals(dataSourcePoolType)) {
             ProxoolDataSource dataSource = new ProxoolDataSource();
