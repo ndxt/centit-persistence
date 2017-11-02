@@ -12,9 +12,9 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.context.annotation.*;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 
-@Configuration
 @EnableTransactionManagement(proxyTargetClass = true)//启用注解事物管理
 @Lazy
 public class MybatisConfig extends DataSourceConfig/* implements EnvironmentAware */{

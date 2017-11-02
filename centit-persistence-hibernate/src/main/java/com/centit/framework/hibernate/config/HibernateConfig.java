@@ -4,9 +4,9 @@ import com.centit.framework.core.config.DataSourceConfig;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.context.annotation.*;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
@@ -17,7 +17,6 @@ import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 import java.util.Properties;
 
-@Configuration
 @EnableTransactionManagement(proxyTargetClass = true)//启用注解事物管理
 @Lazy
 public class HibernateConfig extends DataSourceConfig /*implements EnvironmentAware */{
