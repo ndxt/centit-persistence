@@ -81,7 +81,8 @@ public class MybatisConfig extends DataSourceConfig/* implements EnvironmentAwar
                     fileMatchList.add(obj);
             }
         }
-        sessionFactory.setMapperLocations(ListOpt.listToArray(fileMatchList));
+        Resource[] resources = new Resource[fileMatchList.size()];
+        sessionFactory.setMapperLocations(fileMatchList.toArray(resources));
         return  sessionFactory;
     }
 
