@@ -1,5 +1,6 @@
 package com.centit.framework.hibernate.config;
 
+import com.centit.framework.core.config.DataSourceConfig;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
@@ -18,16 +19,15 @@ import java.util.Properties;
 
 @Configuration
 @EnableTransactionManagement(proxyTargetClass = true)//启用注解事物管理
-@EnableAspectJAutoProxy(proxyTargetClass = true)
 @Lazy
-public class HibernateConfig implements EnvironmentAware {
+public class HibernateConfig extends DataSourceConfig /*implements EnvironmentAware */{
 
-    protected Environment env;
+//    protected Environment env;
 
-    @Override
-    public void setEnvironment(Environment environment) {
-        this.env = environment;
-    }
+//    @Override
+//    public void setEnvironment(Environment environment) {
+//        this.env = environment;
+//    }
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Bean

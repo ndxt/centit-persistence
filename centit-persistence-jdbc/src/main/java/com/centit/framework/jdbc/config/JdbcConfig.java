@@ -1,5 +1,6 @@
 package com.centit.framework.jdbc.config;
 
+import com.centit.framework.core.config.DataSourceConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.context.annotation.*;
@@ -11,9 +12,8 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableTransactionManagement(proxyTargetClass = true)//启用注解事物管理
-@EnableAspectJAutoProxy(proxyTargetClass = true)
 @Lazy
-public class JdbcConfig {
+public class JdbcConfig extends DataSourceConfig {
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Bean

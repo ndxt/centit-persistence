@@ -1,5 +1,6 @@
 package com.centit.framework.mybatis.config;
 
+import com.centit.framework.core.config.DataSourceConfig;
 import com.centit.framework.mybatis.dao.BaseDaoSupport;
 import com.centit.support.algorithm.ListOpt;
 import com.centit.support.algorithm.StringRegularOpt;
@@ -29,16 +30,15 @@ import java.util.Properties;
 
 @Configuration
 @EnableTransactionManagement(proxyTargetClass = true)//启用注解事物管理
-@EnableAspectJAutoProxy(proxyTargetClass = true)
 @Lazy
-public class MybatisConfig implements EnvironmentAware {
+public class MybatisConfig extends DataSourceConfig/* implements EnvironmentAware */{
 
-    protected Environment env;
-
-    @Override
-    public void setEnvironment(Environment environment) {
-        this.env = environment;
-    }
+//    protected Environment env;
+//
+//    @Override
+//    public void setEnvironment(Environment environment) {
+//        this.env = environment;
+//    }
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Bean
