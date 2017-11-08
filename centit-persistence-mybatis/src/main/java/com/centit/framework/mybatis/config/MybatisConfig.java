@@ -48,7 +48,7 @@ public class MybatisConfig extends DataSourceConfig/* implements EnvironmentAwar
         configuration.setSafeRowBoundsEnabled(false);
         configuration.setMapUnderscoreToCamelCase(true);
         configuration.setAggressiveLazyLoading(false);
-        if(StringRegularOpt.isTrue("jdbc.show.sql")) {
+        if(StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))) {
             configuration.setLogImpl(StdOutImpl.class);
         }
 
