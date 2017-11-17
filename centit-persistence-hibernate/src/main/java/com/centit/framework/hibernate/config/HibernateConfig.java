@@ -1,6 +1,7 @@
 package com.centit.framework.hibernate.config;
 
 import com.centit.framework.core.config.DataSourceConfig;
+import com.centit.support.algorithm.StringRegularOpt;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
@@ -36,7 +37,7 @@ public class HibernateConfig extends DataSourceConfig /*implements EnvironmentAw
         Properties hibernateProperties = new Properties();
         hibernateProperties.put("hibernate.dialect", env.getProperty("jdbc.dialect"));
         hibernateProperties.put("hibernate.show_sql",
-                env.getProperty("jdbc.show.sql")==null || Boolean.parseBoolean(env.getProperty("jdbc.show.sql")));
+                env.getProperty("jdbc.show.sql")==null || StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql")));
         hibernateProperties.put("hibernate.id.new_generator_mappings", true);
         hibernateProperties.put("hibernate.connection.release_mode","after_statement");
         sessionFactory.setHibernateProperties(hibernateProperties);
