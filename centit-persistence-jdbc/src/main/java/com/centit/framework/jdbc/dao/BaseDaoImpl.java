@@ -133,7 +133,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public abstract Map<String, String> getFilterField();
 
 
-    private static ImmutablePair<String, String> parseParameter(String sParameter) {
+    protected static ImmutablePair<String, String> parseParameter(String sParameter) {
         int e = sParameter.indexOf(')');
         if (e > 0) {
             int b = sParameter.indexOf('(') + 1;
@@ -732,7 +732,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     }
 
-    private static String fetchSelfOrderSql(String querySql, Map<String, Object> filterMap) {
+    public static String fetchSelfOrderSql(String querySql, Map<String, Object> filterMap) {
         String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(CodeBook.SELF_ORDER_BY));
         if (StringUtils.isBlank(selfOrderBy)) {
             String sortField = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_FIELD));

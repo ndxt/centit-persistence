@@ -1,13 +1,11 @@
 package com.centit.framework.core.dao;
 
-import com.alibaba.fastjson.JSONObject;
 import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.common.KeyValuePair;
 import com.centit.support.compiler.Formula;
 import com.centit.support.compiler.Lexer;
-
 import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,8 +26,8 @@ public class DataPowerFilter {
         this.sourceData = sourceData;
     }
 
-    public void setSourceFromJson(JSONObject sourceJson) {
-        this.sourceData = sourceJson;
+    public Map<String,Object>  getSourceData() {
+        return this.sourceData;
     }
 
     public void addSourceData(String name,Object data) {
@@ -169,6 +167,13 @@ public class DataPowerFilter {
 
     }
 
+    public QueryUtils.IFilterTranslater getPowerFilterTranslater(){
+        return new DataPowerFilterTranslater(false, false,this);
+    }
+
+    public QueryUtils.IFilterTranslater getPowerFilterTranslater(boolean toSql, boolean jointSql){
+        return new DataPowerFilterTranslater(toSql, jointSql,this);
+    }
     /**
      *
      * @param queryStatement queryStatement
