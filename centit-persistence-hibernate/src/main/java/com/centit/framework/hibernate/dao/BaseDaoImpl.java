@@ -223,8 +223,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     @Transactional(propagation=Propagation.MANDATORY)
     public List<PK> saveNewObjects(Collection<T> os) {
         try {
-            List<PK> pks = new ArrayList<PK>();
-
+            List<PK> pks = new ArrayList<>();
             for(T o : os){
                 if(o instanceof EntityWithTimestamp){
                     EntityWithTimestamp ewto = (EntityWithTimestamp) o;
@@ -483,15 +482,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if(newObjects==null){
             throw new PersistenceException(PersistenceException.NULL_EXCEPTION,"请直接调用删除操作");
         }
-        List<PK> pks = new ArrayList<PK>();
+        List<PK> pks = new ArrayList<>();
         Date replaceTime  = DatetimeOpt.currentUtilDate();
         //需要删除的记录
-        List<T> deleteObjects = new ArrayList<T>();
+        List<T> deleteObjects = new ArrayList<>();
         //需要新建的记录
-        List<T> insertObjects = new ArrayList<T>();
+        List<T> insertObjects = new ArrayList<>();
         //需要更改的记录
-        List<T> updateObjects = new ArrayList<T>();
-        List<KeyValuePair<T,T>> updateObjectPairs = new ArrayList<KeyValuePair<T,T>>();
+        List<T> updateObjects = new ArrayList<>();
+        List<KeyValuePair<T,T>> updateObjectPairs = new ArrayList<>();
         Session session =  getCurrentSession();
         for(T dbo : dbObjects){
             boolean found = false;
@@ -830,7 +829,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public QueryAndNamedParams builderStatHqlAndNamedParams(String shql,
             Map<String, Object> filterDesc) {
 
-        StringBuffer hql = new StringBuffer(shql);
+        StringBuilder hql = new StringBuilder(shql);
         Map<String, Object> params = new HashMap<>();
 
         Map<String,Pair<String,String[]>> filterFieldWtihPretreatment =
@@ -853,7 +852,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 }
             }
         }
-        
         return new QueryAndNamedParams(hql.toString(), params);
     }
 
@@ -907,9 +905,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     q.setParameter(i, values[i]);
                 }
             }            
-            List<T> l =  q.list();
-            // System.out.print(l);
-            return l;
+            return  q.list();
         } catch (Exception e) {
             logger.error(e.getMessage());
             throw new PersistenceException(PersistenceException.DATABASE_OPERATE_EXCEPTION,e);
@@ -964,9 +960,30 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
-    
-    @Transactional
-    public List<T> listObjects(String shql, Map<String, Object> filterDesc,
+    private List<T> listObjectsByNamedHql(String shql, Map<String, Object> params,
+                                PageDesc pageDesc) {
+
+        int startPos = 0;
+        int maxSize = 0;
+        if(pageDesc!=null){
+            startPos = pageDesc.getRowStart();
+            maxSize = pageDesc.getPageSize();
+        }
+        List<T> listObjs = listObjectsByNamedHql(shql,params,
+                startPos, maxSize);
+        if(listObjs != null && pageDesc!=null){
+            if(maxSize>0){
+                Query q =  getCurrentSession().createQuery("SELECT COUNT(*) "
+                        + QueryUtils.removeOrderBy(shql));
+                DatabaseOptUtils.setQueryParameters(q,params);
+                pageDesc.setTotalRows(Integer.valueOf(q.list().get(0).toString()));
+            } else
+                pageDesc.setTotalRows(listObjs.size());
+        }
+        return listObjs;
+    }
+
+    private List<T> listObjects(String shql, Map<String, Object> filterDesc,
             PageDesc pageDesc) {
        
         int startPos = 0;
@@ -977,14 +994,14 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
         
         QueryAndNamedParams hql = builderHqlAndNamedParams(shql, filterDesc);
-        List<T> listObjs = listObjectsByNamedHql(hql.getHql(), hql.getParams(),
+        List<T> listObjs = listObjectsByNamedHql(hql.getQuery(), hql.getParams(),
                 startPos, maxSize);
 
 
         if(listObjs != null && pageDesc!=null){
             if(maxSize>0){
-                Query q =  getCurrentSession().createQuery("SELECT COUNT(1) "
-                                        + QueryUtils.removeOrderBy(hql.getHql()));
+                Query q =  getCurrentSession().createQuery("SELECT COUNT(*) "
+                                        + QueryUtils.removeOrderBy(hql.getQuery()));
                 Map<String, Object> params = hql.getParams();
                 DatabaseOptUtils.setQueryParameters(q,params);
                 pageDesc.setTotalRows(Integer.valueOf(q.list().get(0).toString()));
@@ -1005,8 +1022,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
         QueryAndNamedParams hql = builderHqlAndNamedParams(sHql, filterMap);
         //QueryUtils.buildGetCountHQL()
-        Query q =  getCurrentSession().createQuery("SELECT COUNT(1) "
-                + QueryUtils.removeOrderBy(hql.getHql()));
+        Query q =  getCurrentSession().createQuery("SELECT COUNT(*) "
+                + QueryUtils.removeOrderBy(hql.getQuery()));
 
         Map<String, Object> params = hql.getParams();
         DatabaseOptUtils.setQueryParameters(q,params);
@@ -1031,10 +1048,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
 
         QueryAndNamedParams hql = builderHqlAndNamedParams(sHql, filterMap);
-        List<T> listObjs = listObjectsByNamedHql(hql.getQuery(), hql.getParams(),
+        return listObjectsByNamedHql(hql.getQuery(), hql.getParams(),
                 startPos, maxSize);
-
-        return listObjs;
     }
 
     @Transactional
