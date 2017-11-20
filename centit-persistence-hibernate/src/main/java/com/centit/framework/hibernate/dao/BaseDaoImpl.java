@@ -960,7 +960,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
-    private List<T> listObjectsByNamedHql(String shql, Map<String, Object> params,
+    public List<T> listObjectsByNamedHql(String shql, Map<String, Object> params,
                                 PageDesc pageDesc) {
 
         int startPos = 0;

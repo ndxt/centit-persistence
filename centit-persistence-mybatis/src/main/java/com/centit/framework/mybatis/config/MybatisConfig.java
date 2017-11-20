@@ -2,7 +2,6 @@ package com.centit.framework.mybatis.config;
 
 import com.centit.framework.core.config.DataSourceConfig;
 import com.centit.framework.mybatis.dao.BaseDaoSupport;
-import com.centit.support.algorithm.ListOpt;
 import com.centit.support.algorithm.StringRegularOpt;
 import org.apache.ibatis.logging.stdout.StdOutImpl;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
@@ -48,7 +47,7 @@ public class MybatisConfig extends DataSourceConfig/* implements EnvironmentAwar
         configuration.setSafeRowBoundsEnabled(false);
         configuration.setMapUnderscoreToCamelCase(true);
         configuration.setAggressiveLazyLoading(false);
-        if(env.getProperty("jdbc.show.sql")==null || StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))) {
+        if(StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))) {
             configuration.setLogImpl(StdOutImpl.class);
         }
 
