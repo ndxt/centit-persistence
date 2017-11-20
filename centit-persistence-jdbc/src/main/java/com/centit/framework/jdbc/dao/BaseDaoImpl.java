@@ -58,11 +58,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
-    public final JdbcTemplate getJdbcTemplate() {
+    public JdbcTemplate getJdbcTemplate() {
         return this.jdbcTemplate;
     }
 
-    public final DataSource getDataSource() {
+    public DataSource getDataSource() {
         return (this.jdbcTemplate != null ? this.jdbcTemplate.getDataSource() : null);
     }
 
@@ -73,7 +73,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @throws CannotGetJdbcConnectionException if the attempt to get a Connection failed
      * @see org.springframework.jdbc.datasource.DataSourceUtils#getConnection(javax.sql.DataSource)
      */
-    protected final Connection getConnection() throws CannotGetJdbcConnectionException {
+    protected Connection getConnection() throws CannotGetJdbcConnectionException {
         return DataSourceUtils.getConnection(getDataSource());
     }
 
@@ -84,11 +84,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param con Connection to close
      * @see org.springframework.jdbc.datasource.DataSourceUtils#releaseConnection
      */
-    protected final void releaseConnection(Connection con) {
+    protected void releaseConnection(Connection con) {
         DataSourceUtils.releaseConnection(con, getDataSource());
     }
 
-    private final void fetchTypeParams() {
+    private void fetchTypeParams() {
         ParameterizedType genType = (ParameterizedType) getClass()
                 .getGenericSuperclass();
         Type[] params = genType.getActualTypeArguments();
@@ -96,7 +96,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         pkClass = ((Class<?>) params[1]);
     }
 
-    public final Class<?> getPoClass() {
+    public Class<?> getPoClass() {
         //return this.getClass().getTypeParameters()[0];
         if (poClass == null) {
             fetchTypeParams();
@@ -104,7 +104,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return poClass;
     }
 
-    public final Class<?> getPkClass() {
+    public Class<?> getPkClass() {
         if (pkClass == null) {
             fetchTypeParams();
         }
@@ -320,7 +320,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return daoEmbeddedFilter;
     }
 
-    public final String getFilterQuerySql() {
+    public String getFilterQuerySql() {
         String querySql = getExtendFilterQuerySql();
         if (StringUtils.isBlank(querySql)) {
             querySql = buildDefaultFieldFilterSql();

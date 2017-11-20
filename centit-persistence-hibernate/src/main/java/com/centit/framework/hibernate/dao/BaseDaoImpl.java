@@ -107,7 +107,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return filterFieldWithPretreatment;
     }
 
-    public final Class<?> getPoClass() {
+    public Class<?> getPoClass() {
         //return this.getClass().getTypeParameters()[0];
         if (poClass == null) {
             ParameterizedType genType = (ParameterizedType) getClass()
@@ -122,7 +122,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * 获取泛型参数对象的主键类型
      * @return 泛型参数对象的主键类型
      */
-    public final Class<?> getPkClass() {
+    public Class<?> getPkClass() {
         ParameterizedType genType = (ParameterizedType) getClass()
                 .getGenericSuperclass();
         Type[] params = genType.getActualTypeArguments();
@@ -133,7 +133,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * 获取泛型参数对象全称 
      * @return 泛型参数对象全称
      */
-    public final String getClassTName() {
+    public String getClassTName() {
         return getPoClass().getName();
     }
 
@@ -141,7 +141,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * 获取泛型参数对象名称
      * @return 泛型参数对象名称
      */
-    public final String getClassTShortName() {
+    public String getClassTShortName() {
         return getPoClass().getSimpleName();
     }
 
