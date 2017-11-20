@@ -36,8 +36,7 @@ public class HibernateConfig extends DataSourceConfig /*implements EnvironmentAw
         sessionFactory.setDataSource(dataSource);
         Properties hibernateProperties = new Properties();
         hibernateProperties.put("hibernate.dialect", env.getProperty("jdbc.dialect"));
-        hibernateProperties.put("hibernate.show_sql",
-                env.getProperty("jdbc.show.sql")==null || StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql")));
+        hibernateProperties.put("hibernate.show_sql", StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql")));
         hibernateProperties.put("hibernate.id.new_generator_mappings", true);
         hibernateProperties.put("hibernate.connection.release_mode","after_statement");
         sessionFactory.setHibernateProperties(hibernateProperties);

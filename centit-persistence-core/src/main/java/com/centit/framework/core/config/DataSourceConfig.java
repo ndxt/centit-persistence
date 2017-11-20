@@ -1,6 +1,7 @@
 package com.centit.framework.core.config;
 
 import com.centit.support.algorithm.StringRegularOpt;
+import com.centit.support.database.utils.QueryLogUtils;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.flywaydb.core.Flyway;
 import org.springframework.context.EnvironmentAware;
@@ -60,6 +61,10 @@ public class DataSourceConfig implements EnvironmentAware {
         dataSource.setMaxWaitMillis(env.getProperty("jdbc.maxWait", Integer.class));
         dataSource.setDefaultAutoCommit(env.getProperty("jdbc.defaultAutoCommit", Boolean.class));
         dataSource.setRemoveAbandonedTimeout(env.getProperty("jdbc.removeAbandonedTimeout", Integer.class));
+
+        if(StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))){
+            QueryLogUtils.setJdbcShowSql(true);
+        }
         return dataSource;
     }
 
