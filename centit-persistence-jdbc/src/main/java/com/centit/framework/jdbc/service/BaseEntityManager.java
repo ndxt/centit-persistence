@@ -88,7 +88,7 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      * @param pageDesc 分页信息
      * @return JSONArray
      */
-    JSONArray listObjectsBySqlAsJson(Map<String, Object> filterMap, PageDesc pageDesc  );
+    JSONArray listObjectsAsJson(Map<String, Object> filterMap, PageDesc pageDesc  );
 
     /**
      * 查询数据库，可以查询任意表
