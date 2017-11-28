@@ -45,7 +45,7 @@ public abstract class ExtendedQueryPool {
     public static final void loadResourceExtendedSqlMap(DBType dbtype)
             throws DocumentException,IOException {
         InputStream inputStream =
-                ExtendedQueryPool.class.getResourceAsStream("ExtendedSqlMap.xml");
+                ExtendedQueryPool.class.getResourceAsStream("/ExtendedSqlMap.xml");
         if(inputStream!=null) {
             loadExtendedSqlMap(inputStream, dbtype);
         }
