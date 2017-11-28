@@ -60,7 +60,7 @@
 		<![CDATA[ ]]>
 	</sql>
 
-	<!-- 分页后面包装部分 mysql -->
+	<!-- 分页后面包装部分 h2 -->
 	<sql id="pageEnd" databaseId="h2" >
 		<![CDATA[  limit #{startRow}, #{maxSize}]]>
 	</sql>
