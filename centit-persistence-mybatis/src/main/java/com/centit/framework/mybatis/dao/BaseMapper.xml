@@ -55,5 +55,15 @@
 				#{startRow} order by rownumber_ ]]>
 	</sql>
 
+	<!-- 分页前面包装部分 h2 -->
+	<sql id="pageBegin" databaseId="h2" >
+		<![CDATA[ ]]>
+	</sql>
+
+	<!-- 分页后面包装部分 mysql -->
+	<sql id="pageEnd" databaseId="h2" >
+		<![CDATA[  limit #{startRow}, #{maxSize}]]>
+	</sql>
+
 </mapper>
 
