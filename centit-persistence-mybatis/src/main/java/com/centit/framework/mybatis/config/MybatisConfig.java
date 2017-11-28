@@ -56,6 +56,7 @@ public class MybatisConfig extends DataSourceConfig/* implements EnvironmentAwar
         properties.setProperty("DB2","db2");
         properties.setProperty("MySQL","mysql");
         properties.setProperty("SQL Server","sqlserver");
+        properties.setProperty("H2","h2");
 
         /*PropertiesFactoryBean propertiesFactory = new PropertiesFactoryBean();
         propertiesFactory.setProperties(properties);*/
