@@ -703,6 +703,17 @@ public abstract class DatabaseOptUtils {
         return l;
     }
 
+    public final static List<?> findObjectsByHql(BaseDaoImpl<?, ?> baseDao, String shql,
+                                                 Object[] values, int startPos , int  maxSize) {
+        Query q = baseDao.getCurrentSession().createQuery(shql);
+        setQueryParameter(q,values);
+        if (maxSize > 0)
+            q.setMaxResults(maxSize);
+        if (startPos >= 0)
+            q.setFirstResult(startPos);
+        return q.list();
+    }
+
     /**
      * 
      * @param baseDao 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
@@ -740,7 +751,22 @@ public abstract class DatabaseOptUtils {
         }
         return l;
     }
-    
+
+
+    public final static List<?> findObjectsByHql(BaseDaoImpl<?, ?> baseDao, String shql,
+                                                 Map<String, Object> values,int startPos , int  maxSize) {
+
+        // HashMaps for search variety fields
+        // StringBuffer hql = BuilderHql(shql,filterDesc);
+        Query q = baseDao.getCurrentSession().createQuery(shql);
+        setQueryParameters(q,values);
+
+        if (maxSize > 0)
+            q.setMaxResults(maxSize);
+        if (startPos >= 0)
+            q.setFirstResult(startPos);
+        return q.list();
+    }
     /**
      * 查询所有的不分页
      * @param baseDao 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
