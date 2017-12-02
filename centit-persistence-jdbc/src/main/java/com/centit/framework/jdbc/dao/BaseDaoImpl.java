@@ -24,6 +24,7 @@ import com.centit.support.file.FileType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
@@ -488,7 +489,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if(refs!=null && refs.size()>0) {
             if (//ref.getReferenceType().equals(refType) /*||
                     ref.getReferenceType().isAssignableFrom(refType) ){
-                if( ref.getReferenceType().isAssignableFrom(ref.getTargetEntityType())){
+                if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
                     for(Object refObject : refs)
                     if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
                         field.setObjectFieldValue(object,refObject);
@@ -499,7 +500,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 }
             }else if(Set.class.isAssignableFrom(ref.getReferenceType())){
                 Set<Object> validRefDate = new HashSet<>(refs.size()+1);
-                if( ref.getReferenceType().isAssignableFrom(ref.getTargetEntityType())){
+                if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
                     for(Object refObject : refs)
                         if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
                             validRefDate.add(refObject);
@@ -509,12 +510,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 }
                 field.setObjectFieldValue(object,validRefDate);
             }else if(List.class.isAssignableFrom(ref.getReferenceType())){
-                if( ref.getReferenceType().isAssignableFrom(ref.getTargetEntityType())){
+                if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
                     List<Object>  validRefDate = new ArrayList<>(refs.size());
-                    for(Object refObject : refs)
-                        if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
+                    for(Object refObject : refs) {
+                        if (!((EntityWithDeleteTag) refObject).isDeleted()) {
                             validRefDate.add(refObject);
                         }
+                    }
                 }else {
                     field.setObjectFieldValue(object, refs);
                 }
@@ -524,7 +526,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public T fetchObjectReferences(T o) {
-        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo( getPoClass());
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         if(mapInfo.hasReferences()) {
             for (SimpleTableReference ref : mapInfo.getReferences()) {
                 fetchObjectReference(o, ref.getReferenceName());
@@ -533,11 +535,127 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return o;
     }
 
-    //TODO 改造
-    public Integer saveObjectReference(T o, String columnName) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<Integer>) conn ->
-                        OrmDaoUtils.saveObjectReference(conn, o, columnName));
+
+    public Integer saveObjectReference(T object, String columnName) {
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        SimpleTableReference ref = mapInfo.findReference(columnName);
+        SimpleTableField field = mapInfo.findFieldByName(columnName);
+        if(ref==null || field==null || ref.getReferenceColumns().size()<1)
+            return 0;
+
+        Object newObj = field.getObjectFieldValue(object);
+        Class<?> refType = ref.getTargetEntityType();
+        TableMapInfo refMapInfo = JpaMetadata.fetchTableMapInfo( refType );
+        if( refMapInfo == null )
+            return 0;
+
+        Map<String, Object> properties = new HashMap<>(6);
+        for(Map.Entry<String,String> ent : ref.getReferenceColumns().entrySet()){
+            properties.put(ent.getValue(), ReflectionOpt.getFieldValue(object,ent.getKey()));
+        }
+        List<?> refs = jdbcTemplate.execute(
+                (ConnectionCallback<List<?>>) conn ->
+                        OrmDaoUtils.listObjectsByProperties(conn, properties, refType));
+        if(newObj == null){ // delete all
+            if(refs!=null && refs.size()>0){
+                if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
+                    for(Object refObject : refs) {
+                        if (!((EntityWithDeleteTag) refObject).isDeleted()) {
+                            //设置删除标记
+                            ((EntityWithDeleteTag) refObject).setDeleted(true);
+                            jdbcTemplate.execute(
+                                    (ConnectionCallback<Integer>) conn ->
+                                            OrmDaoUtils.updateObject(conn, refObject));
+                        }
+                    }
+                }else{ // 直接删除
+                    return jdbcTemplate.execute(
+                            (ConnectionCallback<Integer>) conn ->
+                                    OrmDaoUtils.deleteObjectReference(conn, object,ref));
+                }
+            }
+            return 1;
+        }
+
+        OrmDaoUtils.OrmObjectComparator refObjComparator = new OrmDaoUtils.OrmObjectComparator(refMapInfo);
+        if (//ref.getReferenceType().equals(refType) || oneToOne
+                ref.getReferenceType().isAssignableFrom(refType) ){
+            for(Map.Entry<String, String> ent : ref.getReferenceColumns().entrySet()){
+                Object obj = mapInfo.findFieldByName(ent.getKey()).getObjectFieldValue(object);
+                refMapInfo.findFieldByName(ent.getValue()).setObjectFieldValue(newObj,obj);
+            }
+
+            boolean haveSaved = false;
+            for(Object refObject : refs) {
+                if(refObjComparator.compare(refObject, newObj)==0){
+                    jdbcTemplate.execute((ConnectionCallback<Integer>)
+                            conn -> OrmDaoUtils.updateObject(conn, newObj));
+                    haveSaved = true;
+                }else {
+                    if( EntityWithDeleteTag.class.isAssignableFrom(refType)) {
+                        if (!((EntityWithDeleteTag) refObject).isDeleted()) {
+                            //设置删除标记
+                            ((EntityWithDeleteTag) refObject).setDeleted(true);
+                            jdbcTemplate.execute((ConnectionCallback<Integer>)
+                                    conn -> OrmDaoUtils.updateObject(conn, refObject));
+                        }
+                    }else{
+                        jdbcTemplate.execute((ConnectionCallback<Integer>)
+                                conn -> OrmDaoUtils.deleteObject(conn, refObject));
+                    }
+                }
+            }
+            if(!haveSaved){
+                jdbcTemplate.execute((ConnectionCallback<Integer>)
+                        conn -> OrmDaoUtils.saveNewObject(conn, newObj));
+            }
+            return 1;
+        }else {
+            List<Object> newListObj = Set.class.isAssignableFrom(ref.getReferenceType())?
+                    new ArrayList<>((Set<?>) newObj):(List<Object>) newObj;
+
+            for(Map.Entry<String, String> ent : ref.getReferenceColumns().entrySet()){
+                Object obj = mapInfo.findFieldByName(ent.getKey()).getObjectFieldValue(object);
+                for(Object subObj : newListObj) {
+                    refMapInfo.findFieldByName(ent.getValue()).setObjectFieldValue(subObj, obj);
+                }
+            }
+
+            Triple<List<Object>, List<Pair<Object,Object>>, List<Object>>
+                    comRes=
+                    ListOpt.compareTwoList((List<Object>)refs, newListObj,
+                            new OrmDaoUtils.OrmObjectComparator<>(mapInfo) );
+
+            int resN = 0;
+            if(comRes.getLeft() != null) {
+                for (Object obj : comRes.getLeft()) {
+                    resN += jdbcTemplate.execute((ConnectionCallback<Integer>)
+                            conn -> OrmDaoUtils.saveNewObject(conn, obj));
+                }
+            }
+            if(comRes.getRight() != null) {
+                for (Object obj : comRes.getRight()) {
+                    if( EntityWithDeleteTag.class.isAssignableFrom(refType)) {
+                        if (!((EntityWithDeleteTag) obj).isDeleted()) {
+                            //设置删除标记
+                            ((EntityWithDeleteTag) obj).setDeleted(true);
+                            resN += jdbcTemplate.execute((ConnectionCallback<Integer>)
+                                    conn -> OrmDaoUtils.updateObject(conn, obj));
+                        }
+                    }else {
+                        resN += jdbcTemplate.execute((ConnectionCallback<Integer>)
+                                conn -> OrmDaoUtils.deleteObject(conn, obj));
+                    }
+                }
+            }
+            if(comRes.getMiddle() != null) {
+                for (Pair<Object, Object> pobj : comRes.getMiddle()) {
+                    resN += jdbcTemplate.execute((ConnectionCallback<Integer>)
+                            conn -> OrmDaoUtils.updateObject(conn, pobj.getRight()));
+                }
+            }
+            return resN;
+        }
     }
 
     public Integer saveObjectReferences(T o) {
@@ -792,6 +910,14 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     }
 
+    /**
+     * querySql 用户检查order by 中的字段属性 对应的查询标识 比如，
+     * select a+b as ab from table
+     * 在 filterMap 中的 CodeBook.TABLE_SORT_FIELD (sort) 为 ab 字段 返回的排序语句为 a+b
+     * @param querySql SQL语句 用来检查字段对应的查询语句 片段
+     * @param filterMap 查询条件map其中包含排序属性
+     * @return order by 字句
+     */
     public static String fetchSelfOrderSql(String querySql, Map<String, Object> filterMap) {
         String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(CodeBook.SELF_ORDER_BY));
         if (StringUtils.isBlank(selfOrderBy)) {
