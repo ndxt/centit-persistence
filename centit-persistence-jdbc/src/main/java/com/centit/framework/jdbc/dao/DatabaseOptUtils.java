@@ -2,13 +2,10 @@ package com.centit.framework.jdbc.dao;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.centit.framework.core.dao.CodeBook;
-import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.database.utils.PageDesc;
+import com.centit.support.algorithm.ListOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.utils.*;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -498,6 +495,7 @@ public abstract class DatabaseOptUtils {
                 });
     }
 
+
     /**
      * 保存或者更新任意对象 ，每次都先判断是否存在
      * @param baseDao BaseDaoImpl
@@ -535,4 +533,47 @@ public abstract class DatabaseOptUtils {
                     return successDeleted;
                 });
     }
+
+    /**
+     * 批量修改对象
+     * @param baseDao BaseDaoImpl
+     * @param fields 需要修改的属性，对应的值从 object 对象中找
+     * @param object   对应 fields 中的属性必须有值，如果没有值 将被设置为null
+     * @param properties 对应的过滤条件， 属性名 和 属性值 ，必须是 等于匹配
+     */
+    public <T> Integer batchUpdateObject(BaseDaoImpl<?, ?> baseDao, final Collection<String> fields,
+                                         final T object, final Map<String, Object> properties) {
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.batchUpdateObject(conn, fields, object, properties));
+    }
+    /**
+     * 批量修改对象
+     * @param baseDao BaseDaoImpl
+     * @param fields 需要修改的属性，对应的值从 object 对象中找
+     * @param object   对应 fields 中的属性必须有值，如果没有值 将被设置为null
+     * @param properties 对应的过滤条件， 属性名 和 属性值 ，必须是 等于匹配
+     */
+    public <T> Integer batchUpdateObject(BaseDaoImpl<?, ?> baseDao, String[] fields,
+                                          T object, Map<String, Object> properties) {
+        return batchUpdateObject(baseDao, ListOpt.arrayToList(fields), object, properties);
+    }
+
+    /**
+     * 批量修改 对象
+     * @param baseDao BaseDaoImpl
+     * @param type 对象类型
+     * @param propertiesValue 值对
+     * @param propertiesFilter 过滤条件对
+     * @return 更改的条数
+     */
+    public static Integer batchUpdateObject(
+            BaseDaoImpl<?, ?> baseDao, Class<?> type,
+            Map<String, Object> propertiesValue,
+            Map<String, Object> propertiesFilter) {
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.batchUpdateObject(conn, type, propertiesValue, propertiesFilter));
+    }
+
 }

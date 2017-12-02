@@ -51,7 +51,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     /**
      * Set the JDBC DataSource to obtain connections from.
-     *
      * @param dataSource 数据源
      */
     @Resource
@@ -61,17 +60,25 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
+    /**
+     * 获取spring jdbc 的 jdbcTemplate
+     * @return JdbcTemplate
+     */
     public JdbcTemplate getJdbcTemplate() {
         return this.jdbcTemplate;
     }
 
+    /**
+     * 获取数据源 这个一般不要使用
+     * @return DataSource
+     */
     public DataSource getDataSource() {
         return (this.jdbcTemplate != null ? this.jdbcTemplate.getDataSource() : null);
     }
 
     /**
      * Get a JDBC Connection, either from the current transaction or a new one.
-     *
+     * 请不要使用这个方法，我们一般获取jdbcTemplate来操作数据库
      * @return the JDBC Connection
      * @throws CannotGetJdbcConnectionException if the attempt to get a Connection failed
      * @see org.springframework.jdbc.datasource.DataSourceUtils#getConnection(javax.sql.DataSource)
@@ -128,14 +135,20 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 ;
     }
 
+    /**
+     * 可以在外部注入查询语句来屏蔽内部标量getFilterField中定义的查询语句
+     * @return 外部语句
+     */
     public String getExtendFilterQuerySql() {
         return ExtendedQueryPool.getExtendedSql(
                 FileType.getFileExtName(getPoClass().getName()) + "_QUERY_0");
     }
 
-    public abstract Map<String, String> getFilterField();
-
-
+    /**
+     * 分析参数，这个主要用于解释
+     * @param sParameter
+     * @return
+     */
     protected static ImmutablePair<String, String> parseParameter(String sParameter) {
         int e = sParameter.indexOf(')');
         if (e > 0) {
@@ -149,7 +162,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public static Map<String, Pair<String, String>>
-    getFilterFieldWithPretreatment(Map<String, String> fieldMap) {
+            getFilterFieldWithPretreatment(Map<String, String> fieldMap) {
         if (fieldMap == null)
             return null;
         Map<String, Pair<String, String>> filterFieldWithPretreatment =
@@ -225,7 +238,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     /**
      * 每个dao都需要重载这个函数已获得自定义的查询条件，否则listObjects、pageQuery就等价与listObjectsByProperties
-     *
+     * 根据 getFilterField 中的内容初始化
      * @param alias            数据库表别名
      * @param useDefaultFilter 使用默认过滤器
      * @return FilterQuery
@@ -315,10 +328,21 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     private String daoEmbeddedFilter;
-
+    /**
+     * 每个dao都要初始化filterField这个对象，在 getFilterField 初始化，并且返回
+     * @return 返回 getFilterField 属性
+     */
+    public abstract Map<String, String> getFilterField();
+    /**
+     * 是否为每一个没有配置 filterField 配置过滤条件的属性自动配置一个 equal 类型的过滤条件
+     * @return 默认值为false
+     */
+    public boolean enableDefaultFilter(){
+        return false;
+    }
     public String buildDefaultFieldFilterSql() {
         if (daoEmbeddedFilter == null) {
-            daoEmbeddedFilter = buildFieldFilterSql(null, false);
+            daoEmbeddedFilter = buildFieldFilterSql(null, enableDefaultFilter());
         }
         return daoEmbeddedFilter;
     }
@@ -403,6 +427,12 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.updateObject(conn, o));
     }
 
+    /**
+     * 只更改对象的部分属性
+     * @param fields 需要修改的部分属性
+     * @param object 除了对应修改的属性 需要有相应的值，主键对应的属性也必须要值
+     * @throws PersistenceException 运行时异常
+     */
     public void updateObject(Collection<String> fields, T object)
             throws PersistenceException {
         jdbcTemplate.execute(
@@ -410,20 +440,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.updateObject(conn, fields, object));
     }
 
-    public void batchUpdateObject(Collection<String> fields, T object, Map<String, Object> properties) {
-        jdbcTemplate.execute(
-                (ConnectionCallback<Integer>) conn ->
-                        OrmDaoUtils.batchUpdateObject(conn, fields, object, properties));
-    }
-
-
+    /**
+     * 只更改对象的部分属性
+     * @param fields 需要修改的部分属性
+     * @param object 除了对应修改的属性 需要有相应的值，主键对应的属性也必须要值
+     * @throws PersistenceException 运行时异常
+     */
     public void updateObject(String[] fields, T object)
             throws PersistenceException {
         updateObject(ListOpt.arrayToList(fields), object);
-    }
-
-    public void batchUpdateObject(String[] fields, T object, Map<String, Object> properties) {
-        batchUpdateObject(ListOpt.arrayToList(fields), object, properties);
     }
 
 
