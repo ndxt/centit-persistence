@@ -535,7 +535,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return o;
     }
 
-
     public Integer saveObjectReference(T object, String columnName) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         SimpleTableReference ref = mapInfo.findReference(columnName);
@@ -584,33 +583,35 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 Object obj = mapInfo.findFieldByName(ent.getKey()).getObjectFieldValue(object);
                 refMapInfo.findFieldByName(ent.getValue()).setObjectFieldValue(newObj,obj);
             }
-
             boolean haveSaved = false;
-            for(Object refObject : refs) {
-                if(refObjComparator.compare(refObject, newObj)==0){
-                    jdbcTemplate.execute((ConnectionCallback<Integer>)
-                            conn -> OrmDaoUtils.updateObject(conn, newObj));
-                    haveSaved = true;
-                }else {
-                    if( EntityWithDeleteTag.class.isAssignableFrom(refType)) {
-                        if (!((EntityWithDeleteTag) refObject).isDeleted()) {
-                            //设置删除标记
-                            ((EntityWithDeleteTag) refObject).setDeleted(true);
-                            jdbcTemplate.execute((ConnectionCallback<Integer>)
-                                    conn -> OrmDaoUtils.updateObject(conn, refObject));
-                        }
-                    }else{
+            if(refs!=null && refs.size()>0) {
+                for (Object refObject : refs) {
+                    if (refObjComparator.compare(refObject, newObj) == 0) {
+                        //找到相同的对象 更新
                         jdbcTemplate.execute((ConnectionCallback<Integer>)
-                                conn -> OrmDaoUtils.deleteObject(conn, refObject));
+                                conn -> OrmDaoUtils.updateObject(conn, newObj));
+                        haveSaved = true;
+                    } else {
+                        if (EntityWithDeleteTag.class.isAssignableFrom(refType)) {
+                            if (!((EntityWithDeleteTag) refObject).isDeleted()) {
+                                //设置删除标记
+                                ((EntityWithDeleteTag) refObject).setDeleted(true);
+                                jdbcTemplate.execute((ConnectionCallback<Integer>) conn -> OrmDaoUtils.updateObject(conn, refObject));
+                            }
+                        } else {
+                            jdbcTemplate.execute((ConnectionCallback<Integer>) conn -> OrmDaoUtils.deleteObject(conn, refObject));
+                        }
                     }
                 }
             }
             if(!haveSaved){
+                //没有相同的条目 新建
                 jdbcTemplate.execute((ConnectionCallback<Integer>)
                         conn -> OrmDaoUtils.saveNewObject(conn, newObj));
             }
             return 1;
         }else {
+            //oneToMany 一对多的情况
             List<Object> newListObj = Set.class.isAssignableFrom(ref.getReferenceType())?
                     new ArrayList<>((Set<?>) newObj):(List<Object>) newObj;
 
