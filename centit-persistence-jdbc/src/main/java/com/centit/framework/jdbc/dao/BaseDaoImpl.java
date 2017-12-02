@@ -3,18 +3,23 @@ package com.centit.framework.jdbc.dao;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.ExtendedQueryPool;
-import com.centit.framework.core.po.EntityWithDeleteTag;
-import com.centit.support.database.utils.*;
 import com.centit.framework.core.dao.QueryParameterPrepare;
+import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.support.algorithm.ListOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.metadata.SimpleTableField;
+import com.centit.support.database.metadata.SimpleTableReference;
 import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.orm.TableMapInfo;
+import com.centit.support.database.utils.PageDesc;
+import com.centit.support.database.utils.PersistenceException;
+import com.centit.support.database.utils.QueryAndNamedParams;
+import com.centit.support.database.utils.QueryUtils;
 import com.centit.support.file.FileType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -32,10 +37,7 @@ import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.Connection;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings({"unused","unchecked"})
 public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializable> {
@@ -442,16 +444,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.getObjectIncludeLazyById(conn, id, (Class<T>) getPoClass()));
     }
 
-    public T getObjectCascadeById(Object id) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.getObjectCascadeById(conn, id, (Class<T>) getPoClass()));
-    }
 
-    public T getObjectCascadeShallowById(Object id) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.getObjectCascadeShallowById(conn, id, (Class<T>) getPoClass()));
+    public T getObjectWithReferences(Object id) {
+        T obj = getObjectById(id);
+        return fetchObjectReferences(obj);
     }
 
     public T fetchObjectLazyColumn(T o, String columnName) {
@@ -467,18 +463,77 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
 
-    public T fetchObjectReference(T o, String columnName) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.fetchObjectReference(conn, o, columnName));
+    public T fetchObjectReference(T object, String columnName) {
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        SimpleTableReference ref = mapInfo.findReference(columnName);
+        SimpleTableField field = mapInfo.findFieldByName(columnName);
+        if(ref==null || field == null || ref.getReferenceColumns().size()<1)
+            return object;
+
+        Class<?> refType = ref.getTargetEntityType();
+        TableMapInfo refMapInfo = JpaMetadata.fetchTableMapInfo( refType );
+        if( refMapInfo == null )
+            return object;
+
+        Map<String, Object> properties = new HashMap<>(6);
+        for(Map.Entry<String,String> ent : ref.getReferenceColumns().entrySet()){
+            properties.put(ent.getValue(), ReflectionOpt.getFieldValue(object,ent.getKey()));
+        }
+
+        List<?> refs = jdbcTemplate.execute(
+                (ConnectionCallback<List<?>>) conn ->
+                        OrmDaoUtils.listObjectsByProperties(conn, properties, refType));
+
+
+        if(refs!=null && refs.size()>0) {
+            if (//ref.getReferenceType().equals(refType) /*||
+                    ref.getReferenceType().isAssignableFrom(refType) ){
+                if( ref.getReferenceType().isAssignableFrom(ref.getTargetEntityType())){
+                    for(Object refObject : refs)
+                    if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
+                        field.setObjectFieldValue(object,refObject);
+                        break;
+                    }
+                }else {
+                    field.setObjectFieldValue(object, refs.get(0));
+                }
+            }else if(Set.class.isAssignableFrom(ref.getReferenceType())){
+                Set<Object> validRefDate = new HashSet<>(refs.size()+1);
+                if( ref.getReferenceType().isAssignableFrom(ref.getTargetEntityType())){
+                    for(Object refObject : refs)
+                        if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
+                            validRefDate.add(refObject);
+                        }
+                }else {
+                    validRefDate.addAll(refs);
+                }
+                field.setObjectFieldValue(object,validRefDate);
+            }else if(List.class.isAssignableFrom(ref.getReferenceType())){
+                if( ref.getReferenceType().isAssignableFrom(ref.getTargetEntityType())){
+                    List<Object>  validRefDate = new ArrayList<>(refs.size());
+                    for(Object refObject : refs)
+                        if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
+                            validRefDate.add(refObject);
+                        }
+                }else {
+                    field.setObjectFieldValue(object, refs);
+                }
+            }
+        }
+        return object;
     }
 
     public T fetchObjectReferences(T o) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.fetchObjectReferences(conn, o));
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo( getPoClass());
+        if(mapInfo.hasReferences()) {
+            for (SimpleTableReference ref : mapInfo.getReferences()) {
+                fetchObjectReference(o, ref.getReferenceName());
+            }
+        }
+        return o;
     }
 
+    //TODO 改造
     public Integer saveObjectReference(T o, String columnName) {
         return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
@@ -486,9 +541,14 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public Integer saveObjectReferences(T o) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<Integer>) conn ->
-                        OrmDaoUtils.saveObjectReferences(conn, o));
+        int nRes = 0;
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo( getPoClass());
+        if(mapInfo.hasReferences()) {
+            for (SimpleTableReference ref : mapInfo.getReferences()) {
+                nRes += saveObjectReference(o, ref.getReferenceName());
+            }
+        }
+        return nRes;
     }
 
 

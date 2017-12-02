@@ -349,6 +349,43 @@ public abstract class DatabaseOptUtils {
         return getObjectBySqlAsJson( baseDao,  querySql, params, null);
     }
 
+    public  <T> T getObjectCascadeById(BaseDaoImpl<?, ?> baseDao, Object id, final Class<T> type) {
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<T>) conn ->
+                        OrmDaoUtils.getObjectCascadeById(conn, id, type));
+    }
+
+
+    public  <T> T getObjectCascadeShallowById(BaseDaoImpl<?, ?> baseDao, Object id, final Class<T> type) {
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<T>) conn ->
+                        OrmDaoUtils.getObjectCascadeShallowById(conn, id, type));
+    }
+
+    public <T> T fetchObjectReference(BaseDaoImpl<?, ?> baseDao, T o, String columnName) {
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<T>) conn ->
+                        OrmDaoUtils.fetchObjectReference(conn, o, columnName));
+    }
+
+    public <T> T fetchObjectReferences(BaseDaoImpl<?, ?> baseDao, T o) {
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<T>) conn ->
+                        OrmDaoUtils.fetchObjectReferences(conn, o));
+    }
+
+    public <T> Integer saveObjectReference(BaseDaoImpl<?, ?> baseDao, T o, String columnName) {
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.saveObjectReference(conn, o, columnName));
+    }
+
+    public <T> Integer saveObjectReferences(BaseDaoImpl<?, ?> baseDao, T o) {
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.saveObjectReferences(conn, o));
+    }
+
     public static JSONObject getObjectBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql) {
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<JSONObject>) conn -> {
