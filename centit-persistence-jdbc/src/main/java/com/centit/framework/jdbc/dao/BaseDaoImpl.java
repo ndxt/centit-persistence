@@ -563,11 +563,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public Integer saveObjectReference(T object, String columnName) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         SimpleTableReference ref = mapInfo.findReference(columnName);
-        SimpleTableField field = mapInfo.findFieldByName(columnName);
-        if(ref==null || field==null || ref.getReferenceColumns().size()<1)
+        if(ref==null || ref.getReferenceColumns().size()<1)
             return 0;
 
-        Object newObj = field.getObjectFieldValue(object);
+        Object newObj = ref.getObjectFieldValue(object);
         Class<?> refType = ref.getTargetEntityType();
         TableMapInfo refMapInfo = JpaMetadata.fetchTableMapInfo( refType );
         if( refMapInfo == null )
