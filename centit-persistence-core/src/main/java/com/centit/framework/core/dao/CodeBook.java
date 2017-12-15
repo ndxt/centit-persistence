@@ -34,5 +34,9 @@ public class CodeBook {
      * 用户自定义排序字段的排序顺序 ， 放到 filterDesc 中
      */
     public static final String TABLE_SORT_ORDER = "order";
+    /**
+     * 这个参数只给 MyBatis 使用
+     */
+    public static final String MYBATIS_ORDER_FIELD = "mybatisOrderBy";
 
 }

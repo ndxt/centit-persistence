@@ -1,6 +1,11 @@
 package com.centit.framework.core.dao;
 
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.algorithm.StringBaseOpt;
+import com.centit.support.database.metadata.SimpleTableField;
+import com.centit.support.database.orm.JpaMetadata;
+import com.centit.support.database.orm.TableMapInfo;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
@@ -56,4 +61,30 @@ public abstract class QueryParameterPrepare {
 
         return pageDesc;
     }
+    /**
+     * 这个方法只是为了在框架中和 MyBatis 排序兼容，所对应的PO必须有jpa注解
+     */
+    public static Map<String, Object> makeMybatisOrderByParam
+            (Map<String, Object> qureyParamMap, Class<?> ...clazzes){
+        String sortField = StringBaseOpt.castObjectToString(
+                qureyParamMap.get(CodeBook.TABLE_SORT_FIELD));
+        if(StringUtils.isNotBlank(sortField)){
+            for(Class clazz : clazzes) {
+                TableMapInfo tableMapInfo = JpaMetadata.fetchTableMapInfo(clazz);
+                SimpleTableField field = tableMapInfo.findFieldByName(sortField);
+                if (field != null) {
+                    sortField = field.getColumnName();
+                    String orderDesc = StringBaseOpt.castObjectToString(qureyParamMap.get(CodeBook.TABLE_SORT_ORDER));
+                    if ("desc".equalsIgnoreCase(orderDesc)) {
+                        sortField = sortField + " desc";
+                    }
+                    qureyParamMap.put(CodeBook.MYBATIS_ORDER_FIELD, sortField);
+                    return qureyParamMap;
+                }
+            }
+        }
+
+        return qureyParamMap;
+    }
+
 }
