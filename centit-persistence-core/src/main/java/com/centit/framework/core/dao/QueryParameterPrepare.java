@@ -48,8 +48,9 @@ public abstract class QueryParameterPrepare {
     public static com.centit.support.database.utils.PageDesc fetckPageDescParams(Map<String, Object> pageQureyMap) {
         com.centit.support.database.utils.PageDesc pageDesc = new  com.centit.support.database.utils.PageDesc();
         Integer pageSize = NumberBaseOpt.castObjectToInteger(pageQureyMap.get("maxSize"));
-        if(pageSize!=null)
-            pageDesc.setPage( pageSize );
+        if(pageSize!=null) {
+            pageDesc.setPageSize(pageSize);
+        }
 
         Integer startRow = NumberBaseOpt.castObjectToInteger(pageQureyMap.get("startRow"));
         if( startRow != null && pageSize!=null && pageSize > 1 ){
