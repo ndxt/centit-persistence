@@ -540,6 +540,8 @@ public abstract class DatabaseOptUtils {
      * @param fields 需要修改的属性，对应的值从 object 对象中找
      * @param object   对应 fields 中的属性必须有值，如果没有值 将被设置为null
      * @param properties 对应的过滤条件， 属性名 和 属性值 ，必须是 等于匹配
+     * @param <T> 泛型对象类型 这个对象必须要有jpi注解
+     * @return Integer 修改的数据库行数
      */
     public <T> Integer batchUpdateObject(BaseDaoImpl<?, ?> baseDao, final Collection<String> fields,
                                          final T object, final Map<String, Object> properties) {
@@ -553,7 +555,9 @@ public abstract class DatabaseOptUtils {
      * @param fields 需要修改的属性，对应的值从 object 对象中找
      * @param object   对应 fields 中的属性必须有值，如果没有值 将被设置为null
      * @param properties 对应的过滤条件， 属性名 和 属性值 ，必须是 等于匹配
-     */
+     * @param <T> 泛型对象类型 这个对象必须要有jpi注解
+     * @return Integer 修改的数据库行数
+     **/
     public <T> Integer batchUpdateObject(BaseDaoImpl<?, ?> baseDao, String[] fields,
                                           T object, Map<String, Object> properties) {
         return batchUpdateObject(baseDao, ListOpt.arrayToList(fields), object, properties);

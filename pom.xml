@@ -7,9 +7,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <centit.persistence.version>1.0.2-SNAPSHOT</centit.persistence.version>
+        <centit.persistence.version>1.0-SNAPSHOT</centit.persistence.version>
         <jdk.version>1.8</jdk.version>
-        <centit.commons.version>2.2.5-SNAPSHOT</centit.commons.version>
+        <centit.commons.version>2.2-SNAPSHOT</centit.commons.version>
 
         <spring.version>4.3.12.RELEASE</spring.version>
         <hibernate.version>5.2.12.Final</hibernate.version>
@@ -33,7 +33,7 @@
     <groupId>com.centit.framework</groupId>
     <artifactId>centit-persistence</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
 
     <name>com.centit.framework:centit-persistence</name>
     <description>框架持久化包， 有三个子模块分别对应 hibernate、mybatis和spring jdbc template 三个实现方式。
@@ -144,7 +144,7 @@
                 </executions>
             </plugin>
 
-            <!--<plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.10.4</version>
@@ -183,7 +183,7 @@
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
-            </plugin>-->
+            </plugin>
 
         </plugins>
     </build>

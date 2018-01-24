@@ -145,9 +145,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     /**
-     * 分析参数，这个主要用于解释
-     * @param sParameter
-     * @return
+     * 分析参数，这个主要用于解释，分析参数前面括号中的预处理标识
+     * @param sParameter 传入的参数
+     * @return ImmutablePair &lt; String, String &gt;
      */
     protected static ImmutablePair<String, String> parseParameter(String sParameter) {
         int e = sParameter.indexOf(')');
