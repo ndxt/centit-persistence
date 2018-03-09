@@ -9,8 +9,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <centit.persistence.version>1.0-SNAPSHOT</centit.persistence.version>
         <jdk.version>1.8</jdk.version>
-        <centit.commons.version>2.2-SNAPSHOT</centit.commons.version>
 
+        <centit.commons.version>2.2.5</centit.commons.version>
         <spring.version>4.3.12.RELEASE</spring.version>
         <hibernate.version>5.2.12.Final</hibernate.version>
         <hibernate.validator.version>5.4.2.Final</hibernate.validator.version>
@@ -50,6 +50,10 @@
         <module>centit-persistence-hibernate</module>
         <module>centit-persistence-mybatis</module>
         <module>centit-persistence-jdbc</module>
+        <module>centit-persistence-config</module>
+        <module>centit-persistence-hibernate-config</module>
+        <module>centit-persistence-jdbc-config</module>
+        <module>centit-persistence-mybatis-config</module>
     </modules>
 
     <licenses>
@@ -103,7 +107,7 @@
         <snapshotRepository>
             <id>centit-snapshots</id>
             <name>centit-snapshots</name>
-            <url>http://develop.centit.com:8080/nexus/content/repositories/centit-snapshots/</url>
+            <url>http://nexus.centit.com:8081/nexus/content/repositories/centit-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 

@@ -2,11 +2,10 @@ package com.centit.framework.hibernate.dao;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.centit.support.database.utils.PageDesc;
-import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.utils.DatabaseAccess;
+import com.centit.support.database.utils.PageDesc;
 import com.centit.support.database.utils.QueryUtils;
 import org.hibernate.Session;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
@@ -15,12 +14,14 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.*;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +49,7 @@ public abstract class DatabaseOptUtils {
     public final static int saveBatchObjects(BaseDaoImpl<?, ?> baseDao,
             Collection<? extends Object> objects) {
         int i=0;
-        try {
+        //try {
             for (Object obj:objects) {
                 if(obj!=null){
                     baseDao.getCurrentSession().saveOrUpdate(obj);
@@ -60,10 +61,10 @@ public abstract class DatabaseOptUtils {
                 }
    
             }
-        }catch (DataAccessException e) {
+       /* }catch (DataAccessException e) {
             logger.error(e.getMessage(), e);
                 throw e;
-        }
+        }*/
         return i;
     }
 
@@ -77,7 +78,7 @@ public abstract class DatabaseOptUtils {
     public static final int mergeBatchObjects(BaseDaoImpl<?, ?> baseDao,
             Collection<? extends Object> objects) {
         int i=0;
-        try {
+        //try {
             for (Object obj:objects) {
                 if(obj!=null){
                     baseDao.getCurrentSession().merge(obj);
@@ -89,10 +90,10 @@ public abstract class DatabaseOptUtils {
                 }
    
             }
-        }catch (DataAccessException e) {
+        /*}catch (DataAccessException e) {
             logger.error(e.getMessage(), e);
                 throw e;
-        }
+        }*/
         return i;
     }
 
@@ -105,7 +106,7 @@ public abstract class DatabaseOptUtils {
     public final static int deleteBatchObject(BaseDaoImpl<?, ?> baseDao,
             Collection<? extends Object> objects) {
         int i=0;
-        try {
+        //try {
             for (Object obj:objects) {
                 if(obj!=null){
                     baseDao.getCurrentSession().delete(obj);
@@ -117,10 +118,10 @@ public abstract class DatabaseOptUtils {
                 }
    
             }
-        }catch (DataAccessException e) {
+        /*}catch (DataAccessException e) {
             logger.error(e.getMessage(), e);
             throw e;
-        }
+        }*/
         return i;
     }
 

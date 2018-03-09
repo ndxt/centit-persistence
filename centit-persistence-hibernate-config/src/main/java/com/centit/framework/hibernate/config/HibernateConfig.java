@@ -14,6 +14,7 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import javax.servlet.Filter;
 import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 import java.util.Properties;
@@ -21,13 +22,6 @@ import java.util.Properties;
 @EnableTransactionManagement(proxyTargetClass = true)//启用注解事物管理
 @Lazy
 public class HibernateConfig extends DataSourceConfig /*implements EnvironmentAware */{
-
-//    protected Environment env;
-
-//    @Override
-//    public void setEnvironment(Environment environment) {
-//        this.env = environment;
-//    }
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Bean
@@ -88,8 +82,9 @@ public class HibernateConfig extends DataSourceConfig /*implements EnvironmentAw
      */
     public static void registerOpenSessionInViewFilter(ServletContext servletContext) {
         javax.servlet.FilterRegistration.Dynamic openSessionInViewFilter
-                = servletContext.addFilter("openSessionInViewFilter",
-                OpenSessionInViewFilter.class);
+                = servletContext.addFilter(
+                        "openSessionInViewFilter",
+                        (Class<? extends Filter>) OpenSessionInViewFilter.class);
         openSessionInViewFilter.setAsyncSupported(true);
         openSessionInViewFilter.setInitParameter("flushMode", "AUTO");
         openSessionInViewFilter.setInitParameter("singleSession", "true");

@@ -9,35 +9,50 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>centit-persistence-hibernate</artifactId>
+    <artifactId>centit-persistence-config</artifactId>
 
-    <name>com.centit.framework:centit-persistence-hibernate</name>
+    <name>com.centit.framework:centit-persistence-config</name>
     <packaging>jar</packaging>
-    <description>整合hibernate框架</description>
+    <description>持久化框架配置</description>
 
     <dependencies>
-
         <dependency>
-            <groupId>com.centit.framework</groupId>
-            <artifactId>centit-persistence-core</artifactId>
-            <version>${centit.persistence.version}</version>
+            <groupId>com.centit.support</groupId>
+            <artifactId>centit-database</artifactId>
+            <version>${centit.commons.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>${hibernate.version}</version>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>c3p0</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>${c3p0.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.cloudhopper.proxool</groupId>
+            <artifactId>proxool</artifactId>
+            <version>${proxool.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
+            <artifactId>spring-context</artifactId>
             <version>${spring.version}</version>
             <scope>provided</scope>
             <optional>true</optional>
@@ -52,12 +67,5 @@
             <scope>system</scope>
         </dependency>
 
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${servlet-api.version}</version>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
-
 </project>

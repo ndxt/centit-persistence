@@ -21,7 +21,8 @@ public class BaseDaoSupport extends SqlSessionDaoSupport {
         SqlSessionTemplate st = (SqlSessionTemplate) getSqlSession();
 
         return SqlSessionUtils.getSqlSession(
-                st.getSqlSessionFactory(), st.getExecutorType(),
+                st.getSqlSessionFactory(),
+                st.getExecutorType(),
                 st.getPersistenceExceptionTranslator());//.getConnection();
     }
 
