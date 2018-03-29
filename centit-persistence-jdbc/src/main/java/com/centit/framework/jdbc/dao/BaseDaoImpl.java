@@ -701,18 +701,18 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.getObjectByProperties(conn, properties, (Class<T>) getPoClass()));
     }
 
-    public List<T> listObjectsByProperty(String propertyName, Object value) {
+    public List<T> listObjectsByProperty(final String propertyName,final Object propertyValue) {
         return jdbcTemplate.execute(
                 (ConnectionCallback<List<T>>) conn ->
                         OrmDaoUtils.listObjectsByProperties(conn,
-                                QueryUtils.createSqlParamsMap(propertyName, value),
+                                QueryUtils.createSqlParamsMap(propertyName, propertyValue),
                                 (Class<T>) getPoClass()));
     }
 
-    public List<T> listObjectsByProperties(Map<String, Object> filterMap) {
+    public List<T> listObjectsByProperties(final Map<String, Object> propertiesMap) {
         return jdbcTemplate.execute(
                 (ConnectionCallback<List<T>>) conn ->
-                        OrmDaoUtils.listObjectsByProperties(conn, filterMap, (Class<T>) getPoClass()));
+                        OrmDaoUtils.listObjectsByProperties(conn, propertiesMap, (Class<T>) getPoClass()));
     }
 
     public List<T> listObjectsByProperties(Map<String, Object> filterMap, PageDesc pageDesc) {

@@ -2,6 +2,7 @@ package com.centit.framework.jdbc.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.centit.support.database.utils.PageDesc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.List;
@@ -17,6 +18,27 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      */
     List<T> listObjects();
 
+    /**
+     * 根据过滤条件筛选
+     * @param filterMap 过滤条件
+     * @return 过滤后的对象
+     */
+    List<T> listObjects(Map<String, Object> filterMap);
+
+    /**
+     * 根据属性筛选 严格等于
+     * @param propertyName 属性名
+     * @param propertyValue 属性值
+     * @return 过滤后的对象
+     */
+    List<T> listObjectsByProperty(String propertyName, Object propertyValue);
+
+    /**
+     * 根据属性筛选 严格等于
+     * @param filterMap 多个属性组成的map
+     * @return 过滤后的对象
+     */
+    List<T> listObjectsByProperties(Map<String, Object> filterMap);
 
     /**
      * 根据对象的主键 获得数据库中对应的对象信息

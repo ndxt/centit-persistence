@@ -3,10 +3,12 @@ package com.centit.framework.jdbc.service;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
 import com.centit.framework.jdbc.dao.DatabaseOptUtils;
+import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.database.utils.QueryUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
@@ -45,6 +47,25 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
     @Transactional
     public List<T> listObjects() {
         return baseDao.listObjects();
+    }
+
+
+    @Override
+    @Transactional
+    public List<T> listObjects(Map<String, Object> filterMap) {
+        return baseDao.listObjects(filterMap);
+    }
+
+    @Override
+    @Transactional
+    public List<T> listObjectsByProperty(String propertyName, Object propertyValue) {
+        return baseDao.listObjectsByProperty(propertyName,propertyValue );
+    }
+
+    @Override
+    @Transactional
+    public List<T> listObjectsByProperties(Map<String, Object> filterMap) {
+        return baseDao.listObjectsByProperties(filterMap);
     }
 
     /**
