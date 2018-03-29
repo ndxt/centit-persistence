@@ -83,7 +83,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @throws CannotGetJdbcConnectionException if the attempt to get a Connection failed
      * @see org.springframework.jdbc.datasource.DataSourceUtils#getConnection(javax.sql.DataSource)
      */
-    protected Connection getConnection() throws CannotGetJdbcConnectionException {
+    public Connection getConnection() throws CannotGetJdbcConnectionException {
         return DataSourceUtils.getConnection(getDataSource());
     }
 
@@ -94,7 +94,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param con Connection to close
      * @see org.springframework.jdbc.datasource.DataSourceUtils#releaseConnection
      */
-    protected void releaseConnection(Connection con) {
+    public void releaseConnection(Connection con) {
         DataSourceUtils.releaseConnection(con, getDataSource());
     }
 
