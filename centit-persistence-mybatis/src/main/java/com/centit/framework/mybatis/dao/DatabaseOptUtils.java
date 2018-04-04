@@ -521,9 +521,11 @@ public abstract class DatabaseOptUtils {
         String [] fieldNames  = fieldnames;
         if(fieldNames==null){
              List<String> fields = QueryUtils.getSqlFiledNames(ssql);
+             
              if(fields==null || fields.size()<1)
                  return null;
-             fieldNames = fields.toArray(new String[fields.size()]);
+             fieldNames = DatabaseAccess.mapColumnsNameToFields(fields);
+            //fieldNames = fields.toArray(new String[fields.size()]);
         }
 
         JSONArray ja = new JSONArray();

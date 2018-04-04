@@ -85,25 +85,24 @@
 
     <!-- mvn deploy -DpomFile=pom.xml -->
 
-    <!-- <distributionManagement>
+     <distributionManagement>
          <repository>
              <id>ossrh</id>
              <name>sonatype-releases</name>
              <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
          </repository>
-     <snapshotRepository>
+     <!--<snapshotRepository>
              <id>ossrh</id>
              <name>sonatype-snapshots</name>
              <url>https://oss.sonatype.org/content/repositories/snapshots</url>
          </snapshotRepository>
      </distributionManagement>
-   -->
      <distributionManagement>
          <repository>
              <id>centit-releases</id>
              <name>centit-release</name>
              <url>http://nexus.centit.com:8081/nexus/content/repositories/centit-releases/</url>
-         </repository>
+         </repository>-->
          <snapshotRepository>
              <id>centit-snapshots</id>
              <name>centit-snapshots</name>
@@ -162,7 +161,7 @@
                 </executions>
             </plugin>
 
-            <!--<plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>1.6</version>
@@ -188,7 +187,7 @@
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
--->
         </plugins>
+
     </build>
 </project>

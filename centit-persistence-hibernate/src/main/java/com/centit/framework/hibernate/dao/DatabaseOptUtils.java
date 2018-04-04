@@ -368,17 +368,17 @@ public abstract class DatabaseOptUtils {
                 .getServiceRegistry().getService( JdbcServices.class )
                 .getDialect().getClass().getName();
 
-        if(dn.indexOf("Oracle")>=0)//Oracle
+        if(dn.contains("Oracle"))//Oracle
             return NumberBaseOpt.castObjectToLong(getSingleObjectBySql(
                     baseDao, "SELECT " + sequenceName
                             + ".nextval from dual"));
 
-        if(dn.indexOf("DB2")>=0)//DB2
+        if(dn.contains("DB2"))//DB2
             return NumberBaseOpt.castObjectToLong( getSingleObjectBySql(
                     baseDao, "SELECT nextval for "
                             + sequenceName + " from sysibm.sysdummy1"));
 
-        if(dn.indexOf("MySQL")>=0) // my sql
+        if(dn.contains("MySQL")) // my sql
             return Long.valueOf(getSingleObjectBySql(
                     baseDao, "SELECT sequence_nextval ('"+ sequenceName+"');")
                     .toString());
@@ -547,29 +547,13 @@ public abstract class DatabaseOptUtils {
         Query queryObject = baseDao.getCurrentSession().createNativeQuery(sSql);
         Object obj = queryObject.uniqueResult();
 
-        if (obj == null)
-            return 0;
-        if (obj instanceof Long)
-            return ((Long) obj).longValue();
-        if (obj instanceof String)
-            return Long.valueOf(obj.toString()).longValue();
-        if (obj instanceof BigDecimal)
-            return ((BigDecimal) obj).longValue();
-        return 0;
+        return NumberBaseOpt.castObjectToLong(obj);
     }
     
     public final static long getSingleIntBySql(BaseDaoImpl<?, ?> baseDao,
             final String sSql, final Object paramObject) {
          Object obj = getSingleObjectBySql(baseDao, sSql,  paramObject);
-         if (obj == null)
-             return 0;
-         if (obj instanceof Long)
-             return ((Long) obj).longValue();
-         if (obj instanceof String)
-             return Long.valueOf(obj.toString()).longValue();
-         if (obj instanceof BigDecimal)
-             return ((BigDecimal) obj).longValue();
-         return 0;
+         return NumberBaseOpt.castObjectToLong(obj);
     }
     
     /**
@@ -1058,26 +1042,37 @@ public abstract class DatabaseOptUtils {
         if(dataList==null || dataList.size()==0)
             return null;
 
+
+
+        return fetchJSONArrayFromList(dataList,shql,fieldnames);
+    }
+
+    private final static JSONArray fetchJSONArrayFromList(List<?> dataList ,  String shql,
+                                                          String [] fieldnames){
         String [] fieldNames  = fieldnames;
         if(fieldNames==null){
-             List<String> fields = QueryUtils.getSqlFiledNames(shql);
-             if(fields==null || fields.size()<1)
-                 return null;
-             fieldNames = fields.toArray(new String[fields.size()]);
+            List<String> fields = QueryUtils.getSqlFiledNames(shql);
+            if(fields==null || fields.size()<1)
+                return null;
+            fieldNames = DatabaseAccess.mapColumnsNameToFields(fields);
+            //fieldNames = fields.toArray(new String[fields.size()]);
         }
 
         JSONArray ja = new JSONArray();
         for(int j=0; j<dataList.size();j++ ){
+            /*if(fieldNames.length == 1){
+                ja.add(((Object [])dataList.get(j))[0]);
+            }else{*/
             JSONObject jo = new JSONObject();
             for(int i=0;i<fieldNames.length;i++){
-                Object obj = DatabaseAccess.fetchLobField( ((Object[])dataList.get(j) )[i],false);
-                jo.put(fieldNames[i], obj);
+                jo.put(fieldNames[i],
+                        DatabaseAccess.fetchLobField( ((Object [])dataList.get(j))[i],false));
             }
             ja.add(jo);
-   
+            //}
         }
-        
-        return ja;    
+
+        return ja;
     }
     
     public final static JSONArray findObjectsAsJSONByHql(BaseDaoImpl<?, ?> baseDao, String shql,
@@ -1086,33 +1081,10 @@ public abstract class DatabaseOptUtils {
         List<?> dataList = findObjectsByHql(baseDao,shql,values,pageDesc);
         if(dataList==null || dataList.size()==0)
             return null;
-
-        String [] fieldNames  = fieldnames;
-        if(fieldNames==null){
-             List<String> fields = QueryUtils.getSqlFiledNames(shql);
-             if(fields==null || fields.size()<1)
-                 return null;
-             fieldNames = fields.toArray(new String[fields.size()]);
-        }
-
-        JSONArray ja = new JSONArray();
-        for(int j=0; j<dataList.size();j++ ){
-            /*if(fieldNames.length == 1){
-                ja.add(((Object [])dataList.get(j))[0]);
-            }else{*/
-                JSONObject jo = new JSONObject();
-                for(int i=0;i<fieldNames.length;i++){
-                    jo.put(fieldNames[i],
-                            DatabaseAccess.fetchLobField( ((Object [])dataList.get(j))[i],false));
-                }
-                ja.add(jo);
-            //}      
-        }
         
-        return ja;   
+        return fetchJSONArrayFromList(dataList,shql,fieldnames);
     }
-    
-  
+
    
     public final static JSONArray findObjectsAsJSONByHql(BaseDaoImpl<?, ?> baseDao, String shql, String [] fieldNames) {
         return findObjectsAsJSONByHql(baseDao, shql,fieldNames,(Object []) null ,new PageDesc(-1,-1));
@@ -1149,29 +1121,7 @@ public abstract class DatabaseOptUtils {
         if(dataList==null || dataList.size()==0)
             return null;
 
-        String [] fieldNames  = fieldnames;
-        if(fieldNames==null){
-             List<String> fields = QueryUtils.getSqlFiledNames(ssql);
-             if(fields==null || fields.size()<1)
-                 return null;
-             fieldNames = fields.toArray(new String[fields.size()]);
-        }
-
-        JSONArray ja = new JSONArray();
-        for(int j=0; j<dataList.size();j++ ){
-            /*if(fieldNames.length == 1){
-                ja.add(((Object [])dataList.get(j))[0]);
-            }else{*/
-                JSONObject jo = new JSONObject();
-                for(int i=0;i<fieldNames.length;i++){
-                    jo.put(fieldNames[i], DatabaseAccess.fetchLobField(
-                            ((Object [])dataList.get(j))[i],false));
-                }
-                ja.add(jo);
-            //}      
-        }
-        
-        return ja;
+        return fetchJSONArrayFromList(dataList,ssql,fieldnames);
     }
     
     
@@ -1192,30 +1142,7 @@ public abstract class DatabaseOptUtils {
         if(dataList==null || dataList.size()==0)
             return null;
 
-        String [] fieldNames  = fieldnames;
-        if(fieldNames==null){
-             List<String> fields = QueryUtils.getSqlFiledNames(ssql);
-             if(fields==null || fields.size()<1)
-                 return null;
-             fieldNames = fields.toArray(new String[fields.size()]);
-        }
-
-        JSONArray ja = new JSONArray();
-        for(int j=0; j<dataList.size();j++ ){
-            /*if(fieldNames.length == 1){
-                ja.add(((Object [])dataList.get(j))[0]);
-            }else{*/
-                JSONObject jo = new JSONObject();
-                for(int i=0;i<fieldNames.length;i++){
-                    jo.put(fieldNames[i], 
-                            DatabaseAccess.fetchLobField(
-                                    ((Object [])dataList.get(j))[i],false));
-                }
-                ja.add(jo);
-            //}      
-        }
-        
-        return ja;
+        return fetchJSONArrayFromList(dataList,ssql,fieldnames);
     }
     
    
