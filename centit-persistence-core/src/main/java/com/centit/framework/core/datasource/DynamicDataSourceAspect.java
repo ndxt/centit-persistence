@@ -1,8 +1,16 @@
 package com.centit.framework.core.datasource;
 
+import com.centit.support.algorithm.StringBaseOpt;
+import com.centit.support.compiler.VariableFormula;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.reflect.MethodSignature;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.HashMap;
+import java.util.Map;
 
 @Aspect
 public class DynamicDataSourceAspect {
@@ -13,6 +21,22 @@ public class DynamicDataSourceAspect {
     @Pointcut("@annotation(com.centit.framework.core.datasource.TargetDataSource)")
     public void electDataSourceAspect(){}
 
+
+    public static Map<String, Object> getMethodDescription(JoinPoint joinPoint){
+        Map<String, Object> map = new HashMap<>(10);
+
+        MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+        Method method = methodSignature.getMethod();
+        Parameter[] parameters = method.getParameters();
+        Object[] arguments = joinPoint.getArgs();
+        int nps = parameters.length;
+        int nas = arguments.length;
+        for(int i=0; i<nps && i<nas; i++){
+            map.put(parameters[i].getName(),arguments[i]);
+        }
+        return map;
+    }
+
     /**
      * 设置数据源类型，在一个线程中同时只能保持同一个数据源
      * @param joinPoint 切入点
@@ -20,8 +44,16 @@ public class DynamicDataSourceAspect {
      */
     @Before("electDataSourceAspect() && @annotation(targetDataSource)")
     public  void doBefore(JoinPoint joinPoint, TargetDataSource targetDataSource) {
-        if(StringUtils.isNotBlank(targetDataSource.value())){
-            DynamicDataSourceContextHolder.setDataSourceType(targetDataSource.value());
+        String targetDataSourceName = targetDataSource.value();
+        if(StringUtils.isNotBlank(targetDataSourceName)){
+
+            if(targetDataSource.mapByParameter()){
+                Map<String, Object> paramsMap = getMethodDescription(joinPoint);
+                targetDataSourceName =
+                        StringBaseOpt.castObjectToString(
+                                VariableFormula.calculate(targetDataSourceName,paramsMap));
+            }
+            DynamicDataSourceContextHolder.setDataSourceType(targetDataSourceName);
         }
     }
 

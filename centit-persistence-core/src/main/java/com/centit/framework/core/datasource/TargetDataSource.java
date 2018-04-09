@@ -17,4 +17,10 @@ public @interface TargetDataSource {
 
     @AliasFor("value")
     String name() default "";
+
+    /**
+     * 源是否需要根据参数计算数据源名称，如果是的，可以根据参数的值动态的制定数据源
+     * @return boolean
+     */
+    boolean mapByParameter() default false;
 }
