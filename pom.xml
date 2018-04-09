@@ -10,7 +10,7 @@
         <centit.persistence.version>1.1-SNAPSHOT</centit.persistence.version>
         <jdk.version>1.8</jdk.version>
 
-        <centit.commons.version>2.2.1803</centit.commons.version>
+        <centit.commons.version>2.2.1804</centit.commons.version>
 
         <spring.version>4.3.14.RELEASE</spring.version>
         <hibernate.version>5.2.15.Final</hibernate.version>
