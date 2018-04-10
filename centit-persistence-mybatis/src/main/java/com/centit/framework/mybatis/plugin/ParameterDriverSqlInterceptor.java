@@ -1,6 +1,8 @@
 package com.centit.framework.mybatis.plugin;
 
+import com.centit.support.compiler.Lexer;
 import com.centit.support.database.utils.QueryUtils;
+
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -58,14 +60,33 @@ public class ParameterDriverSqlInterceptor implements Interceptor {
         // 通过反射获取查询接口映射的相关信息
         MappedStatement mappedStatement = (MappedStatement) metaStmtHandler.getValue("delegate.mappedStatement");
 
-
-        String mapId = mappedStatement.getId();
-        if(! mapId.endsWith(PARAMETER_DRIVER_SQL_SUFFIX)){
-            return invocation.proceed();
-        }
         BoundSql boundSql = statementHandler.getBoundSql();
         //boundSql.getParameterMappings();
         String nativeSql = boundSql.getSql(); // (String)  metaStmtHandler.getValue("delegate.boundSql.sql");
+
+        String mapId = mappedStatement.getId();
+        boolean isPDSql = mapId.endsWith(PARAMETER_DRIVER_SQL_SUFFIX);
+        if(!isPDSql) {
+            Lexer lexer = new Lexer(nativeSql, Lexer.LANG_TYPE_SQL);
+            String aword = lexer.getARegularWord();
+            if("--".equals(aword) || "/*".equals(aword)){
+                aword = lexer.getARegularWord();
+                if("PDSql".equals(aword)){
+                    isPDSql = true;
+                }else if("parameter".equalsIgnoreCase(aword)||"parameters".equalsIgnoreCase(aword)){
+                    aword = lexer.getARegularWord();
+                    if("driver".equalsIgnoreCase(aword)) {
+                        aword = lexer.getARegularWord();
+                        if("sql".equalsIgnoreCase(aword)) {
+                            isPDSql = true;
+                        }
+                    }
+                }
+            }
+        }
+        if(!isPDSql){
+            return invocation.proceed();
+        }
 
         Map<String,Object> parameterObjectMap = QueryAndParamMaps.parameterObjectMap(boundSql.getParameterObject());
 
