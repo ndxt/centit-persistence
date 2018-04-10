@@ -144,7 +144,7 @@ public class QueryAndParamMaps {
             return (Map<String,Object>) object;
         }
         if(ReflectionOpt.isScalarType(object.getClass())){
-            return QueryUtils.createSqlParamsMap("param",object);
+            return QueryUtils.createSqlParamsMap("scalar",object);
         }
 
         return (JSONObject) JSON.toJSON(object);
