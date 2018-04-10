@@ -2,6 +2,7 @@ package com.centit.framework.mybatis.config;
 
 import com.centit.framework.core.config.DataSourceConfig;
 import com.centit.framework.mybatis.dao.BaseDaoSupport;
+import com.centit.framework.mybatis.plugin.ParameterDriverSqlInterceptor;
 import com.centit.support.algorithm.StringRegularOpt;
 import org.apache.ibatis.logging.stdout.StdOutImpl;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
@@ -50,6 +51,8 @@ public class MybatisConfig extends DataSourceConfig/* implements EnvironmentAwar
         if(StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))) {
             configuration.setLogImpl(StdOutImpl.class);
         }
+        //添加数据权限拦击器
+        configuration.addInterceptor(new ParameterDriverSqlInterceptor());
 
         Properties properties = new Properties();
         properties.setProperty("Oracle","oracle");
@@ -69,6 +72,8 @@ public class MybatisConfig extends DataSourceConfig/* implements EnvironmentAwar
 
         sessionFactory.setDatabaseIdProvider(databaseIdProvider);
 
+        //sessionFactory.setPlugins(new Interceptor[]{new DataPowerInterceptor()});
+
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 //      sessionFactory.setConfigLocation(resolver.getResource("classpath:mybatis/mybatis-config.xml"));
         String fileMatch = env.getProperty("mybatis.map.xml.filematch");
@@ -77,8 +82,9 @@ public class MybatisConfig extends DataSourceConfig/* implements EnvironmentAwar
         for(String fm : fileMatchs){
             Resource [] resources = resolver.getResources(fm);
             if(resources!=null) {
-                for (Resource obj : resources)
+                for (Resource obj : resources) {
                     fileMatchList.add(obj);
+                }
             }
         }
         Resource[] resources = new Resource[fileMatchList.size()];

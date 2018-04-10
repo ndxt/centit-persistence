@@ -1,11 +1,8 @@
 package com.centit.framework.jdbc.dao;
 
 import com.centit.support.database.utils.PageDesc;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 @SuppressWarnings("unused")

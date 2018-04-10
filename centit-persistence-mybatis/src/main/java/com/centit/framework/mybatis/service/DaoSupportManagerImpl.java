@@ -15,5 +15,4 @@ public abstract class DaoSupportManagerImpl {
     @Resource
     protected BaseDaoSupport baseDaoSupport;
 
-
 }
