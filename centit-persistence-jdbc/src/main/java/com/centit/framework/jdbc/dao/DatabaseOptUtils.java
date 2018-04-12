@@ -127,7 +127,7 @@ public abstract class DatabaseOptUtils {
                                             Map<String, Object> namedParams,  PageDesc pageDesc) {
 
         return listObjectsBySqlAsJson(baseDao, querySql, fieldNames ,
-                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams,   pageDesc  );
+                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams, pageDesc );
     }
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
@@ -144,13 +144,11 @@ public abstract class DatabaseOptUtils {
                 });
     }
 
-
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                             String querySql,  String queryCountSql,
                                             Map<String, Object> namedParams,  PageDesc pageDesc ) {
         return listObjectsBySqlAsJson(baseDao, querySql, null ,  queryCountSql, namedParams,   pageDesc  );
     }
-
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  Map<String,Object> params ) {
         return baseDao.getJdbcTemplate().execute(
@@ -162,9 +160,6 @@ public abstract class DatabaseOptUtils {
                     }
                 });
     }
-
-
-
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,
                                             Map<String, Object> namedParams,  PageDesc pageDesc  ) {
@@ -178,7 +173,6 @@ public abstract class DatabaseOptUtils {
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql, String[] fieldNames,
                                                    String queryCountSql, Object[] params,  PageDesc pageDesc ) {
-
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
@@ -196,7 +190,6 @@ public abstract class DatabaseOptUtils {
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                                    String querySql,  String[] fieldNames ,
                                                    Object[] params) {
-
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
@@ -208,9 +201,16 @@ public abstract class DatabaseOptUtils {
                 });
     }
 
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
+                                                   String querySql,  String[] fieldNames ,
+                                                   Object[] params, PageDesc pageDesc) {
+        return listObjectsBySqlAsJson(baseDao, querySql, fieldNames ,
+                QueryUtils.buildGetCountSQLByReplaceFields( querySql ), params, pageDesc );
+    }
+
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  String queryCountSql,
-                                            Object[] params,  PageDesc pageDesc ) {
+                                            Object[] params, PageDesc pageDesc ) {
 
         return listObjectsBySqlAsJson(baseDao,  querySql, null,  queryCountSql, params,   pageDesc );
     }

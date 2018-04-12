@@ -119,6 +119,7 @@ public class QueryAndParamMaps {
                     }
                 }else{
                     paramNames.add(aWord);
+                    //namedParams.put(aWord,obj);
                     sqlb.append("?");
                 }
                 prePos = lex.getCurrPos();

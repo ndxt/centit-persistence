@@ -73,7 +73,8 @@ public class ParameterDriverSqlInterceptor implements Interceptor {
                 aword = lexer.getARegularWord();
                 if("PDSql".equals(aword)){
                     isPDSql = true;
-                }else if("parameter".equalsIgnoreCase(aword)||"parameters".equalsIgnoreCase(aword)){
+                }else if("parameter".equalsIgnoreCase(aword)
+                         || "parameters".equalsIgnoreCase(aword)){
                     aword = lexer.getARegularWord();
                     if("driver".equalsIgnoreCase(aword)) {
                         aword = lexer.getARegularWord();
