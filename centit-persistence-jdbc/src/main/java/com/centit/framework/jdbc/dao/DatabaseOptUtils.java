@@ -48,7 +48,7 @@ public abstract class DatabaseOptUtils {
         }
     }
 
-    public final static boolean doExecuteSql(BaseDaoImpl<?, ?> baseDao , String sSql) throws SQLException {
+    public final static boolean doExecuteSql(BaseDaoImpl<?, ?> baseDao , String sSql) throws DataAccessException {
         baseDao.getJdbcTemplate().execute(sSql);
         return true;
         /*try {
@@ -63,7 +63,7 @@ public abstract class DatabaseOptUtils {
     /*
      * 直接运行行带参数的 SQL,update delete insert
      */
-    public final static int doExecuteSql(BaseDaoImpl<?, ?> baseDao , String sSql, Object[] values) throws SQLException {
+    public final static int doExecuteSql(BaseDaoImpl<?, ?> baseDao , String sSql, Object[] values) throws DataAccessException {
 
         return baseDao.getJdbcTemplate().update(sSql,values );
         /*try {
@@ -79,7 +79,7 @@ public abstract class DatabaseOptUtils {
      * 执行一个带命名参数的sql语句
      */
     public final static int doExecuteNamedSql(BaseDaoImpl<?, ?> baseDao , String sSql, Map<String, Object> values)
-            throws SQLException {
+            throws DataAccessException {
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(new QueryAndNamedParams(sSql, values));
         return doExecuteSql(baseDao, qap.getQuery(), qap.getParams());
     }
