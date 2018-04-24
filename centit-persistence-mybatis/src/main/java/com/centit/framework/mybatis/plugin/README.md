@@ -1,6 +1,6 @@
 # 参数驱动sql Mybatis插件
 
-Mybatis使用Mapper.XML来配置sql语句，插件ParameterDriverSqlInterceptor在Mybatis执行钱对sql语句进行预处理。
+Mybatis使用Mapper.XML来配置sql语句，插件ParameterDriverSqlInterceptor在Mybatis执行前对sql语句进行预处理。
 
 更多信息参见[参数驱动sql](https://ndxt.github.io/system_design/technical_design.html#%E5%8F%82%E6%95%B0%E9%A9%B1%E5%8A%A8sql)。
 
@@ -8,7 +8,7 @@ Mybatis使用Mapper.XML来配置sql语句，插件ParameterDriverSqlInterceptor�
 
 Mapper.XML中的语句ID（方法名称）如果以 ByPDSql 结尾，将会触发语句预处理活动。
 
-如果不方便修改SQL语句名称，也可以在语句的最前面添加注释来触发， 比如：
+如果不方便修改这个ID（方法名称），也可以在语句的最前面添加注释来触发， 比如：
 
 ```sql92
  -- PDSql
