@@ -8,6 +8,7 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.beans.PropertyVetoException;
 
@@ -15,9 +16,12 @@ public class DataSourceConfig implements EnvironmentAware {
 
     protected Environment env;
 
+    @Resource
     @Override
     public void setEnvironment(Environment environment) {
-        this.env = environment;
+        if(environment!=null) {
+            this.env = environment;
+        }
     }
 
     @Bean(destroyMethod = "close")

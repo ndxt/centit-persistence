@@ -2,34 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <artifactId>centit-framework-dependencies</artifactId>
+        <groupId>com.centit.framework</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
     <modelVersion>4.0.0</modelVersion>
-
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <centit.persistence.version>1.1-SNAPSHOT</centit.persistence.version>
-        <jdk.version>1.8</jdk.version>
-
-        <centit.commons.version>2.2.1804</centit.commons.version>
-
-        <spring.version>4.3.14.RELEASE</spring.version>
-        <hibernate.version>5.2.15.Final</hibernate.version>
-        <hibernate.validator.version>5.3.6.Final</hibernate.validator.version>
-        <flyway.version>4.2.0</flyway.version>
-        <servlet-api.version>3.1.0</servlet-api.version>
-        <persistence-api.version>2.2</persistence-api.version>
-        <mybatis.version>3.4.6</mybatis.version>
-        <mybatis.spring.version>1.3.2</mybatis.spring.version>
-        <flyway.version>4.2.0</flyway.version>
-
-        <ojdbc6.version>11.2.0.4</ojdbc6.version>
-        <junit.version>4.12</junit.version>
-        <mysql.version>5.1.9</mysql.version>
-        <c3p0.version>0.9.1.2</c3p0.version>
-        <proxool.version>0.9.1</proxool.version>
-    </properties>
-
-
     <groupId>com.centit.framework</groupId>
     <artifactId>centit-persistence</artifactId>
     <packaging>pom</packaging>
@@ -39,6 +18,10 @@
     <description>框架持久化包， 有三个子模块分别对应 hibernate、mybatis和spring jdbc template 三个实现方式。
     </description>
     <url>https://github.com/ndxt/centit-persistence</url>
+
+    <properties>
+        <centit.commons.version>2.2.1804</centit.commons.version>
+    </properties>
 
     <organization>
         <name>江苏南大先腾信息产业股份有限公司</name>
@@ -83,36 +66,8 @@
         <tag>v1.12</tag>
     </scm>
 
-    <!-- mvn deploy -DpomFile=pom.xml -->
-
-     <distributionManagement>
-         <repository>
-             <id>ossrh</id>
-             <name>sonatype-releases</name>
-             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-         </repository>
-     <!--<snapshotRepository>
-             <id>ossrh</id>
-             <name>sonatype-snapshots</name>
-             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-         </snapshotRepository>
-     </distributionManagement>
-     <distributionManagement>
-         <repository>
-             <id>centit-releases</id>
-             <name>centit-release</name>
-             <url>http://nexus.centit.com:8081/nexus/content/repositories/centit-releases/</url>
-         </repository>-->
-         <snapshotRepository>
-             <id>centit-snapshots</id>
-             <name>centit-snapshots</name>
-             <url>http://nexus.centit.com:8081/nexus/content/repositories/centit-snapshots/</url>
-         </snapshotRepository>
-    </distributionManagement>
-
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
