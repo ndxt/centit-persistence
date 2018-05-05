@@ -64,6 +64,9 @@ public abstract class QueryParameterPrepare {
     }
     /**
      * 这个方法只是为了在框架中和 MyBatis 排序兼容，所对应的PO必须有jpa注解
+     * @param qureyParamMap 查询参数
+     * @param clazzes 查询中相关的类
+     * @return 返回新的查询参数
      */
     public static Map<String, Object> makeMybatisOrderByParam
             (Map<String, Object> qureyParamMap, Class<?> ...clazzes){
