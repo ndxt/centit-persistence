@@ -59,8 +59,8 @@ public class DDLOperationsWork implements DDLOperations {
     }
 
     @Override
-    public void modifyColumn(final String tableCode, final TableField column) throws SQLException {
-        getDDLOperations().modifyColumn(tableCode,column);
+    public void modifyColumn(final String tableCode, final TableField oldColumn, final TableField column) throws SQLException {
+        getDDLOperations().modifyColumn(tableCode, oldColumn, column);
     }
 
     @Override
@@ -122,9 +122,9 @@ public class DDLOperationsWork implements DDLOperations {
     }
 
     @Override
-    public String makeModifyColumnSql(String tableCode, TableField column) {
+    public String makeModifyColumnSql(String tableCode, TableField oldColumn, TableField column) {
         try {
-            return getDDLOperations().makeModifyColumnSql(tableCode,column);
+            return getDDLOperations().makeModifyColumnSql(tableCode, oldColumn, column);
         } catch (SQLException e) {
             logger.error(e.getMessage());
             return null;

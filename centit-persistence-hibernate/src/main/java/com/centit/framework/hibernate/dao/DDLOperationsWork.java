@@ -72,9 +72,9 @@ public class DDLOperationsWork implements DDLOperations {
     }
 
     @Override
-    public void modifyColumn(final String tableCode, final TableField column) throws SQLException {
+    public void modifyColumn(final String tableCode, final TableField oldColumn, final TableField column) throws SQLException {
         baseDao.getCurrentSession().doWork((connection)->
-                createDDLOpt(connection).modifyColumn(tableCode,column));
+                createDDLOpt(connection).modifyColumn(tableCode, oldColumn, column));
     }
 
     @Override
@@ -123,9 +123,9 @@ public class DDLOperationsWork implements DDLOperations {
     }
 
     @Override
-    public String makeModifyColumnSql(String tableCode, TableField column) {
+    public String makeModifyColumnSql(String tableCode, TableField oldColumn,  TableField column) {
         return baseDao.getCurrentSession().doReturningWork((connection)->
-                createDDLOpt(connection).makeModifyColumnSql(tableCode,column));
+                createDDLOpt(connection).makeModifyColumnSql(tableCode, oldColumn, column));
     }
 
     @Override
