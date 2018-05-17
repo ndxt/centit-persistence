@@ -1,11 +1,12 @@
 package com.centit.framework.core.dao;
 
+import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.common.KeyValuePair;
-import com.centit.support.compiler.Formula;
 import com.centit.support.compiler.Lexer;
+import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -263,8 +264,9 @@ public class DataPowerFilter {
         }
         checkStatement.append(filter.substring(prePos));
 
-        Formula fCalcCond = new Formula();
-        return StringRegularOpt.isTrue(fCalcCond.calculate(checkStatement.toString()))?1:-1;
+        return BooleanBaseOpt.castObjectToBoolean(
+                VariableFormula.calculate(checkStatement.toString()),false)?
+                1:-1;
     }
 
     public boolean checkObject(Object obj,Collection<String> filters){
