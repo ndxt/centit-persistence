@@ -116,11 +116,6 @@ public class MybatisConfig extends DataSourceConfig/* implements EnvironmentAwar
     }
 
     @Bean
-    public AutowiredAnnotationBeanPostProcessor autowiredAnnotationBeanPostProcessor() {
-        return new AutowiredAnnotationBeanPostProcessor();
-    }
-
-    @Bean
     public BaseDaoSupport baseDaoSupport (@Autowired SqlSessionFactory sqlSessionFactory){
         BaseDaoSupport baseDaoSupport = new BaseDaoSupport();
         baseDaoSupport.setSqlSessionFactory(sqlSessionFactory);

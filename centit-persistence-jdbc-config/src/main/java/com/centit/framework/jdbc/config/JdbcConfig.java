@@ -30,9 +30,4 @@ public class JdbcConfig extends DataSourceConfig {
         return new PersistenceExceptionTranslationPostProcessor();
     }
 
-    @Bean
-    public AutowiredAnnotationBeanPostProcessor autowiredAnnotationBeanPostProcessor() {
-        return new AutowiredAnnotationBeanPostProcessor();
-    }
-
 }

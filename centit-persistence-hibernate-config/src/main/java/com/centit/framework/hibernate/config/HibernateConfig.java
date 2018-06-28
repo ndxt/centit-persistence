@@ -52,11 +52,6 @@ public class HibernateConfig extends DataSourceConfig /*implements EnvironmentAw
         return new PersistenceExceptionTranslationPostProcessor();
     }
 
-    @Bean
-    public AutowiredAnnotationBeanPostProcessor autowiredAnnotationBeanPostProcessor() {
-        return new AutowiredAnnotationBeanPostProcessor();
-    }
-
    /* @Bean
     public ReloadableResourceBundleMessageSource validationMessageSource(){
         ReloadableResourceBundleMessageSource validationMessageSource = new ReloadableResourceBundleMessageSource();
