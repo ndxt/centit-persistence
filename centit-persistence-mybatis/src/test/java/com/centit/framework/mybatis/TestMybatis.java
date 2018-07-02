@@ -1,10 +1,8 @@
 package com.centit.framework.mybatis;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
-
+import com.centit.framework.mybatis.dao.BaseDaoImpl;
+import com.centit.support.algorithm.CollectionsOpt;
+import com.centit.support.database.utils.DatabaseAccess;
 import org.apache.ibatis.datasource.pooled.PooledDataSource;
 import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.session.Configuration;
@@ -14,9 +12,10 @@ import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 
-import com.centit.framework.mybatis.dao.BaseDaoImpl;
-import com.centit.support.database.utils.DatabaseAccess;
-import com.centit.support.database.utils.QueryUtils;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
 
 public class TestMybatis {
 
@@ -70,7 +69,7 @@ public class TestMybatis {
             List<Object[]> users = DatabaseAccess.findObjectsByNamedSql(connection,
             "select userCode,userPin,userName,isValid,userType,loginName,englishName,userDesc "
             + " from f_userinfo where userCode like :uc and loginName like :ln",
-            QueryUtils.createSqlParamsMap("uc","U00%","ln","%o%","pp","notUse"));
+            CollectionsOpt.createHashMap("uc","U00%","ln","%o%","pp","notUse"));
             
             //打印信息  
             System.out.println(users.size());  
@@ -107,7 +106,7 @@ public class TestMybatis {
             List<UserInfo> users = mapper.selectList(
             "select userCode,userPin,userName,isValid,userType,loginName,englishName,userDesc "
             + " from f_userinfo where userCode like #{uc} and loginName like #{ln}",
-            QueryUtils.createSqlParamsMap("uc","U00%","ln","%o%","pp","notUse"),
+            CollectionsOpt.createHashMap("uc","U00%","ln","%o%","pp","notUse"),
             UserInfo.class);
             
             //打印信息  

@@ -2,7 +2,7 @@ package com.centit.framework.jdbc.dao;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.centit.support.algorithm.ListOpt;
+import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.utils.*;
@@ -560,7 +560,7 @@ public abstract class DatabaseOptUtils {
      **/
     public <T> Integer batchUpdateObject(BaseDaoImpl<?, ?> baseDao, String[] fields,
                                           T object, Map<String, Object> properties) {
-        return batchUpdateObject(baseDao, ListOpt.arrayToList(fields), object, properties);
+        return batchUpdateObject(baseDao, CollectionsOpt.arrayToList(fields), object, properties);
     }
 
     /**

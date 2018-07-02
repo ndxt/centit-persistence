@@ -1,13 +1,10 @@
 package com.centit.framework.hibernate.dao;
 
 import com.centit.framework.core.dao.CodeBook;
+import com.centit.support.algorithm.*;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.framework.core.po.EntityWithTimestamp;
-import com.centit.support.algorithm.DatetimeOpt;
-import com.centit.support.algorithm.NumberBaseOpt;
-import com.centit.support.algorithm.ReflectionOpt;
-import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.KeyValuePair;
 import com.centit.support.database.utils.PersistenceException;
 import com.centit.support.database.utils.QueryAndNamedParams;
@@ -1083,7 +1080,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             return  this.listObjectsByNamedHql("From "
                     + getClassTShortName() + " obj where obj." + propertyName
                     + " = :" + propertyName,
-                     QueryUtils.createSqlParamsMap(propertyName, propertyValue),
+                     CollectionsOpt.createHashMap(propertyName, propertyValue),
                      -1,-1);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

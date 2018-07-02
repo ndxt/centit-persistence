@@ -2,21 +2,20 @@ package com.centit.framework.mybatis.dao;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.centit.support.database.utils.PageDesc;
-import com.centit.support.algorithm.DatetimeOpt;
+import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.database.utils.DBType;
-import com.centit.support.database.utils.DatabaseAccess;
-import com.centit.support.database.utils.PersistenceException;
-import com.centit.support.database.utils.QueryUtils;
+import com.centit.support.database.utils.*;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -247,7 +246,7 @@ public abstract class DatabaseOptUtils {
     public final static Object getSingleObjectBySql(SqlSession sqlSession,
             final String sSql, final String paramName, final Object paramObject)  throws SQLException, IOException {
         return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql,
-                QueryUtils.createSqlParamsMap(paramName,paramObject));
+                CollectionsOpt.createHashMap(paramName,paramObject));
     }
 
     public final static Object getSingleObjectBySql(SqlSession sqlSession,

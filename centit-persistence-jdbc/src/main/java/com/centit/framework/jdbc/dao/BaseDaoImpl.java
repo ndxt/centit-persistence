@@ -5,7 +5,7 @@ import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.core.dao.QueryParameterPrepare;
 import com.centit.framework.core.po.EntityWithDeleteTag;
-import com.centit.support.algorithm.ListOpt;
+import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.algorithm.StringBaseOpt;
@@ -448,7 +448,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      */
     public void updateObject(String[] fields, T object)
             throws PersistenceException {
-        updateObject(ListOpt.arrayToList(fields), object);
+        updateObject(CollectionsOpt.arrayToList(fields), object);
     }
 
 
@@ -648,7 +648,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
             Triple<List<Object>, List<Pair<Object,Object>>, List<Object>>
                     comRes=
-                    ListOpt.compareTwoList((List<Object>)refs, newListObj,
+                    CollectionsOpt.compareTwoList((List<Object>)refs, newListObj,
                             new OrmDaoUtils.OrmObjectComparator<>(mapInfo) );
 
             int resN = 0;
@@ -705,7 +705,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return jdbcTemplate.execute(
                 (ConnectionCallback<List<T>>) conn ->
                         OrmDaoUtils.listObjectsByProperties(conn,
-                                QueryUtils.createSqlParamsMap(propertyName, propertyValue),
+                                CollectionsOpt.createHashMap(propertyName, propertyValue),
                                 (Class<T>) getPoClass()));
     }
 
