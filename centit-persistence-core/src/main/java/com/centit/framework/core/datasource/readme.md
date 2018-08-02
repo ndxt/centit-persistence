@@ -11,13 +11,13 @@
 
 步骤1： 在Spring配置文件中配置多个数据源。
 ```xml
-<bean id="ds1" class="com.alibaba.druid.pool.DruidDataSource" ...>...</bean>
-<bean id="ds2" class="com.alibaba.druid.pool.DruidDataSource" ...>...</bean>
-<bean id="ds3" class="com.alibaba.druid.pool.DruidDataSource" ...>...</bean>
-<bean id="ds4" class="com.alibaba.druid.pool.DruidDataSource" ...>...</bean>
+<bean id="ds1" class="org.apache.commons.dbcp2.BasicDataSource" ...>...</bean>
+<bean id="ds2" class="org.apache.commons.dbcp2.BasicDataSource" ...>...</bean>
+<bean id="ds3" class="org.apache.commons.dbcp2.BasicDataSource" ...>...</bean>
+<bean id="ds4" class="org.apache.commons.dbcp2.BasicDataSource" ...>...</bean>
 ```
 
-步骤2： 将这些数据源注册给 `com.gdk.spring.datasource.DynamicDataSource`。
+步骤2： 将这些数据源注册给 `com.centit.framework.core.datasource.DynamicDataSource`。
 ```xml
 <bean id="dynamic_datasource" class="com.centit.framework.core.datasource.DynamicDataSource">
     <!-- 注册目标多个数据源 -->
@@ -90,3 +90,4 @@ public class ShoppingCartService {
         // ...
     }
 }
+```
