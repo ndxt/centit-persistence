@@ -45,7 +45,7 @@ public abstract class QueryParameterPrepare {
         return pageQureyMap;
     }
 
-    public static com.centit.support.database.utils.PageDesc fetckPageDescParams(Map<String, Object> pageQureyMap) {
+    public static com.centit.support.database.utils.PageDesc fetchPageDescParams(Map<String, Object> pageQureyMap) {
         com.centit.support.database.utils.PageDesc pageDesc = new  com.centit.support.database.utils.PageDesc();
         Integer pageSize = NumberBaseOpt.castObjectToInteger(pageQureyMap.get("maxSize"));
         if(pageSize!=null) {

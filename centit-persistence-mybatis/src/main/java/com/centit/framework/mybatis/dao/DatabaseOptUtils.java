@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
+import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.utils.*;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
@@ -82,19 +83,7 @@ public abstract class DatabaseOptUtils {
      * @return 获取分页语句
      */
     public final static String buildLimitQuerySQL(DBType dbType,String sql,int offset,int maxsize){
-        switch(dbType){
-          case SqlServer:
-              return QueryUtils.buildSqlServerLimitQuerySQL(sql, offset, maxsize);
-          case Oracle:
-              return QueryUtils.buildOracleLimitQuerySQL(sql, offset, maxsize, false);
-          case DB2:
-              return QueryUtils.buildDB2LimitQuerySQL(sql, offset, maxsize);
-          case MySql:
-          case H2:
-              return QueryUtils.buildMySqlLimitQuerySQL(sql, offset, maxsize, false);
-          default:
-              return sql;
-      }
+        return QueryUtils.buildLimitQuerySQL( sql, offset, maxsize,false,  dbType);
     }
     /**
      * 获取sequence的当前值 只有oracle DB2支持
@@ -131,40 +120,18 @@ public abstract class DatabaseOptUtils {
 
     
     /** 用表来模拟sequence 
-     * create table sequence_table
-     * (sequence_Name varchar(100) not null primary key,
-     * current_value integer);
+     create table simulate_sequence (seqname varchar(100) not null primary key,
+     currvalue integer, increment integer);
      * @param sqlSession sqlSession
      * @param sequenceName sequenceName
      * @throws IOException  IOException
      * @throws SQLException SQLException
      * @return 结果集数量
      */
-    public static Long getSequenceNextValueUseTable(final SqlSession sqlSession,final String sequenceName) throws SQLException, IOException {
-        Object object = getSingleObjectBySql(
-                sqlSession,
-                 "SELECT count(1) hasValue from sequence_table "
-                 + " where sequence_Name = ?",
-                new Object[]{sequenceName});
-        Long l = NumberBaseOpt.castObjectToLong(object);
-        if(l==0){
-            getSingleObjectBySql(
-                    sqlSession,
-                    "insert into sequence_table(sequence_Name,current_value)"
-                    + " values(?,?)", new Object[]{sequenceName,1});
-            return 1L;
-        }else{
-            getSingleObjectBySql(
-                    sqlSession,
-                    "update sequence_table current_value = current_value + 1 "
-                    + "where sequence_Name= ?", new Object[]{sequenceName});
-            object = getSingleObjectBySql(
-                    sqlSession,
-                     "SELECT current_value from sequence_table "
-                     + " where sequence_Name = ?",
-                     new Object[]{sequenceName});
-        }
-        return NumberBaseOpt.castObjectToLong(object);
+    public static Long getSequenceNextValueUseTable(final SqlSession sqlSession,
+                                                    final String sequenceName) throws SQLException, IOException {
+        GeneralJsonObjectDao jsonObjectDao = GeneralJsonObjectDao.createJsonObjectDao(sqlSession.getConnection());
+        return jsonObjectDao.getSimulateSequenceNextValue(sequenceName);
     }
     
     /**
@@ -178,34 +145,10 @@ public abstract class DatabaseOptUtils {
      */
     public final static Long getNextLongSequence(SqlSession sqlSession,
             String sequenceName) throws SQLException, IOException {
-        DBType dbType = DBType.mapDBType(sqlSession.getConnection());
-        switch (dbType) {
-            case Oracle:
-                return ((BigDecimal) getSingleObjectBySql(
-                        sqlSession, "SELECT " + sequenceName
-                                + ".nextval from dual")).longValue();
 
-            case DB2:
-                return ((BigDecimal) getSingleObjectBySql(
-                        sqlSession, "SELECT nextval for "
-                                + sequenceName + " from sysibm.sysdummy1"))
-                        .longValue();
-
-            case MySql: // my sql
-                return Long.valueOf(getSingleObjectBySql(
-                        sqlSession, "SELECT sequence_nextval ('" + sequenceName + "');")
-                        .toString());
-            default:
-                break;
-        }
-        // if("SQLServerDialect".endsWith(dn))
-        // sql server 没有 sequence 所以用 GUID 代替
-        try {
-            return getSequenceNextValueUseTable(sqlSession,sequenceName);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            return null;
-        }
+        GeneralJsonObjectDao jsonObjectDao =
+                GeneralJsonObjectDao.createJsonObjectDao(sqlSession.getConnection());
+        return jsonObjectDao.getSequenceNextValue(sequenceName);
     }
 
     /**

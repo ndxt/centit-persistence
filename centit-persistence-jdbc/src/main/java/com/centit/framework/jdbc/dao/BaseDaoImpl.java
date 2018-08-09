@@ -766,7 +766,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     @Deprecated
     public List<T> pageQuery(Map<String, Object> filterMap) {
         String querySql = getFilterQuerySql();
-        PageDesc pageDesc = QueryParameterPrepare.fetckPageDescParams(filterMap);
+        PageDesc pageDesc = QueryParameterPrepare.fetchPageDescParams(filterMap);
         if (StringUtils.isBlank(querySql)) {
             return listObjectsByProperties(filterMap, pageDesc);
         } else {

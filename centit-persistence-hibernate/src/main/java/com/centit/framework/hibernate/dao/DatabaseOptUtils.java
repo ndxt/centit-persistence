@@ -317,44 +317,6 @@ public abstract class DatabaseOptUtils {
         return sKey;
     }
 
-    
-    /** 用表来模拟sequence 
-     * create table sequence_table
-     * (sequence_Name varchar(100) not null primary key,
-     * current_value integer);
-     * @param baseDao BaseDaoImpl
-     * @param sequenceName sequenceName
-     * @return  SequenceNextValueUseTable
-     * @throws SQLException SQLException
-     * @throws IOException IOException
-     */
-    public static Long getSequenceNextValueUseTable(final BaseDaoImpl<?, ?> baseDao,final String sequenceName) throws SQLException, IOException {
-        Object object = getSingleObjectBySql(
-                baseDao,
-                 "SELECT count(1) hasValue from sequence_table "
-                 + " where sequence_Name = ?",
-                new Object[]{sequenceName});
-        Long l = NumberBaseOpt.castObjectToLong(object);
-        if(l==0){
-            getSingleObjectBySql(
-                    baseDao,
-                    "insert into sequence_table(sequence_Name,current_value)"
-                    + " values(?,?)", new Object[]{sequenceName,1});
-            return 1L;
-        }else{
-            getSingleObjectBySql(
-                    baseDao,
-                    "update sequence_table current_value = current_value + 1 "
-                    + "where sequence_Name= ?", new Object[]{sequenceName});
-            object = getSingleObjectBySql(
-                    baseDao,
-                     "SELECT current_value from sequence_table "
-                     + " where sequence_Name = ?",
-                     new Object[]{sequenceName});
-        }
-        return NumberBaseOpt.castObjectToLong(object);
-    }
-    
     /**
      * 获取sequence的下一个新值 只有oracle DB2支持
      * @param baseDao BaseDaoImpl
@@ -363,32 +325,12 @@ public abstract class DatabaseOptUtils {
      */
     public final static Long getNextLongSequence(BaseDaoImpl<?, ?> baseDao,
             String sequenceName) {
-
-        String dn = ((SessionImpl) baseDao.getCurrentSession()).getFactory()
-                .getServiceRegistry().getService( JdbcServices.class )
-                .getDialect().getClass().getName();
-
-        if(dn.contains("Oracle"))//Oracle
-            return NumberBaseOpt.castObjectToLong(getSingleObjectBySql(
-                    baseDao, "SELECT " + sequenceName
-                            + ".nextval from dual"));
-
-        if(dn.contains("DB2"))//DB2
-            return NumberBaseOpt.castObjectToLong( getSingleObjectBySql(
-                    baseDao, "SELECT nextval for "
-                            + sequenceName + " from sysibm.sysdummy1"));
-
-        if(dn.contains("MySQL")) // my sql
-            return Long.valueOf(getSingleObjectBySql(
-                    baseDao, "SELECT sequence_nextval ('"+ sequenceName+"');")
-                    .toString());
-        
-        // if("SQLServerDialect".endsWith(dn))
-        // sql server 没有 sequence 所以用 GUID 代替
+        JsonObjectWork objectWork = new JsonObjectWork();
+        objectWork.setBaseDao(baseDao);
         try {
-            return getSequenceNextValueUseTable(baseDao,sequenceName);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            return objectWork.getSequenceNextValue(sequenceName);
+        } catch (SQLException | IOException e) {
+            logger.error(e.getLocalizedMessage());
             return null;
         }
     }
@@ -1141,12 +1083,9 @@ public abstract class DatabaseOptUtils {
         List<?> dataList = findObjectsBySql(baseDao,ssql,values,pageDesc,null);
         if(dataList==null || dataList.size()==0)
             return null;
-
         return fetchJSONArrayFromList(dataList,ssql,fieldnames);
     }
-    
-   
-    
+
     public final static JSONArray findObjectsAsJSONBySql(BaseDaoImpl<?, ?> baseDao, String ssql, String [] fieldNames) {
         return findObjectsAsJSONBySql(baseDao, ssql,fieldNames,(Object[]) null , new PageDesc(-1,-1));
     }
@@ -1162,14 +1101,11 @@ public abstract class DatabaseOptUtils {
         return findObjectsAsJSONBySql(baseDao,  shql, null,
                 values,  pageDesc);
     }    
-  
-    
+
     public final static JSONArray findObjectsAsJSONBySql(BaseDaoImpl<?, ?> baseDao, String ssql) {
         return findObjectsAsJSONBySql(baseDao, ssql,null,(Object[]) null ,  new PageDesc(-1,-1));
     }
-    
-    
-    
+
     /**
      * 刷新Session缓存中的数据进行强制提交
      * 
