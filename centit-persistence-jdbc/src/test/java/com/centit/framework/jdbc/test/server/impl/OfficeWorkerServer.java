@@ -56,5 +56,9 @@ public class OfficeWorkerServer  {
 
        //workerDao.listObjectsAsJson(/*前端输入的查询参数*/map,/*PageDesc 分页信息 */pageDesc)
        //DatabaseOptUtils.listObjectsByParamsDriverSqlAsJson()
+       //获取指定的懒加载字段
+       workerDao.fetchObjectLazyColumn(worker,"headImage");
+       //获取所有的懒加载字段
+       workerDao.fetchObjectLazyColumns(worker);
    }
 }

@@ -1,10 +1,7 @@
 package com.centit.framework.jdbc.test.po;
 
 import com.centit.framework.core.po.EntityWithDeleteTag;
-import com.centit.support.database.orm.GeneratorCondition;
-import com.centit.support.database.orm.GeneratorTime;
-import com.centit.support.database.orm.GeneratorType;
-import com.centit.support.database.orm.ValueGenerator;
+import com.centit.support.database.orm.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -29,6 +26,11 @@ public class OfficeWorker implements EntityWithDeleteTag,Serializable {
     private String workerSex;
     @Column(name = "WORKER_BIRTHDAY")
     private Date workerBirthday;
+
+    @Lazy
+    @Column(name = "HEAD_IMAGE")
+    private byte[] headImage;
+
     @Column(name = "IS_DELETE")
     private String isDelete;
     /**
@@ -135,5 +137,13 @@ public class OfficeWorker implements EntityWithDeleteTag,Serializable {
 
     public void setWorkerCareers(List<Career> workerCareers) {
         this.workerCareers = workerCareers;
+    }
+
+    public byte[] getHeadImage() {
+        return headImage;
+    }
+
+    public void setHeadImage(byte[] headImage) {
+        this.headImage = headImage;
     }
 }
