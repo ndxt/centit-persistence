@@ -1,15 +1,15 @@
-package com.centit.framework.jdbc.test;
+package com.centit.framework.jdbc.test.dao;
 
 import com.centit.framework.jdbc.dao.BaseDaoImpl;
+import com.centit.framework.jdbc.test.po.Career;
 
 import java.util.Map;
 
-/**
- * Created by codefan on 17-8-31.
- */
-public class SimpleDao extends BaseDaoImpl<SimplePo, String> {
+
+public class CareerDao extends BaseDaoImpl<Career, String> {
     @Override
     public Map<String, String> getFilterField() {
         return null;
     }
+
 }

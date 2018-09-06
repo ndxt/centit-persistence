@@ -250,7 +250,16 @@ public abstract class DatabaseOptUtils {
         }
     }
 
-
+    /**
+     * 参数驱动sql查询
+     * @param baseDao 任意dao对象，需要用dao中的session访问数据库
+     * @param querySql 查询语句：参数驱动sql，不需要写分页查询，框架会自动转换为分页查询
+     * @param fieldNames 这个是返回结果放到json中的属性名，这个不是必须的，缺省是通过sql语句中的字段名自动转换成小驼峰的属性名
+     * @param queryCountSql 查询总数的参数驱动sql语句，这个也不是必须的，如果缺省，系统会自动根据查询语句来生成
+     * @param namedParams 这个是前台输入的 查询参数
+     * @param pageDesc 这个式前台输入的 分页信息
+     * @return JSONArray
+     */
     public static JSONArray listObjectsByParamsDriverSqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                                         String querySql, String[] fieldNames , String queryCountSql,
                                                         Map<String, Object> namedParams, PageDesc pageDesc  ) {
@@ -303,6 +312,14 @@ public abstract class DatabaseOptUtils {
     }
 
 
+    /**
+     * 参数驱动sql查询
+     * @param baseDao 任意dao对象，需要用dao中的session访问数据库
+     * @param querySql 查询语句：参数驱动sql，不需要写分页查询，框架会自动转换为分页查询
+     * @param namedParams 这个是前台输入的 查询参数
+     * @param pageDesc 这个式前台输入的 分页信息
+     * @return JSONArray
+     */
     public static JSONArray listObjectsByParamsDriverSqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,
                                             Map<String, Object> namedParams,  PageDesc pageDesc  ) {
         QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
