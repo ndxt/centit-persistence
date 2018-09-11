@@ -5,21 +5,21 @@ import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.core.dao.QueryParameterPrepare;
 import com.centit.framework.core.po.EntityWithDeleteTag;
+import com.centit.framework.core.po.EntityWithVersionTag;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
+import com.centit.support.database.jsonmaptable.JsonObjectDao;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.SimpleTableReference;
 import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.OrmDaoUtils;
+import com.centit.support.database.orm.OrmUtils;
 import com.centit.support.database.orm.TableMapInfo;
-import com.centit.support.database.utils.PageDesc;
-import com.centit.support.database.utils.PersistenceException;
-import com.centit.support.database.utils.QueryAndNamedParams;
-import com.centit.support.database.utils.QueryUtils;
+import com.centit.support.database.utils.*;
 import com.centit.support.file.FileType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -34,10 +34,12 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 @SuppressWarnings({"unused","unchecked"})
@@ -361,17 +363,53 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public void saveNewObject(T o) {
-         /* Integer execute = */
+        if (o instanceof EntityWithVersionTag) {
+            EntityWithVersionTag ewvto = (EntityWithVersionTag)o;
+            TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
+            SimpleTableField field = mapInfo.findFieldByColumn(ewvto.obtainVersionProperty());
+            Object obj = field.getObjectFieldValue(o);
+            if(obj == null){
+                field.setObjectFieldValue(o, ewvto.calcNextVersion());
+            }
+        }
+        /* Integer execute = */
         jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.saveNewObject(conn, o));
     }
 
-    public void deleteObjectForce(T o) {
-       /* Integer execute = */
+    private void deleteObjectWithVersion(final T o){
         jdbcTemplate.execute(
-                (ConnectionCallback<Integer>) conn ->
-                        OrmDaoUtils.deleteObject(conn, o));
+            (ConnectionCallback<Integer>) conn -> {
+                TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
+                JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(conn, mapInfo);
+
+                EntityWithVersionTag ewvto = (EntityWithVersionTag) o;
+                SimpleTableField field = mapInfo.findFieldByColumn(ewvto.obtainVersionProperty());
+                //获取旧版本
+                Object oleVsersion = field.getObjectFieldValue(o);
+
+                Map<String, Object> idMap = OrmUtils.fetchObjectDatabaseField(o,mapInfo);
+                if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, idMap)) {
+                    throw new SQLException("缺少主键对应的属性。");
+                }
+                String sql ="delete from " + mapInfo.getTableName() +
+                        " where " + GeneralJsonObjectDao.buildFilterSqlByPk(mapInfo, null) +
+                        " and " + field.getColumnName() + " = :_oldVersion";
+                idMap.put("_oldVersion", oleVsersion);
+                return DatabaseAccess.doExecuteNamedSql(conn, sql, idMap);
+            });
+    }
+
+    public void deleteObjectForce(T o) {
+        if (o instanceof EntityWithVersionTag) {
+            deleteObjectWithVersion(o);
+        } else {
+            /* Integer execute = */
+            jdbcTemplate.execute(
+                    (ConnectionCallback<Integer>) conn ->
+                            OrmDaoUtils.deleteObject(conn, o));
+        }
     }
 
     public void deleteObjectForceById(Object id) {
@@ -392,7 +430,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             ((EntityWithDeleteTag) o).setDeleted(true);
             this.updateObject(o);
         } else {
-            deleteObjectForce(o);
+            this.deleteObjectForce(o);
         }
     }
 
@@ -403,26 +441,60 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             ((EntityWithDeleteTag) o).setDeleted(true);
             this.updateObject(o);
         } else {
-            deleteObjectForceById(id);
+            this.deleteObjectForceById(id);
         }
     }
 
     public void deleteObjectsByProperties(Map<String, Object> filterMap) {
-        if (EntityWithDeleteTag.class.isAssignableFrom(getPoClass())) {
-            List<T> deleteList = listObjectsByProperties(filterMap);
-            if (deleteList != null) {
-                for (T obj : deleteList) {
+        boolean hasDeleteTag = EntityWithDeleteTag.class.isAssignableFrom(getPoClass());
+        List<T> deleteList = listObjectsByProperties(filterMap);
+        if (deleteList != null) {
+            for (T obj : deleteList) {
+                if (hasDeleteTag) {
                     ((EntityWithDeleteTag) obj).setDeleted(true);
                     this.updateObject(obj);
+                } else {
+                    this.deleteObjectForce(obj);
                 }
             }
-        } else {
-            deleteObjectsForceByProperties(filterMap);
         }
     }
 
-    public void updateObject(T o) {
-        jdbcTemplate.execute(
+    private int updateObjectWithVersion(final T o, Collection<String> fields){
+        return jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn -> {
+                    TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
+                    JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(conn, mapInfo);
+                    try {
+                        OrmUtils.prepareObjectForUpdate(o, mapInfo, sqlDialect);
+                    } catch (NoSuchFieldException | IOException e) {
+                        throw new PersistenceException(e);
+                    }
+                    EntityWithVersionTag ewvto = (EntityWithVersionTag) o;
+                    SimpleTableField field = mapInfo.findFieldByColumn(ewvto.obtainVersionProperty());
+                    //获取旧版本
+                    Object oleVsersion = field.getObjectFieldValue(o);
+                    //设置新版本
+                    field.setObjectFieldValue(o, ewvto.calcNextVersion());
+                    Map<String, Object> objMap = OrmUtils.fetchObjectDatabaseField(o, mapInfo);
+
+                    if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, objMap)) {
+                        throw new SQLException("缺少主键对应的属性。");
+                    }
+                    String sql = GeneralJsonObjectDao.buildUpdateSql(mapInfo,
+                            fields==null?objMap.keySet():fields, true) +
+                            " where " + GeneralJsonObjectDao.buildFilterSqlByPk(mapInfo, null) +
+                            " and " + field.getColumnName() + " = :_oldVersion";
+                    objMap.put("_oldVersion", oleVsersion);
+                    return DatabaseAccess.doExecuteNamedSql(conn, sql, objMap);
+                });
+    }
+
+    public int updateObject(final T o) {
+        if (o instanceof EntityWithVersionTag) {
+            return updateObjectWithVersion(o, null);
+        }
+        return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.updateObject(conn, o));
     }
@@ -433,9 +505,12 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param object 除了对应修改的属性 需要有相应的值，主键对应的属性也必须要值
      * @throws PersistenceException 运行时异常
      */
-    public void updateObject(Collection<String> fields, T object)
+    public int updateObject(Collection<String> fields, T object)
             throws PersistenceException {
-        jdbcTemplate.execute(
+        if (object instanceof EntityWithVersionTag) {
+            return updateObjectWithVersion(object, fields);
+        }
+        return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.updateObject(conn, fields, object));
     }
@@ -446,14 +521,26 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param object 除了对应修改的属性 需要有相应的值，主键对应的属性也必须要值
      * @throws PersistenceException 运行时异常
      */
-    public void updateObject(String[] fields, T object)
+    public int updateObject(String[] fields, T object)
             throws PersistenceException {
-        updateObject(CollectionsOpt.arrayToList(fields), object);
+        if (object instanceof EntityWithVersionTag) {
+            return updateObjectWithVersion(object, CollectionsOpt.arrayToList(fields));
+        }
+        return  updateObject(CollectionsOpt.arrayToList(fields), object);
     }
 
 
-    public void mergeObject(T o) {
-        jdbcTemplate.execute(
+    public int mergeObject(T o) {
+        if (o instanceof EntityWithVersionTag) {
+            T dbObj = this.getObjectById(o);
+            if(dbObj==null){
+                this.saveNewObject(o);
+                return 1;
+            }else{
+                return this.updateObject(o);
+            }
+        }
+        return  jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.mergeObject(conn, o));
     }

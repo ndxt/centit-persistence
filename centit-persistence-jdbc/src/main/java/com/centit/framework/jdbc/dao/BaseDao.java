@@ -24,9 +24,9 @@ public interface BaseDao<T extends Serializable, PK extends Serializable>
 
     List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc);
 
-    void updateObject(T o);
+    int updateObject(T o);
 
-    void mergeObject(T o) ;
+    int mergeObject(T o) ;
 
     List<T> listObjects();
 

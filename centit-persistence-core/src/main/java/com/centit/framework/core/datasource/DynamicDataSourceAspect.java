@@ -32,7 +32,12 @@ public class DynamicDataSourceAspect {
         int nps = parameters.length;
         int nas = arguments.length;
         for(int i=0; i<nps && i<nas; i++){
-            map.put(parameters[i].getName(),arguments[i]);
+            String paramName = parameters[i].getName();
+            if(parameters[i].isAnnotationPresent(ParamName.class)){
+                ParamName param =  parameters[i].getAnnotation(ParamName.class);
+                paramName = param.value();
+            }
+            map.put(paramName,arguments[i]);
         }
         return map;
     }
