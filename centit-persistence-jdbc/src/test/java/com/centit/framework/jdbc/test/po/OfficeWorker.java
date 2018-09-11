@@ -20,7 +20,7 @@ public class OfficeWorker implements EntityWithDeleteTag,EntityWithVersionTag,Se
      * 主键，在创建时根据序列S_WORKER_ID自动生成
      */
     @Column(name = "WORKER_ID")
-    @ValueGenerator( strategy= GeneratorType.SEQUENCE, value = "S_WORKER_ID")
+    @ValueGenerator( strategy= GeneratorType.UUID, value = "S_WORKER_ID")
     private String workerId;
     @Column(name = "WORKER_NAME")
     private String workerName;
@@ -34,6 +34,7 @@ public class OfficeWorker implements EntityWithDeleteTag,EntityWithVersionTag,Se
     private byte[] headImage;
 
     @Column(name = "IS_DELETE")
+    @ValueGenerator( strategy= GeneratorType.CONSTANT, value = "F" )
     private String isDelete;
     /**
      * 更新版本号，初始版本为 000001
@@ -61,7 +62,7 @@ public class OfficeWorker implements EntityWithDeleteTag,EntityWithVersionTag,Se
      * referencedColumnName 为子表的字段名
      * 多字段引用使用 JoinColumns 注解
      */
-    @OneToMany(targetEntity=Career.class)
+    @OneToMany
     @JoinColumn(name="WORKER_ID", referencedColumnName="WORKER_ID")
     private List<Career> workerCareers;
     /**
