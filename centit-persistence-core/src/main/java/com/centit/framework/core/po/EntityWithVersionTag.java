@@ -7,7 +7,7 @@ package com.centit.framework.core.po;
  */
 public interface EntityWithVersionTag {
     /**
-     * 计算下一个版本号
+     * 计算下一个版本号，版本号可以为任何类型，但是必须支持sql语句中的 =
      * @return 下一个版本号
      */
     Object calcNextVersion();

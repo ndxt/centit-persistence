@@ -1,6 +1,8 @@
 package com.centit.framework.jdbc.test.po;
 
 import com.centit.framework.core.po.EntityWithDeleteTag;
+import com.centit.framework.core.po.EntityWithVersionTag;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.orm.*;
 
 import javax.persistence.*;
@@ -13,7 +15,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "T_OFFICE_WORKER")
-public class OfficeWorker implements EntityWithDeleteTag,Serializable {
+public class OfficeWorker implements EntityWithDeleteTag,EntityWithVersionTag,Serializable {
     /**
      * 主键，在创建时根据序列S_WORKER_ID自动生成
      */
@@ -33,6 +35,12 @@ public class OfficeWorker implements EntityWithDeleteTag,Serializable {
 
     @Column(name = "IS_DELETE")
     private String isDelete;
+    /**
+     * 更新版本号，初始版本为 000001
+     */
+    @Column(name = "VERSION_NO")
+    @ValueGenerator( strategy= GeneratorType.CONSTANT, value = "000001" )
+    private String versionNo;
     /**
      * 创建时间，新建时自动赋值，更加函数获取当前时间
      */
@@ -73,6 +81,27 @@ public class OfficeWorker implements EntityWithDeleteTag,Serializable {
     @Override
     public void setDeleted(boolean isDeleted) {
         isDelete = isDeleted?"T":"F";
+    }
+
+    /**
+     * 计算下一个版本号
+     * 版本号可以为任何类型，但是必须支持sql语句中的 =
+     * @return 下一个版本号
+     */
+    @Override
+    public Object calcNextVersion() {
+        return StringBaseOpt.nextCode(versionNo);
+    }
+
+    /**
+     * 返回记录版本的属性，这个属性必须和数据库表中的某个字段对应，
+     * 也就是说这个属性必须有 @Column
+     *
+     * @return 版本字段属性名
+     */
+    @Override
+    public String obtainVersionProperty() {
+        return "versionNo";
     }
 
     public String getWorkerId() {
@@ -145,5 +174,13 @@ public class OfficeWorker implements EntityWithDeleteTag,Serializable {
 
     public void setHeadImage(byte[] headImage) {
         this.headImage = headImage;
+    }
+
+    public String getVersionNo() {
+        return versionNo;
+    }
+
+    public void setVersionNo(String versionNo) {
+        this.versionNo = versionNo;
     }
 }
