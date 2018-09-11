@@ -81,8 +81,10 @@ public class ShoppingCartService {
     }    
 
     @TargetDataSource(value = "'ds'+ (userId mod 4 + 1)", mapByParameter = true)
-    public Address getDefaultDeliverAddress(long userId) {
+    public Address getDefaultDeliverAddress(@ParamName("userId") long userId) {
         // ...
     }
 }
 ```
+
+**感谢烽火 王永山 提供解决思路**
