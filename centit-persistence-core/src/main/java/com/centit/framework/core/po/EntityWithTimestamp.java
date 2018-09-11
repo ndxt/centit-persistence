@@ -13,6 +13,7 @@ import java.util.Date;
  * @see com.centit.support.database.orm.ValueGenerator
  * mybatis 中没有实现这个接口也没有代替方案
  */
+@Deprecated
 public interface EntityWithTimestamp{
     /**
      * 获取最后更新时间戳
