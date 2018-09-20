@@ -104,7 +104,7 @@ public abstract class DatabaseOptUtils {
 
     /* 下面所有的查询都返回 jsonArray */
 
-    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
+    public static JSONArray listObjectsByNamedSqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                             String querySql, String[] fieldNames , String queryCountSql,
                                             Map<String, Object> namedParams, PageDesc pageDesc /*,
                                       Map<String,KeyValuePair<String,String>> dictionaryMapInfo*/ ) {
@@ -122,15 +122,15 @@ public abstract class DatabaseOptUtils {
                 });
     }
 
-    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
+    public static JSONArray listObjectsByNamedSqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                             String querySql,  String[] fieldNames ,
                                             Map<String, Object> namedParams,  PageDesc pageDesc) {
 
-        return listObjectsBySqlAsJson(baseDao, querySql, fieldNames ,
+        return listObjectsByNamedSqlAsJson(baseDao, querySql, fieldNames ,
                 QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams, pageDesc );
     }
 
-    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
+    public static JSONArray listObjectsByNamedSqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                                    String querySql,  String[] fieldNames ,
                                                    Map<String, Object> namedParams) {
         return baseDao.getJdbcTemplate().execute(
@@ -144,13 +144,13 @@ public abstract class DatabaseOptUtils {
                 });
     }
 
-    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao,
+    public static JSONArray listObjectsByNamedSqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                             String querySql,  String queryCountSql,
                                             Map<String, Object> namedParams,  PageDesc pageDesc ) {
-        return listObjectsBySqlAsJson(baseDao, querySql, null ,  queryCountSql, namedParams,   pageDesc  );
+        return listObjectsByNamedSqlAsJson(baseDao, querySql, null ,  queryCountSql, namedParams,   pageDesc  );
     }
 
-    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  Map<String,Object> params ) {
+    public static JSONArray listObjectsByNamedSqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  Map<String,Object> params ) {
         return baseDao.getJdbcTemplate().execute(
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
@@ -161,13 +161,13 @@ public abstract class DatabaseOptUtils {
                 });
     }
 
-    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,
+    public static JSONArray listObjectsByNamedSqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,
                                             Map<String, Object> namedParams,  PageDesc pageDesc  ) {
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            return DatabaseOptUtils.listObjectsBySqlAsJson(baseDao, querySql, null ,
+            return DatabaseOptUtils.listObjectsByNamedSqlAsJson(baseDao, querySql, null ,
                     QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams,   pageDesc  );
         }else{
-            return DatabaseOptUtils.listObjectsBySqlAsJson(baseDao, querySql, namedParams);
+            return DatabaseOptUtils.listObjectsByNamedSqlAsJson(baseDao, querySql, namedParams);
         }
     }
 
@@ -238,8 +238,6 @@ public abstract class DatabaseOptUtils {
                     }
                 });
     }
- 
-
 
     public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql, Object[] params,  PageDesc pageDesc  ) {
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
@@ -250,6 +248,87 @@ public abstract class DatabaseOptUtils {
         }
     }
 
+    public static List<Object[]> listObjectsBySql(BaseDaoImpl<?, ?> baseDao, String querySql , Object[] params ) {
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<List<Object[]>>) conn -> {
+                    try {
+                        return DatabaseAccess.findObjectsBySql(conn, querySql ,
+                                params);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
+                    }
+                });
+    }
+
+    public static List<Object[]> listObjectsBySql(BaseDaoImpl<?, ?> baseDao, String querySql, String queryCountSql, Object[] params,  PageDesc pageDesc  ) {
+        if(pageDesc!=null && pageDesc.getPageSize()>0) {
+            return baseDao.getJdbcTemplate().execute(
+                    (ConnectionCallback<List<Object[]>>) conn -> {
+                        try {
+                            pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
+                                    DatabaseAccess.getScalarObjectQuery(
+                                            conn, queryCountSql, params)));
+                            return DatabaseAccess.findObjectsBySql(conn, querySql ,
+                                    params, pageDesc.getPageNo(), pageDesc.getPageSize());
+                        } catch (SQLException | IOException e) {
+                            throw new PersistenceException(e);
+                        }
+                    });
+        }else{
+            return DatabaseOptUtils.listObjectsBySql(baseDao,querySql,params);
+        }
+    }
+
+    public static List<Object[]> listObjectsBySql(BaseDaoImpl<?, ?> baseDao, String querySql , Object[] params,  PageDesc pageDesc  ) {
+        if(pageDesc!=null && pageDesc.getPageSize()>0) {
+            String queryCountSql = QueryUtils.buildGetCountSQL(querySql);
+            return DatabaseOptUtils.listObjectsBySql(baseDao,querySql, queryCountSql,params, pageDesc);
+        }else{
+            return DatabaseOptUtils.listObjectsBySql(baseDao,querySql,params);
+        }
+    }
+
+    public static List<Object[]> listObjectsByNamedSql(BaseDaoImpl<?, ?> baseDao, String querySql , Map<String, Object> namedParams) {
+        return baseDao.getJdbcTemplate().execute(
+                (ConnectionCallback<List<Object[]>>) conn -> {
+                    try {
+                        return DatabaseAccess.findObjectsByNamedSql(conn, querySql ,
+                                namedParams);
+                    } catch (SQLException | IOException e) {
+                        throw new PersistenceException(e);
+                    }
+                });
+    }
+
+    public static List<Object[]> listObjectsByNamedSql(BaseDaoImpl<?, ?> baseDao, String querySql, String queryCountSql,
+                                                       Map<String, Object> namedParams,  PageDesc pageDesc  ) {
+        if(pageDesc!=null && pageDesc.getPageSize()>0) {
+            return baseDao.getJdbcTemplate().execute(
+                    (ConnectionCallback<List<Object[]>>) conn -> {
+                        try {
+                            pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
+                                    DatabaseAccess.getScalarObjectQuery(
+                                            conn, queryCountSql, namedParams)));
+                            return DatabaseAccess.findObjectsByNamedSql(conn, querySql ,
+                                    namedParams, pageDesc.getPageNo(), pageDesc.getPageSize());
+                        } catch (SQLException | IOException e) {
+                            throw new PersistenceException(e);
+                        }
+                    });
+        }else{
+            return DatabaseOptUtils.listObjectsByNamedSql(baseDao,querySql,namedParams);
+        }
+    }
+
+    public static List<Object[]> listObjectsByNamedSql(BaseDaoImpl<?, ?> baseDao, String querySql ,
+                                                       Map<String, Object> namedParams,  PageDesc pageDesc  ) {
+        if(pageDesc!=null && pageDesc.getPageSize()>0) {
+            String queryCountSql = QueryUtils.buildGetCountSQL(querySql);
+            return DatabaseOptUtils.listObjectsByNamedSql(baseDao,querySql, queryCountSql,namedParams, pageDesc);
+        }else{
+            return DatabaseOptUtils.listObjectsByNamedSql(baseDao,querySql,namedParams);
+        }
+    }
     /**
      * 参数驱动sql查询
      * @param baseDao 任意dao对象，需要用dao中的session访问数据库
@@ -268,7 +347,7 @@ public abstract class DatabaseOptUtils {
         QueryAndNamedParams countQap = QueryUtils.translateQuery( queryCountSql, namedParams);
         paramsMap.putAll(countQap.getParams());
 
-        return listObjectsBySqlAsJson(baseDao, qap.getQuery(), fieldNames , countQap.getQuery(),
+        return listObjectsByNamedSqlAsJson(baseDao, qap.getQuery(), fieldNames , countQap.getQuery(),
                 paramsMap, pageDesc);
 
     }
@@ -279,7 +358,7 @@ public abstract class DatabaseOptUtils {
                                                    Map<String, Object> namedParams,  PageDesc pageDesc) {
         QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
         
-        return listObjectsBySqlAsJson(baseDao,  qap.getQuery(), fieldNames ,
+        return listObjectsByNamedSqlAsJson(baseDao,  qap.getQuery(), fieldNames ,
                 QueryUtils.buildGetCountSQLByReplaceFields( qap.getQuery() ), qap.getParams(),   pageDesc  );
     }
 
@@ -289,7 +368,7 @@ public abstract class DatabaseOptUtils {
         
         QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
 
-        return listObjectsBySqlAsJson( baseDao,
+        return listObjectsByNamedSqlAsJson( baseDao,
                 qap.getQuery(),  fieldNames, qap.getParams());
     }
 
@@ -308,7 +387,7 @@ public abstract class DatabaseOptUtils {
 
         QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
 
-        return listObjectsBySqlAsJson( baseDao, qap.getQuery(), qap.getParams());
+        return listObjectsByNamedSqlAsJson( baseDao, qap.getQuery(), qap.getParams());
     }
 
 
@@ -324,7 +403,7 @@ public abstract class DatabaseOptUtils {
                                             Map<String, Object> namedParams,  PageDesc pageDesc  ) {
         QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
 
-        return listObjectsBySqlAsJson(baseDao, qap.getQuery(),
+        return listObjectsByNamedSqlAsJson(baseDao, qap.getQuery(),
                                         qap.getParams(), pageDesc);
     }
 

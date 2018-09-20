@@ -1071,10 +1071,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, filters, filterMap, false);
 
         if (pageDesc != null && pageDesc.getPageSize() > 0) {
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, qap.getQuery(), q.getRight(),
+            return DatabaseOptUtils.listObjectsByNamedSqlAsJson(this, qap.getQuery(), q.getRight(),
                     QueryUtils.buildGetCountSQLByReplaceFields(qap.getQuery()), qap.getParams(), pageDesc);
         } else {
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, qap.getQuery(), q.getRight(), qap.getParams());
+            return DatabaseOptUtils.listObjectsByNamedSqlAsJson(this, qap.getQuery(), q.getRight(), qap.getParams());
         }
     }
 
@@ -1097,10 +1097,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 + " " +whereSql;
 
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, fieldsDesc.getRight() ,
+            return DatabaseOptUtils.listObjectsByNamedSqlAsJson(this, querySql, fieldsDesc.getRight() ,
                     QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams,   pageDesc  );
         }else{
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, fieldsDesc.getRight(), namedParams);
+            return DatabaseOptUtils.listObjectsByNamedSqlAsJson(this, querySql, fieldsDesc.getRight(), namedParams);
         }
     }
 

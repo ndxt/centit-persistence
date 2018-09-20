@@ -171,6 +171,6 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
     @Transactional
     public JSONArray listObjectsBySqlAsJson(String querySql,
                                             Map<String, Object> filterMap,  PageDesc pageDesc ) {
-        return DatabaseOptUtils.listObjectsBySqlAsJson(baseDao, querySql, filterMap, pageDesc);
+        return DatabaseOptUtils.listObjectsByNamedSqlAsJson(baseDao, querySql, filterMap, pageDesc);
     }
 }
