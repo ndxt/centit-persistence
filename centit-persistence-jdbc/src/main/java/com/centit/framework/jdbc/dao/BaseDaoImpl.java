@@ -736,7 +736,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             Triple<List<Object>, List<Pair<Object,Object>>, List<Object>>
                     comRes=
                     CollectionsOpt.compareTwoList((List<Object>)refs, newListObj,
-                            new OrmDaoUtils.OrmObjectComparator<>(mapInfo) );
+                            new OrmDaoUtils.OrmObjectComparator<>(refMapInfo) );
 
             int resN = 0;
             if(comRes.getLeft() != null) {
