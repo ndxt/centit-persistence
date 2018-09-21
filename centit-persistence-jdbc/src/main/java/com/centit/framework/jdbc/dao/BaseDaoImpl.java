@@ -579,8 +579,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public T fetchObjectReference(T object, String columnName) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         SimpleTableReference ref = mapInfo.findReference(columnName);
-        SimpleTableField field = mapInfo.findFieldByName(columnName);
-        if(ref==null || field == null || ref.getReferenceColumns().size()<1)
+
+        if(ref==null || ref.getReferenceColumns().size()<1)
             return object;
 
         Class<?> refType = ref.getTargetEntityType();
@@ -604,11 +604,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
                     for(Object refObject : refs)
                     if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
-                        field.setObjectFieldValue(object,refObject);
+                        ref.setObjectFieldValue(object,refObject);
                         break;
                     }
                 }else {
-                    field.setObjectFieldValue(object, refs.get(0));
+                    ref.setObjectFieldValue(object, refs.get(0));
                 }
             }else if(Set.class.isAssignableFrom(ref.getReferenceType())){
                 Set<Object> validRefDate = new HashSet<>(refs.size()+1);
@@ -620,7 +620,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 }else {
                     validRefDate.addAll(refs);
                 }
-                field.setObjectFieldValue(object,validRefDate);
+                ref.setObjectFieldValue(object,validRefDate);
             }else if(List.class.isAssignableFrom(ref.getReferenceType())){
                 if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
                     List<Object>  validRefDate = new ArrayList<>(refs.size());
@@ -630,7 +630,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         }
                     }
                 }else {
-                    field.setObjectFieldValue(object, refs);
+                    ref.setObjectFieldValue(object, refs);
                 }
             }
         }
