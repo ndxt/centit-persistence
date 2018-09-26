@@ -959,7 +959,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     + " " + whereSql;
 
             pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
-                    DatabaseOptUtils.getScalarObjectQuery(this,
+                    JdbcTemplateUtils.getScalarObjectQuery(this.jdbcTemplate,
                             "select count(1) from " +
                                     mapInfo.getTableName() + " " + QueryUtils.removeOrderBy(whereSql),
                             params))
@@ -996,7 +996,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             String querySql = "select " + fieldsSql + " from " + mapInfo.getTableName()
                     + " " + whereSql;
             pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
-                    DatabaseOptUtils.getScalarObjectQuery(this, "select count(1) from " +
+                    JdbcTemplateUtils.getScalarObjectQuery(this.jdbcTemplate, "select count(1) from " +
                             mapInfo.getTableName() + " " + QueryUtils.removeOrderBy(whereSql), namedParams))
             );
             return jdbcTemplate.execute(
@@ -1023,6 +1023,23 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     /**
+     * 在sql语句中找到属性对应的字段语句
+     * @param querySql sql语句
+     * @param fieldName 属性
+     * @return 返回的对应这个属性的语句，如果找不到返回 null
+     */
+    public static String mapFieldToColumnPiece(String querySql, String fieldName){
+        List<Pair<String,String>> fields = QueryUtils.getSqlFieldNamePieceMap(querySql);
+        for(Pair<String,String> field : fields){
+            if(fieldName.equalsIgnoreCase(field.getLeft()) ||
+                    fieldName.equals(DatabaseAccess.mapColumnNameToField(field.getKey())) ||
+                    fieldName.equalsIgnoreCase(field.getRight())){
+                return  field.getRight();
+            }
+        }
+        return null;
+    }
+    /**
      * querySql 用户检查order by 中的字段属性 对应的查询标识 比如，
      * select a+b as ab from table
      * 在 filterMap 中的 CodeBook.TABLE_SORT_FIELD (sort) 为 ab 字段 返回的排序语句为 a+b
@@ -1035,7 +1052,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if (StringUtils.isBlank(selfOrderBy)) {
             String sortField = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_FIELD));
             if (StringUtils.isNotBlank(sortField)) {
-                sortField = DatabaseOptUtils.mapFieldToColumnPiece(querySql, sortField);
+                sortField = BaseDaoImpl.mapFieldToColumnPiece(querySql, sortField);
                 if (sortField != null) {
                     selfOrderBy = sortField;
                     String sOrder = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_ORDER));
@@ -1071,10 +1088,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, filters, filterMap, false);
 
         if (pageDesc != null && pageDesc.getPageSize() > 0) {
-            return DatabaseOptUtils.listObjectsByNamedSqlAsJson(this, qap.getQuery(), q.getRight(),
+            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, qap.getQuery(), q.getRight(),
                     QueryUtils.buildGetCountSQLByReplaceFields(qap.getQuery()), qap.getParams(), pageDesc);
         } else {
-            return DatabaseOptUtils.listObjectsByNamedSqlAsJson(this, qap.getQuery(), q.getRight(), qap.getParams());
+            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, qap.getQuery(), q.getRight(), qap.getParams());
         }
     }
 
@@ -1097,10 +1114,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 + " " +whereSql;
 
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            return DatabaseOptUtils.listObjectsByNamedSqlAsJson(this, querySql, fieldsDesc.getRight() ,
+            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, querySql, fieldsDesc.getRight() ,
                     QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams,   pageDesc  );
         }else{
-            return DatabaseOptUtils.listObjectsByNamedSqlAsJson(this, querySql, fieldsDesc.getRight(), namedParams);
+            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, querySql, fieldsDesc.getRight(), namedParams);
         }
     }
 
@@ -1118,10 +1135,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 + " " +whereSql;
 
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, fieldsDesc.getRight() ,
+            return JdbcTemplateUtils.listObjectsBySqlAsJson(this.jdbcTemplate, querySql, fieldsDesc.getRight() ,
                     QueryUtils.buildGetCountSQLByReplaceFields( querySql ), params,   pageDesc  );
         }else{
-            return DatabaseOptUtils.listObjectsBySqlAsJson(this, querySql, params, fieldsDesc.getRight());
+            return JdbcTemplateUtils.listObjectsBySqlAsJson(this.jdbcTemplate, querySql, params, fieldsDesc.getRight());
         }
     }
 
