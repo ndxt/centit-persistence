@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class DDLOperationsWork implements DDLOperations {
 
     protected static Logger logger = LoggerFactory.getLogger(DDLOperations.class);
