@@ -89,10 +89,13 @@ public class ParameterDriverSqlInterceptor implements Interceptor {
             return invocation.proceed();
         }
 
-        Map<String,Object> parameterObjectMap = QueryAndParamMaps.parameterObjectMap(boundSql.getParameterObject());
+        Map<String,Object> parameterObjectMap =
+                QueryAndParamMaps.parameterObjectMap(boundSql.getParameterObject());
 
         Object filter = parameterObjectMap.get("powerFilter");
-
+        if(filter!=null){
+            filter = parameterObjectMap.get("powerFilters");
+        }
         QueryAndParamMaps qandP = QueryAndParamMaps.createFromQueryAndNamedParams(
                 QueryUtils.translateQuery(nativeSql,
                     QueryAndParamMaps.objectToStringList(filter),parameterObjectMap, true ));
