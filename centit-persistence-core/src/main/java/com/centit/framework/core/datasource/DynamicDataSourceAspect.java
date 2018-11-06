@@ -2,6 +2,7 @@ package com.centit.framework.core.datasource;
 
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.compiler.VariableFormula;
+import com.centit.support.common.ParamName;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
