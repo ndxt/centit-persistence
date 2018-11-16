@@ -34,6 +34,24 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- server runtime library -->
         <dependency>
             <groupId>com.sun</groupId>
@@ -41,6 +59,18 @@
             <version>${jdk.version}</version>
             <systemPath>${env.JAVA_HOME}/lib/tools.jar</systemPath>
             <scope>system</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
         </dependency>
     </dependencies>
 </project>
