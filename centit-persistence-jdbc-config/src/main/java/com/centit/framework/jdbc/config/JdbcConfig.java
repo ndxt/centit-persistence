@@ -2,7 +2,6 @@ package com.centit.framework.jdbc.config;
 
 import com.centit.framework.core.config.DataSourceConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
