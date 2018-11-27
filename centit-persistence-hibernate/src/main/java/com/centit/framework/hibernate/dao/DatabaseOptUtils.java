@@ -8,8 +8,6 @@ import com.centit.support.database.utils.DatabaseAccess;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.database.utils.QueryUtils;
 import org.hibernate.Session;
-import org.hibernate.engine.jdbc.spi.JdbcServices;
-import org.hibernate.internal.SessionImpl;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
@@ -787,10 +785,10 @@ public abstract class DatabaseOptUtils {
 
     private final static void setQueryParameter(Query query, Object[] values ){
         if (values != null) {
-            int basePostion =
-                    query.getParameterMetadata().isOrdinalParametersZeroBased()?0:1;
+            /*int basePostion =
+                    query.getParameterMetadata().isOrdinalParametersZeroBased()?0:1;*/
             for (int i = 0; i < values.length; i++) {
-                query.setParameter(basePostion+ i, values[i]);
+                query.setParameter(/*basePostion + */i, values[i]);
             }
         }
     }

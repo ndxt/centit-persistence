@@ -6,13 +6,13 @@
     <parent>
         <artifactId>centit-framework-dependencies</artifactId>
         <groupId>com.centit.framework</groupId>
-        <version>1.1.1810</version>
+        <version>1.1.1811</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.centit.framework</groupId>
     <artifactId>centit-persistence</artifactId>
     <packaging>pom</packaging>
-    <version>1.1-SNAPSHOT</version>
+   <version>1.1-SNAPSHOT</version>
 
     <name>com.centit.framework:centit-persistence</name>
     <description>框架持久化包， 有三个子模块分别对应 hibernate、mybatis和spring jdbc template 三个实现方式。
@@ -20,7 +20,7 @@
     <url>https://github.com/ndxt/centit-persistence</url>
 
     <properties>
-        <centit.commons.version>2.2-SNAPSHOT</centit.commons.version>
+        <centit.commons.version>2.2.1811</centit.commons.version>
     </properties>
 
     <organization>
@@ -116,7 +116,7 @@
                 </executions>
             </plugin>
 
-            <!--<plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>1.6</version>
@@ -130,7 +130,7 @@
                     </execution>
                 </executions>
             </plugin>
-
+<!--
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
