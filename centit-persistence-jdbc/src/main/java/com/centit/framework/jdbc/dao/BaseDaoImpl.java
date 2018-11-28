@@ -513,6 +513,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param fields 需要修改的部分属性
      * @param object 除了对应修改的属性 需要有相应的值，主键对应的属性也必须要值
      * @throws PersistenceException 运行时异常
+     * @return 是否 更新了数据库
      */
     public int updateObject(Collection<String> fields, T object)
             throws PersistenceException {
@@ -529,6 +530,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param fields 需要修改的部分属性
      * @param object 除了对应修改的属性 需要有相应的值，主键对应的属性也必须要值
      * @throws PersistenceException 运行时异常
+     * @return 是否 更新了数据库
      */
     public int updateObject(String[] fields, T object)
             throws PersistenceException {
