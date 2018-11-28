@@ -362,9 +362,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
-    public void saveNewObject(T o) {
+    private void innerSaveNewObject(Object o) {
         if (o instanceof EntityWithVersionTag) {
-            EntityWithVersionTag ewvto = (EntityWithVersionTag)o;
+            EntityWithVersionTag ewvto = (EntityWithVersionTag) o;
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
             SimpleTableField field = mapInfo.findFieldByColumn(ewvto.obtainVersionProperty());
             Object obj = field.getObjectFieldValue(o);
@@ -378,7 +378,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.saveNewObject(conn, o));
     }
 
-    private void deleteObjectWithVersion(final T o){
+    public void saveNewObject(Object o) {
+        innerSaveNewObject(o);
+    }
+
+    private void deleteObjectWithVersion(final Object o){
         jdbcTemplate.execute(
             (ConnectionCallback<Integer>) conn -> {
                 TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
@@ -401,7 +405,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             });
     }
 
-    public void deleteObjectForce(T o) {
+    private void innerDeleteObjectForce(Object o) {
         if (o instanceof EntityWithVersionTag) {
             deleteObjectWithVersion(o);
         } else {
@@ -410,6 +414,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     (ConnectionCallback<Integer>) conn ->
                             OrmDaoUtils.deleteObject(conn, o));
         }
+    }
+    public void deleteObjectForce(T o) {
+        innerDeleteObjectForce(o);
     }
 
     public void deleteObjectForceById(Object id) {
@@ -424,25 +431,24 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.deleteObjectByProperties(conn, filterMap, getPoClass()));
     }
 
-    public void deleteObject(T o) {
+    private void innerDeleteObject(Object o) {
       /* Integer execute = */
         if (o instanceof EntityWithDeleteTag) {
             ((EntityWithDeleteTag) o).setDeleted(true);
-            this.updateObject(o);
+            this.innerUpdateObject(o);
         } else {
-            this.deleteObjectForce(o);
+            this.innerDeleteObjectForce(o);
         }
+    }
+
+    public void deleteObject(T o) {
+        innerDeleteObject(o);
     }
 
     public void deleteObjectById(Object id) {
         /* Integer execute = */
-        if (EntityWithDeleteTag.class.isAssignableFrom(getPoClass())) {
-            T o = getObjectById(id);
-            ((EntityWithDeleteTag) o).setDeleted(true);
-            this.updateObject(o);
-        } else {
-            this.deleteObjectForceById(id);
-        }
+        T o = getObjectById(id);
+        innerDeleteObject(o);
     }
 
     public void deleteObjectsByProperties(Map<String, Object> filterMap) {
@@ -452,15 +458,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             for (T obj : deleteList) {
                 if (hasDeleteTag) {
                     ((EntityWithDeleteTag) obj).setDeleted(true);
-                    this.updateObject(obj);
+                    this.innerUpdateObject(obj);
                 } else {
-                    this.deleteObjectForce(obj);
+                    this.innerDeleteObjectForce(obj);
                 }
             }
         }
     }
 
-    private int updateObjectWithVersion(final T o, Collection<String> fields){
+    private int updateObjectWithVersion(final Object o, Collection<String> fields){
         return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn -> {
                     TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
@@ -490,7 +496,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 });
     }
 
-    public int updateObject(final T o) {
+    private int innerUpdateObject(final Object o) {
         if (o instanceof EntityWithVersionTag) {
             return updateObjectWithVersion(o, null);
         }
@@ -499,6 +505,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.updateObject(conn, o));
     }
 
+    public int updateObject(final T o) {
+        return innerUpdateObject(o);
+    }
     /**
      * 只更改对象的部分属性
      * @param fields 需要修改的部分属性
@@ -534,10 +543,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if (o instanceof EntityWithVersionTag) {
             T dbObj = this.getObjectById(o);
             if(dbObj==null){
-                this.saveNewObject(o);
+                this.innerSaveNewObject(o);
                 return 1;
             }else{
-                return this.updateObject(o);
+                return this.innerUpdateObject(o);
             }
         }
         return  jdbcTemplate.execute(
@@ -575,28 +584,30 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.fetchObjectLazyColumns(conn, o));
     }
 
-
-    public T fetchObjectReference(T object, String columnName) {
-        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        SimpleTableReference ref = mapInfo.findReference(columnName);
-
+    private List<?> innerFetchObjectReference(T object, SimpleTableReference ref ){
         if(ref==null || ref.getReferenceColumns().size()<1)
-            return object;
+            return null;
 
         Class<?> refType = ref.getTargetEntityType();
         TableMapInfo refMapInfo = JpaMetadata.fetchTableMapInfo( refType );
         if( refMapInfo == null )
-            return object;
+            return null;
 
         Map<String, Object> properties = new HashMap<>(6);
         for(Map.Entry<String,String> ent : ref.getReferenceColumns().entrySet()){
             properties.put(ent.getValue(), ReflectionOpt.getFieldValue(object,ent.getKey()));
         }
 
-        List<?> refs = jdbcTemplate.execute(
+        return jdbcTemplate.execute(
                 (ConnectionCallback<List<?>>) conn ->
                         OrmDaoUtils.listObjectsByProperties(conn, properties, refType));
+    }
 
+    public T fetchObjectReference(T object, String columnName) {
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        SimpleTableReference ref = mapInfo.findReference(columnName);
+        Class<?> refType = ref.getTargetEntityType();
+        List<?> refs = innerFetchObjectReference(object, ref);
 
         if(refs!=null && refs.size()>0) {
             if (//ref.getReferenceType().equals(refType) /*||
@@ -629,6 +640,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                             validRefDate.add(refObject);
                         }
                     }
+                    ref.setObjectFieldValue(object, validRefDate);
                 }else {
                     ref.setObjectFieldValue(object, refs);
                 }
@@ -647,41 +659,72 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return o;
     }
 
-    public Integer saveObjectReference(T object, String columnName) {
+    public int deleteObjectReference(T object, String columnName) {
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        SimpleTableReference ref = mapInfo.findReference(columnName);
+
+        List<?> refs = innerFetchObjectReference(object, ref);
+
+        if(refs!=null && refs.size()>0){
+            for(Object refObject : refs) {
+                innerDeleteObject(refObject);
+            }
+        }
+        return 1;
+    }
+
+    public int deleteObjectReferences(T object) {
+        int nRes = 0;
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo( getPoClass());
+        if(mapInfo.hasReferences()) {
+            for (SimpleTableReference ref : mapInfo.getReferences()) {
+                nRes += deleteObjectReference(object, ref.getReferenceName());
+            }
+        }
+        return nRes;
+    }
+
+    public int deleteObjectReferenceForce(T object, String columnName) {
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        SimpleTableReference ref = mapInfo.findReference(columnName);
+        List<?> refs = innerFetchObjectReference(object, ref);
+
+        if(refs!=null && refs.size()>0){
+            for(Object refObject : refs) {
+                innerDeleteObjectForce(refObject);
+            }
+        }
+        return 1;
+    }
+
+    public int deleteObjectReferencesForce(T object) {
+        int nRes = 0;
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo( getPoClass());
+        if(mapInfo.hasReferences()) {
+            for (SimpleTableReference ref : mapInfo.getReferences()) {
+                nRes += deleteObjectReferenceForce(object, ref.getReferenceName());
+            }
+        }
+        return nRes;
+    }
+
+    public int saveObjectReference(T object, String columnName) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         SimpleTableReference ref = mapInfo.findReference(columnName);
         if(ref==null || ref.getReferenceColumns().size()<1)
             return 0;
 
-        Object newObj = ref.getObjectFieldValue(object);
         Class<?> refType = ref.getTargetEntityType();
         TableMapInfo refMapInfo = JpaMetadata.fetchTableMapInfo( refType );
         if( refMapInfo == null )
             return 0;
 
-        Map<String, Object> properties = new HashMap<>(6);
-        for(Map.Entry<String,String> ent : ref.getReferenceColumns().entrySet()){
-            properties.put(ent.getValue(), ReflectionOpt.getFieldValue(object,ent.getKey()));
-        }
-        List<?> refs = jdbcTemplate.execute(
-                (ConnectionCallback<List<?>>) conn ->
-                        OrmDaoUtils.listObjectsByProperties(conn, properties, refType));
+        List<?> refs = innerFetchObjectReference(object, ref);
+        Object newObj = ref.getObjectFieldValue(object);
         if(newObj == null){ // delete all
             if(refs!=null && refs.size()>0){
-                if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
-                    for(Object refObject : refs) {
-                        if (!((EntityWithDeleteTag) refObject).isDeleted()) {
-                            //设置删除标记
-                            ((EntityWithDeleteTag) refObject).setDeleted(true);
-                            jdbcTemplate.execute(
-                                    (ConnectionCallback<Integer>) conn ->
-                                            OrmDaoUtils.updateObject(conn, refObject));
-                        }
-                    }
-                }else{ // 直接删除
-                    return jdbcTemplate.execute(
-                            (ConnectionCallback<Integer>) conn ->
-                                    OrmDaoUtils.deleteObjectReference(conn, object,ref));
+                for(Object refObject : refs) {
+                    innerDeleteObject(refObject);
                 }
             }
             return 1;
@@ -699,26 +742,16 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 for (Object refObject : refs) {
                     if (refObjComparator.compare(refObject, newObj) == 0) {
                         //找到相同的对象 更新
-                        jdbcTemplate.execute((ConnectionCallback<Integer>)
-                                conn -> OrmDaoUtils.updateObject(conn, newObj));
+                        innerUpdateObject(newObj);
                         haveSaved = true;
                     } else {
-                        if (EntityWithDeleteTag.class.isAssignableFrom(refType)) {
-                            if (!((EntityWithDeleteTag) refObject).isDeleted()) {
-                                //设置删除标记
-                                ((EntityWithDeleteTag) refObject).setDeleted(true);
-                                jdbcTemplate.execute((ConnectionCallback<Integer>) conn -> OrmDaoUtils.updateObject(conn, refObject));
-                            }
-                        } else {
-                            jdbcTemplate.execute((ConnectionCallback<Integer>) conn -> OrmDaoUtils.deleteObject(conn, refObject));
-                        }
+                        innerDeleteObject(refObject);
                     }
                 }
             }
             if(!haveSaved){
                 //没有相同的条目 新建
-                jdbcTemplate.execute((ConnectionCallback<Integer>)
-                        conn -> OrmDaoUtils.saveNewObject(conn, newObj));
+                innerSaveNewObject(newObj);
             }
             return 1;
         }else {
@@ -741,36 +774,27 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             int resN = 0;
             if(comRes.getLeft() != null) {
                 for (Object obj : comRes.getLeft()) {
-                    resN += jdbcTemplate.execute((ConnectionCallback<Integer>)
-                            conn -> OrmDaoUtils.saveNewObject(conn, obj));
+                    innerSaveNewObject(obj);
+                    resN ++;
                 }
             }
             if(comRes.getRight() != null) {
                 for (Object obj : comRes.getRight()) {
-                    if( EntityWithDeleteTag.class.isAssignableFrom(refType)) {
-                        if (!((EntityWithDeleteTag) obj).isDeleted()) {
-                            //设置删除标记
-                            ((EntityWithDeleteTag) obj).setDeleted(true);
-                            resN += jdbcTemplate.execute((ConnectionCallback<Integer>)
-                                    conn -> OrmDaoUtils.updateObject(conn, obj));
-                        }
-                    }else {
-                        resN += jdbcTemplate.execute((ConnectionCallback<Integer>)
-                                conn -> OrmDaoUtils.deleteObject(conn, obj));
-                    }
+                    innerDeleteObject(obj);
+                    resN ++;
                 }
             }
             if(comRes.getMiddle() != null) {
                 for (Pair<Object, Object> pobj : comRes.getMiddle()) {
-                    resN += jdbcTemplate.execute((ConnectionCallback<Integer>)
-                            conn -> OrmDaoUtils.updateObject(conn, pobj.getRight()));
+                    innerUpdateObject(pobj.getRight());
+                    resN ++;
                 }
             }
             return resN;
         }
     }
 
-    public Integer saveObjectReferences(T o) {
+    public int saveObjectReferences(T o) {
         int nRes = 0;
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo( getPoClass());
         if(mapInfo.hasReferences()) {
