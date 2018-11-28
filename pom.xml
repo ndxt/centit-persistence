@@ -20,7 +20,7 @@
     <url>https://github.com/ndxt/centit-persistence</url>
 
     <properties>
-        <centit.commons.version>2.2.1811</centit.commons.version>
+        <centit.commons.version>2.2-SNAPSHOT</centit.commons.version>
     </properties>
 
     <organization>
