@@ -321,7 +321,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.saveNewObject(conn, o));
     }
 
-    public void saveNewObject(Object o) {
+    public void saveNewObject(T o) {
         innerSaveNewObject(o);
     }
 
