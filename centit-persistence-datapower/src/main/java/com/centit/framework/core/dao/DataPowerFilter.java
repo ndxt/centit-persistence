@@ -1,22 +1,21 @@
 package com.centit.framework.core.dao;
 
-import com.centit.support.algorithm.BooleanBaseOpt;
-import com.centit.support.algorithm.ReflectionOpt;
-import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.algorithm.StringRegularOpt;
+import com.centit.framework.components.SysUnitFilterEngine;
+import com.centit.framework.components.SysUserFilterEngine;
+import com.centit.framework.model.adapter.UserUnitVariableTranslate;
+import com.centit.support.algorithm.*;
 import com.centit.support.common.KeyValuePair;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("unused")
-public class DataPowerFilter {
+public class DataPowerFilter implements UserUnitVariableTranslate {
     /**
      * 过滤条件中可以应用的数据，至少包括 userinfo 用户信息，unitinfo 用户主机构信息
      */
@@ -94,6 +93,38 @@ public class DataPowerFilter {
         return ReflectionOpt.attainExpressionValue(sourceData, expression);
     }
 
+    @Override
+    public Set<String> getUsersVariable(String s) {
+        Set<String> retSet = new HashSet<>(20);
+        Object obj = attainExpressionValue(s);
+        if(obj instanceof Object[]) {
+            Object[] objs = (Object[]) obj;
+            if (objs.length > 0) {
+                for (int i = 0; i < objs.length; i++) {
+                    retSet.add(StringBaseOpt.objectToString(objs[i]));
+                }
+            }
+        } else if(obj instanceof Collection){
+            Collection<?> valueList = (Collection<?> )obj;
+            for(Object ov : valueList){
+                retSet.add(StringBaseOpt.objectToString(ov));
+            }
+        } else {
+            retSet.add(StringBaseOpt.objectToString(obj));
+        }
+        return retSet;
+    }
+
+    @Override
+    public Set<String> getUnitsVariable(String s) {
+        return getUsersVariable(s);
+    }
+
+    @Override
+    public Object getGeneralVariable(String s) {
+        return attainExpressionValue(s);
+    }
+
 
     protected static class DataPowerFilterTranslater implements QueryUtils.IFilterTranslater {
         private Map<String,String> tableAlias;
@@ -132,30 +163,48 @@ public class DataPowerFilter {
 
         }
 
+        public Object mapParamFormula(String paramName){
+            // 判断是否为机构表达式， 如果 首字母为 * 则为用户表达式
+            if(paramName.contains("(")){
+                String formula =  StringEscapeUtils.unescapeHtml4(paramName).trim();
+                if(formula.startsWith("*")){
+                    Set<String> units = SysUserFilterEngine.calcSystemOperators(
+                        formula, null, null, null, dataPowerFilter);
+                    return units;
+                }else {
+                    Set<String> units = SysUnitFilterEngine.calcSystemUnitsByExp(
+                        formula, null, dataPowerFilter);
+                    return units;
+                }
+            }else {
+                return dataPowerFilter.attainExpressionValue(paramName);
+            }
+        }
+
         @Override
         public KeyValuePair<String,Object> translateParam(String paramName){
  
-            Object obj = dataPowerFilter.attainExpressionValue(paramName);
+            Object obj = mapParamFormula(paramName);
 
             if(obj==null)
                 return null;
             if(obj instanceof String){
-                if(StringUtils.isBlank((String)obj))
+                if(StringUtils.isBlank((String) obj))
                     return null;
             }
 
             if(jointSql){
                 return new KeyValuePair<>(
-                        QueryUtils.buildObjectStringForQuery(obj),null);
+                        QueryUtils.buildObjectStringForQuery(obj), null);
             }else{
                 return new KeyValuePair<>(
-                        paramName,obj);
+                        paramName, obj);
             }
         }
 
         @Override
         public String getVarValue(String varName) {
-            Object res = dataPowerFilter.attainExpressionValue(varName);
+            Object res = mapParamFormula(varName);
             if(res==null)
                 return "\"\"";
             return StringRegularOpt.quotedString(StringBaseOpt.objectToString(res));

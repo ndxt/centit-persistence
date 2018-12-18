@@ -17,8 +17,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class HibernatePowerFilter extends DataPowerFilter {
-
-
     /**
      * HQL注解中的配置信息
      */
