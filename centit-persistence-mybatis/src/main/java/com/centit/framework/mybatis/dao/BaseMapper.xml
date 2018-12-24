@@ -6,7 +6,7 @@
 
 	<!-- mybatis oracle 分页实现 -->
 	<!-- select * from (select row_.*, rownum rownum_ from ( select * from table ) row_ where rownum <= #endRow# ) where rownum_ > #startRow# -->
-	
+
 	<!-- 分页前面包装部分 oracle -->
 	<sql id="pageBegin" databaseId="oracle"><![CDATA[ select t.* from (select row_.*, rownum rownum_ from ( ]]></sql>
 
@@ -18,6 +18,13 @@
 
 	<!-- 分页后面包装部分 mysql -->
 	<sql id="pageEnd" databaseId="mysql"><![CDATA[  limit #{startRow}, #{maxSize}]]></sql>
+
+
+	<!-- 分页前面包装部分 postgresql -->
+	<sql id="pageBegin" databaseId="postgresql"></sql>
+
+	<!-- 分页后面包装部分 postgresql -->
+	<sql id="pageEnd" databaseId="postgresql"><![CDATA[  limit #{maxSize} offset #{startRow}]]></sql>
 
 
 	<!-- 分页前面包装部分 sqlserver -->
@@ -56,7 +63,14 @@
     <!-- 分页后面包装部分 mysql -->
     <sql id="pageEndByPDSql" databaseId="mysql"><![CDATA[  limit :startRow, :maxSize]]></sql>
 
-    <!-- 分页前面包装部分 sqlserver -->
+	<!-- 分页前面包装部分 postgresql -->
+	<sql id="pageBeginByPDSql" databaseId="postgresql"><![CDATA[ ]]></sql>
+
+	<!-- 分页后面包装部分 postgresql -->
+	<sql id="pageEndByPDSql" databaseId="postgresql"><![CDATA[  limit :maxSize offset :startRow]]></sql>
+
+
+	<!-- 分页前面包装部分 sqlserver -->
     <sql id="pageBeginByPDSql" databaseId="sqlserver"><![CDATA[ WITH query AS (SELECT inner_query.* , ROW_NUMBER() OVER (ORDER BY CURRENT_TIMESTAMP) as __row_nr__ FROM ( ]]></sql>
 
     <!-- 分页后面包装部分 sqlserver -->

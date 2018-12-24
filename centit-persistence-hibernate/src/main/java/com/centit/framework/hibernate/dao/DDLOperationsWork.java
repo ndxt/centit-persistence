@@ -39,11 +39,14 @@ public class DDLOperationsWork implements DDLOperations {
                 return new SqlSvrDDLOperations(connection);
             case MySql:
                 return new MySqlDDLOperations(connection);
-            case Access:
             case H2:
+                return new H2DDLOperations(connection);
+            case PostgreSql:
+                return new PostgreSqlDDLOperations(connection);
+
+            case Access:
             default:
-                return new OracleDDLOperations(connection);
-                //throw new  SQLException("不支持的数据库类型："+dbtype.toString());
+                throw new RuntimeException("不支持的数据库类型："+dbtype.toString());
         }
     }
 

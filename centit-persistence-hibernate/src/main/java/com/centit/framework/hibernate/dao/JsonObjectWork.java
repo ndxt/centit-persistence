@@ -57,11 +57,13 @@ public class JsonObjectWork implements JsonObjectDao {
                 return new SqlSvrJsonObjectDao(connection ,tableInfo);
             case MySql:
                 return new MySqlJsonObjectDao(connection ,tableInfo);
-            case Access:
             case H2:
+                return new H2JsonObjectDao(connection ,tableInfo);
+            case PostgreSql:
+                return new PostgreSqlJsonObjectDao(connection ,tableInfo);
+            case Access:
             default:
-                return new OracleJsonObjectDao(connection ,tableInfo);
-                //throw new  SQLException("不支持的数据库类型："+dbtype.toString());
+                throw new RuntimeException("不支持的数据库类型："+dbtype.toString());
         }
     }
 

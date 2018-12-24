@@ -60,6 +60,7 @@ public class MybatisConfig extends DataSourceConfig/* implements EnvironmentAwar
         properties.setProperty("MySQL","mysql");
         properties.setProperty("SQL Server","sqlserver");
         properties.setProperty("H2","h2");
+        properties.setProperty("PostgreSQL","postgresql");
 
         /*PropertiesFactoryBean propertiesFactory = new PropertiesFactoryBean();
         propertiesFactory.setProperties(properties);*/
