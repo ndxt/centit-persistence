@@ -20,7 +20,7 @@ public class HibernatePowerFilter extends DataPowerFilter {
     /**
      * HQL注解中的配置信息
      */
-    private static Map<String,Map<String, String /*KeyValuePair<String,Integer>*/>> hqlMetaData;
+    private static Map<String,Map<String, String /*LeftRightPair<String,Integer>*/>> hqlMetaData;
 
 
     public static Map<String,Map<String,String>> getHqlMetaData(){
@@ -38,7 +38,7 @@ public class HibernatePowerFilter extends DataPowerFilter {
                 Class<?> poClass = ent.getJavaType();// ent.getValue().getMappedClass();
                 Table tableName = poClass.getAnnotation(Table.class);
                 metaData.put(".talbeName",tableName.name());
-                        //new KeyValuePair<String,Integer>(tableName.name(),4));
+                        //new LeftRightPair<String,Integer>(tableName.name(),4));
                 Field [] objFields = poClass.getDeclaredFields();
                 for(Field field :objFields){
                     if(field.isAnnotationPresent(Column.class)){
@@ -46,7 +46,7 @@ public class HibernatePowerFilter extends DataPowerFilter {
                         //field.getType()
 
                         metaData.put(field.getName(),colMeta.name());
-                                //new KeyValuePair<String,Integer>(colMeta.name(),mapTypeToInt(field.getType())));
+                                //new LeftRightPair<String,Integer>(colMeta.name(),mapTypeToInt(field.getType())));
                     }else if(field.isAnnotationPresent(EmbeddedId.class)){
                         String sId = field.getName()+".";
                         Class<?> idClass = field.getType();
@@ -55,7 +55,7 @@ public class HibernatePowerFilter extends DataPowerFilter {
                             if(idfield.isAnnotationPresent(Column.class)){
                                 Column colMeta = idfield.getAnnotation(Column.class);
                                 metaData.put(sId + idfield.getName(), colMeta.name());
-                                //new KeyValuePair<String,Integer>(colMeta.name(),mapTypeToInt(idfield.getType())));
+                                //new LeftRightPair<String,Integer>(colMeta.name(),mapTypeToInt(idfield.getType())));
                             }
                         }
                     }
@@ -67,7 +67,7 @@ public class HibernatePowerFilter extends DataPowerFilter {
                         if(supfield.isAnnotationPresent(Column.class)){
                             Column colMeta = supfield.getAnnotation(Column.class);
                             metaData.put(supfield.getName(),colMeta.name());
-                                    //new KeyValuePair<String,Integer>(colMeta.name(),mapTypeToInt(supfield.getType())));
+                                    //new LeftRightPair<String,Integer>(colMeta.name(),mapTypeToInt(supfield.getType())));
                         }
                     }
                     supClass =  supClass.getSuperclass();

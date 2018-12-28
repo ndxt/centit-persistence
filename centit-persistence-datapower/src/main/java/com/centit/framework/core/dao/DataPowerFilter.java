@@ -4,7 +4,7 @@ import com.centit.framework.components.SysUnitFilterEngine;
 import com.centit.framework.components.SysUserFilterEngine;
 import com.centit.framework.model.adapter.UserUnitVariableTranslate;
 import com.centit.support.algorithm.*;
-import com.centit.support.common.KeyValuePair;
+import com.centit.support.common.LeftRightPair;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.compiler.VariableFormula;
 import com.centit.support.database.utils.QueryAndNamedParams;
@@ -168,13 +168,11 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
             if(paramName.contains("(")){
                 String formula =  StringEscapeUtils.unescapeHtml4(paramName).trim();
                 if(formula.startsWith("*")){
-                    Set<String> units = SysUserFilterEngine.calcSystemOperators(
+                    return SysUserFilterEngine.calcSystemOperators(
                         formula, null, null, null, dataPowerFilter);
-                    return units;
                 }else {
-                    Set<String> units = SysUnitFilterEngine.calcSystemUnitsByExp(
+                    return SysUnitFilterEngine.calcSystemUnitsByExp(
                         formula, null, dataPowerFilter);
-                    return units;
                 }
             }else {
                 return dataPowerFilter.attainExpressionValue(paramName);
@@ -182,8 +180,8 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
         }
 
         @Override
-        public KeyValuePair<String,Object> translateParam(String paramName){
- 
+        public LeftRightPair<String,Object> translateParam(String paramName){
+
             Object obj = mapParamFormula(paramName);
 
             if(obj==null)
@@ -194,10 +192,10 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
             }
 
             if(jointSql){
-                return new KeyValuePair<>(
+                return new LeftRightPair<>(
                         QueryUtils.buildObjectStringForQuery(obj), null);
             }else{
-                return new KeyValuePair<>(
+                return new LeftRightPair<>(
                         paramName, obj);
             }
         }

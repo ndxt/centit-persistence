@@ -5,7 +5,7 @@ import com.centit.support.algorithm.*;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.framework.core.po.EntityWithTimestamp;
-import com.centit.support.common.KeyValuePair;
+import com.centit.support.common.LeftRightPair;
 import com.centit.support.database.utils.PersistenceException;
 import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
@@ -32,37 +32,37 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 @SuppressWarnings("unused")
-public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializable> 
+public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializable>
 {
     @Resource(name="sessionFactory")
     protected SessionFactory sessionFactory;
-    
+
     public void setSessionFactory(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
 
     }
-    
+
     public SessionFactory getSessionFactory() {
         return this.sessionFactory;
     }
-    
+
     /**
      * 获取当前事务上下文环境 session
      * @return  当前事务上下文环境 session
      */
-    @Transactional(propagation=Propagation.MANDATORY)  
+    @Transactional(propagation=Propagation.MANDATORY)
     public Session getCurrentSession(){
         Session s = this.sessionFactory.getCurrentSession();
         /*if(s==null||!s.isOpen())
             s = this.sessionFactory.openSession();  */
         return s;
     }
-    
+
     protected static Logger logger = LoggerFactory.getLogger(BaseDaoImpl.class);
 
     protected Map<String, String> filterField = null;
 
-   
+
     // ((SessionImpl)
     // getSession()).getFactory().getDialect().getClass().getName();
     private Class<?> poClass = null;
@@ -114,7 +114,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
         return poClass;
     }
-    
+
     /**
      * 获取泛型参数对象的主键类型
      * @return 泛型参数对象的主键类型
@@ -125,9 +125,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         Type[] params = genType.getActualTypeArguments();
         return ((Class<?>) params[1]);
     }
-    
+
     /**
-     * 获取泛型参数对象全称 
+     * 获取泛型参数对象全称
      * @return 泛型参数对象全称
      */
     public String getClassTName() {
@@ -142,14 +142,14 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return getPoClass().getSimpleName();
     }
 
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public void deleteObject(T o) {
 
         if(o instanceof EntityWithDeleteTag){
             ((EntityWithDeleteTag) o).setDeleted(true);
             saveObject(o);
         }else{
-            try {   
+            try {
                 sessionFactory.getCurrentSession().delete(o);
                 //sessionFactory.getCurrentSession().delete(o);
                 // log.debug("delete successful");
@@ -159,10 +159,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             }
         }
     }
-    
-    @Transactional(propagation=Propagation.MANDATORY) 
+
+    @Transactional(propagation=Propagation.MANDATORY)
     public void deleteObjectForce(T o) {
-        try {   
+        try {
             sessionFactory.getCurrentSession().delete(o);
             //sessionFactory.getCurrentSession().delete(o);
             // log.debug("delete successful");
@@ -188,13 +188,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public void deleteObjectForceById(PK id) {
         T o = getObjectById(id);
         deleteObjectForce(o);
     }
- 
-    @Transactional(propagation=Propagation.MANDATORY) 
+
+    @Transactional(propagation=Propagation.MANDATORY)
     public void deleteObjectById(PK id) {
         T o = getObjectById(id);
         deleteObject(o);
@@ -215,7 +215,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             throw new PersistenceException(PersistenceException.DATABASE_OPERATE_EXCEPTION,re);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     @Transactional(propagation=Propagation.MANDATORY)
     public List<PK> saveNewObjects(Collection<T> os) {
@@ -235,7 +235,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             throw new PersistenceException(PersistenceException.DATABASE_OPERATE_EXCEPTION,re);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
        @Transactional(propagation=Propagation.MANDATORY)
     public List<PK> saveNewObjects(T[] os) {
@@ -255,8 +255,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                throw new PersistenceException(PersistenceException.DATABASE_OPERATE_EXCEPTION,re);
            }
        }
-    
-    @Transactional(propagation=Propagation.MANDATORY) 
+
+    @Transactional(propagation=Propagation.MANDATORY)
     public void updateRawObject(T o) {
         try {
             sessionFactory.getCurrentSession().update(o);// .persist(o);//
@@ -266,9 +266,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             throw new PersistenceException(PersistenceException.DATABASE_OPERATE_EXCEPTION,re);
         }
     }
-    
-        
-    @Transactional(propagation=Propagation.MANDATORY) 
+
+
+    @Transactional(propagation=Propagation.MANDATORY)
     public void updateObject(T o) {
         try {
             if(o instanceof EntityWithTimestamp){
@@ -281,7 +281,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             throw new PersistenceException(PersistenceException.DATABASE_OPERATE_EXCEPTION,re);
         }
     }
-    
+
     /**
      * 只更改部分属性，根据对象的主键来更新
      * @param o 这对对象中除了要有对应的属性值 ，还必须有主键值
@@ -289,11 +289,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @throws NoSuchFieldException 如果属性名输入的不对会报错
      */
     @SuppressWarnings("unchecked")
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public void updateObjectProperties(T o,String... properties )
             throws NoSuchFieldException {
         try {
- 
+
             T dbo = (T) getCurrentSession().get(o.getClass(),//getPoClass(),
                     (Serializable)getPoObjectId(o));//{getCurrentSession().getIdentifier(o) );
             if(dbo==null)
@@ -303,7 +303,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 ReflectionOpt.forceSetProperty(dbo, p,
                         ReflectionOpt.forceGetProperty(o, p));
             }
-        
+
             if(dbo instanceof EntityWithTimestamp){
                 ((EntityWithTimestamp) dbo).setLastModifyDate(DatetimeOpt.currentUtilDate());
             }
@@ -314,13 +314,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             throw new PersistenceException(PersistenceException.DATABASE_OPERATE_EXCEPTION,re);
         }
     }
-    
+
     /**
      * 修改之前check一下版本号，不一致抛异常
      * @param o T
      */
     @SuppressWarnings("unchecked")
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public void updateObjectCheckTimestamp(T o) {
         try {
             if(o instanceof EntityWithTimestamp){
@@ -328,16 +328,16 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         (Serializable)getPoObjectId(o));//getCurrentSession().getIdentifier(o));
                 if(dbo==null)
                     throw new PersistenceException(PersistenceException.NULL_EXCEPTION,"被更改对象找不到");
-                
+
                 if(!  ((EntityWithTimestamp) o).getLastModifyDate()
                         .equals(((EntityWithTimestamp) dbo).getLastModifyDate())){
-                    String errorMsg = "save or update object  failed,"+ 
+                    String errorMsg = "save or update object  failed,"+
                             getClassTName() +":" + o.toString() + " be modified out-sync.";
                     logger.error(errorMsg);
                     throw new PersistenceException(
                             PersistenceException.DATABASE_OUT_SYNC_EXCEPTION,errorMsg);
                 }
-                        
+
                 ((EntityWithTimestamp) o).setLastModifyDate(DatetimeOpt.currentUtilDate());
             }
             sessionFactory.getCurrentSession().merge(o);// .persist(o);//
@@ -347,7 +347,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             throw new PersistenceException(PersistenceException.DATABASE_OUT_SYNC_EXCEPTION,re);
         }
     }
-    
+
     /**
      * 只更改部分属性，根据对象的主键来更新,同时检验 时间戳
      * @param o 这对对象中除了要有对应的属性值 ，还必须有主键值
@@ -355,10 +355,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @throws NoSuchFieldException 如果属性名输入的不对会报错
      */
     @SuppressWarnings("unchecked")
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public void updateObjectPropertiesCheckTimestamp(T o,String... properties )
             throws NoSuchFieldException {
-        try { 
+        try {
             T dbo = (T) getCurrentSession().get(o.getClass(),//getPoClass(),
                     (Serializable)getPoObjectId(o));//getCurrentSession().getIdentifier(o) );
 
@@ -379,25 +379,25 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 ReflectionOpt.forceSetProperty(dbo, p,
                         ReflectionOpt.forceGetProperty(o, p));
             }
-        
+
             if(dbo instanceof EntityWithTimestamp){
                 ((EntityWithTimestamp) dbo).setLastModifyDate(DatetimeOpt.currentUtilDate());
             }
-            
+
             sessionFactory.getCurrentSession().update(dbo);// .persist(o);//
             // log.debug("save or update successful");
         } catch (RuntimeException re) {
             logger.error("save new object failed", re);
             throw new PersistenceException(PersistenceException.DATABASE_OPERATE_EXCEPTION,re);
         }
-    }   
-    
-    
+    }
+
+
     /**
      * 批量删除记录
      * @param dbObjects 数据库中旧的对象列表
      */
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public void deleteObjectsAsTabulation(Collection<T> dbObjects){
 
         if(dbObjects==null||dbObjects.size()==0)
@@ -422,30 +422,30 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             }
         }
     }
-    
+
     /**
      *  批量删除记录 根据单独外键查询
      * @param propertyName 外键关联字段
      * @param propertyValue 外键值（主表的主键）
      */
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public void deleteObjectsAsTabulation(
             final String propertyName,
             final Object propertyValue ){
         List<T> dbObjects = this.listObjectByProperty(propertyName, propertyValue);
         deleteObjectsAsTabulation(dbObjects);
     }
-    
+
     /**
      *  批量删除记录 根据复合外键查询
      * @param properties 复合外键字段属性 和对应额值
      */
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public void deleteObjectsAsTabulation(Map<String, Object> properties){
         List<T> dbObjects = this.listObjectByProperties(properties);
         deleteObjectsAsTabulation(dbObjects);
     }
-    
+
     /**
      *  通过注解 @Id 或者  @EmbeddedId 获得主键
      * @param poObj Object
@@ -453,7 +453,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      */
     public static Object getPoObjectId(Object poObj) {
         Field[] objFields = poObj.getClass().getDeclaredFields();
-        
+
         for(Field field :objFields){
             if(field.isAnnotationPresent(Id.class) ||
                     field.isAnnotationPresent(EmbeddedId.class)){
@@ -463,7 +463,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
         return null;
     }
-    
+
     /**
      * 用新的子表对象列表替换旧的子表对象列表
      * @param dbObjects 数据库中旧的对象列表
@@ -487,7 +487,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         List<T> insertObjects = new ArrayList<>();
         //需要更改的记录
         List<T> updateObjects = new ArrayList<>();
-        List<KeyValuePair<T,T>> updateObjectPairs = new ArrayList<>();
+        List<LeftRightPair<T,T>> updateObjectPairs = new ArrayList<>();
         Session session =  getCurrentSession();
         for(T dbo : dbObjects){
             boolean found = false;
@@ -498,7 +498,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     //找到了交集，添加到修改列表中，
                     updateObjects.add(no);
                     //同时记录一个对应关系，用户后面检查时间戳
-                    updateObjectPairs.add(new KeyValuePair<T,T>(no,dbo));
+                    updateObjectPairs.add(new LeftRightPair<T,T>(no,dbo));
                     found = true;
                     break;
                 }
@@ -510,15 +510,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             if(!updateObjects.contains(no))
                 insertObjects.add(no);
         }
-        
-        for(KeyValuePair<T,T> updateO : updateObjectPairs){
-            T no = updateO.getKey();
-            T dbo = updateO.getValue();
+
+        for(LeftRightPair<T,T> updateO : updateObjectPairs){
+            T no = updateO.getLeft();
+            T dbo = updateO.getRight();
             //检查时间戳
             if(checkTimestamp && no instanceof EntityWithTimestamp ){
                  if(!  ((EntityWithTimestamp) no).getLastModifyDate()
                          .equals(((EntityWithTimestamp) dbo).getLastModifyDate())){
-                     String errorMsg = "save or update object failed,"+ 
+                     String errorMsg = "save or update object failed,"+
                              getClassTName() +":" + no.toString() + " be modified out-sync.";
                      logger.error(errorMsg);
                      throw new PersistenceException(errorMsg);
@@ -550,7 +550,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 session.delete(deleteO);
             }
         }
-        //插入新值        
+        //插入新值
         for(T insretO : insertObjects){
             if( insretO instanceof EntityWithTimestamp ){
                 EntityWithTimestamp ewto = (EntityWithTimestamp) insretO;
@@ -559,38 +559,38 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             pks.add((PK)session.save(insretO));
         }
         return pks;
-    }    
+    }
 
     /**
-     *  用新的子表对象列表替换旧的子表对象列表 
+     *  用新的子表对象列表替换旧的子表对象列表
      *  通过单主键查询数据库中的旧的类别
      * @param newObjects 新的对象列表
      * @param propertyName 外键关联字段
      * @param propertyValue 外键值（主表的主键）
      * @return  新的子表对象
      */
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public List<PK> replaceObjectsAsTabulation(Collection<T> newObjects,
             final String propertyName,
             final Object propertyValue ){
         List<T> dbObjects = this.listObjectByProperty(propertyName, propertyValue);
         return replaceObjectsAsTabulation(dbObjects,newObjects,false);
     }
-    
+
     /**
-     *  用新的子表对象列表替换旧的子表对象列表 
+     *  用新的子表对象列表替换旧的子表对象列表
      *  通过复合主键查询数据库中的旧的类别
      * @param newObjects 新的对象列表
      * @param properties 复合外键字段属性 和对应额值
      * @return  新的子表对象
      */
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public List<PK> replaceObjectsAsTabulation(Collection<T> newObjects,
             Map<String, Object> properties){
         List<T> dbObjects = this.listObjectByProperties(properties);
         return replaceObjectsAsTabulation(dbObjects,newObjects,false);
     }
-  
+
     /**
      *  用新的子表对象列表替换旧的子表对象列表 ,更新的记录需要检查更改时间戳
      *  通过单主键查询数据库中的旧的类别
@@ -599,7 +599,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param propertyValue 外键值（主表的主键）
      * @return  新的子表对象
      */
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public List<PK> replaceObjectsAsTabulationCheckTimestamp(Collection<T> newObjects,
             final String propertyName,
             final Object propertyValue ){
@@ -613,13 +613,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param properties 复合外键字段属性 和对应额值
      * @return  新的子表对象
      */
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public List<PK> replaceObjectsAsTabulationCheckTimestamp(Collection<T> newObjects,
             Map<String, Object> properties){
         List<T> dbObjects = this.listObjectByProperties(properties);
         return replaceObjectsAsTabulation(dbObjects,newObjects,true);
     }
-    
+
     @SuppressWarnings("unchecked")
     @Transactional(propagation=Propagation.MANDATORY)
     public void mergeObject(T o) {
@@ -643,8 +643,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public void flush() {
         sessionFactory.getCurrentSession().flush();
     }
-    
-    @Transactional(propagation=Propagation.MANDATORY) 
+
+    @Transactional(propagation=Propagation.MANDATORY)
     public void saveRawObject(T o) {
         try {
             sessionFactory.getCurrentSession().saveOrUpdate(o);// .persist(o);//
@@ -655,7 +655,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
-    @Transactional(propagation=Propagation.MANDATORY) 
+    @Transactional(propagation=Propagation.MANDATORY)
     public void saveObject(T o) {
         try {
             if(o instanceof EntityWithTimestamp){
@@ -685,7 +685,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
        return listObjects();
     }
 
-    @SuppressWarnings("unchecked")   
+    @SuppressWarnings("unchecked")
     @Transactional
     public List<T> listObjects() {
         String shql = appendOrderBy("From " + getClassTShortName());
@@ -804,15 +804,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         // 如果请求参数没有排序字段，从Dao中查找
         if (sOrderby == null && filterFieldDesc != null) {
             sOrderby = filterFieldDesc.get(CodeBook.ORDER_BY_HQL_ID);
-        }        
+        }
         // 排序
         if (!StringBaseOpt.isNvl(sOrderby)) {
-            hql.append(" order by ").append(sOrderby);            
+            hql.append(" order by ").append(sOrderby);
         }
-        
+
         return new QueryAndNamedParams(hql.toString(), params);
     }
-    
+
     public QueryAndNamedParams builderHqlAndNamedParams(String shql,
             Map<String, Object> filterDesc) {
         return builderHqlAndNamedParams(shql,filterDesc,getFilterField());
@@ -834,9 +834,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
         for (Map.Entry<String, Object> ent : filterDesc.entrySet()) {
             String skey = ent.getKey();
-            
-            if (! CodeBook.SELF_ORDER_BY.equalsIgnoreCase(skey) 
-                   && ! CodeBook.TABLE_SORT_FIELD.equalsIgnoreCase(skey) 
+
+            if (! CodeBook.SELF_ORDER_BY.equalsIgnoreCase(skey)
+                   && ! CodeBook.TABLE_SORT_FIELD.equalsIgnoreCase(skey)
                    && ! CodeBook.TABLE_SORT_ORDER.equalsIgnoreCase(skey)) {
 
                 ImmutableTriple<String,String,Object> sqlPiece =
@@ -895,13 +895,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     @Transactional
     public List<T> listObjects(String shql, Object[] values) {
         try {
-            
+
             Query q= getCurrentSession().createQuery(shql);
             if (values != null) {
                 for (int i = 0; i < values.length; i++) {
                     q.setParameter(i, values[i]);
                 }
-            }            
+            }
             return  q.list();
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -928,7 +928,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
         return listObjects(shql, filterDesc,null);
     }
-    
+
     @Transactional
     public List<T> listObjects(Map<String, Object> filterDesc) {
         String shql = "From " + getClassTShortName() + " where 1=1 ";
@@ -941,9 +941,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             Map<String, Object> params, int startPos, int maxSize) {
         try {
             Query q= getCurrentSession().createQuery(shql);
-            
+
             DatabaseOptUtils.setQueryParameters(q,params);
-            
+
             if (maxSize > 0)
                 q.setMaxResults(maxSize);
             if (startPos >= 0)
@@ -982,14 +982,14 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     private List<T> listObjects(String shql, Map<String, Object> filterDesc,
             PageDesc pageDesc) {
-       
+
         int startPos = 0;
         int maxSize = 0;
         if(pageDesc!=null){
             startPos = pageDesc.getRowStart();
             maxSize = pageDesc.getPageSize();
         }
-        
+
         QueryAndNamedParams hql = builderHqlAndNamedParams(shql, filterDesc);
         List<T> listObjs = listObjectsByNamedHql(hql.getQuery(), hql.getParams(),
                 startPos, maxSize);
@@ -1127,7 +1127,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             return null;
         }
     }
-     
+
     @Transactional
     public T getObjectByProperty(final String propertyName,
             final Object propertyValue) {

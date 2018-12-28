@@ -97,7 +97,7 @@ public abstract class JdbcTemplateUtils {
     public static JSONArray listObjectsByNamedSqlAsJson(JdbcTemplate jdbcTemplate,
                                             String querySql, String[] fieldNames, String queryCountSql,
                                             Map<String, Object> namedParams, PageDesc pageDesc /*,
-                                      Map<String,KeyValuePair<String,String>> dictionaryMapInfo*/) {
+                                      Map<String,LeftRightPair<String,String>> dictionaryMapInfo*/) {
         return jdbcTemplate.execute(
                 (ConnectionCallback<JSONArray>) conn -> {
                     try {
@@ -347,7 +347,7 @@ public abstract class JdbcTemplateUtils {
                                                    String querySql, String[] fieldNames,
                                                    Map<String, Object> namedParams, PageDesc pageDesc) {
         QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
-        
+
         return listObjectsByNamedSqlAsJson(jdbcTemplate, qap.getQuery(), fieldNames,
                 QueryUtils.buildGetCountSQLByReplaceFields( qap.getQuery()), qap.getParams(), pageDesc);
     }
@@ -355,7 +355,7 @@ public abstract class JdbcTemplateUtils {
     public static JSONArray listObjectsByParamsDriverSqlAsJson(JdbcTemplate jdbcTemplate,
                                                    String querySql, String[] fieldNames,
                                                    Map<String, Object> namedParams) {
-        
+
         QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
 
         return listObjectsByNamedSqlAsJson( jdbcTemplate,
@@ -366,8 +366,8 @@ public abstract class JdbcTemplateUtils {
     public static JSONArray listObjectsByParamsDriverSqlAsJson(JdbcTemplate jdbcTemplate,
                                                    String querySql, String queryCountSql,
                                                    Map<String, Object> namedParams, PageDesc pageDesc) {
-        
-        return listObjectsByParamsDriverSqlAsJson(jdbcTemplate, querySql, 
+
+        return listObjectsByParamsDriverSqlAsJson(jdbcTemplate, querySql,
                 null, queryCountSql, namedParams, pageDesc);
     }
 

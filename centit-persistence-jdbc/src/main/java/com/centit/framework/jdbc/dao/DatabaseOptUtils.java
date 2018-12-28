@@ -64,8 +64,8 @@ public abstract class DatabaseOptUtils {
     public static JSONArray listObjectsByNamedSqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                             String querySql, String[] fieldNames, String queryCountSql,
                                             Map<String, Object> namedParams, PageDesc pageDesc /*,
-                                      Map<String,KeyValuePair<String,String>> dictionaryMapInfo*/) {
-        return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(baseDao.getJdbcTemplate(), 
+                                      Map<String,LeftRightPair<String,String>> dictionaryMapInfo*/) {
+        return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(baseDao.getJdbcTemplate(),
                 querySql, fieldNames, queryCountSql, namedParams, pageDesc);
     }
 
@@ -91,7 +91,7 @@ public abstract class DatabaseOptUtils {
                 queryCountSql, namedParams, pageDesc);
     }
 
-    public static JSONArray listObjectsByNamedSqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql, 
+    public static JSONArray listObjectsByNamedSqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,
                                                         Map<String,Object> params) {
         return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(baseDao.getJdbcTemplate(),
                 querySql, params);
@@ -220,8 +220,8 @@ public abstract class DatabaseOptUtils {
     public static JSONArray listObjectsByParamsDriverSqlAsJson(BaseDaoImpl<?, ?> baseDao,
                                                    String querySql, String queryCountSql,
                                                    Map<String, Object> namedParams, PageDesc pageDesc) {
-        
-        return listObjectsByParamsDriverSqlAsJson(baseDao, querySql, 
+
+        return listObjectsByParamsDriverSqlAsJson(baseDao, querySql,
                 null, queryCountSql, namedParams, pageDesc);
     }
 
