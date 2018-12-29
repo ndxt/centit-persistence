@@ -11,6 +11,7 @@ import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 import java.util.*;
 
@@ -20,7 +21,6 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
      * 过滤条件中可以应用的数据，至少包括 userinfo 用户信息，unitinfo 用户主机构信息
      */
     private Map<String,Object> sourceData;
-
 
     public void setSourceDatas(Map<String,Object> sourceData) {
         this.sourceData = sourceData;
@@ -82,8 +82,6 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
             this.sourceData.put(obj.getClass().getSimpleName(), obj);
     }
 
-
-
     /**
      * 获取表达式敌营的值；这个地方需要根据业务的类型多样性和具体需求不断的完善
      * @param expression String
@@ -125,7 +123,6 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
         return attainExpressionValue(s);
     }
 
-
     protected static class DataPowerFilterTranslater implements QueryUtils.IFilterTranslater {
         private Map<String,String> tableAlias;
         private boolean jointSql;
@@ -163,13 +160,18 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
 
         }
 
+        /**
+         * 变量转换器
+         * @param paramName 变量表达式，可以式一个简单的变量，也可以式一个机构表达式，或者人员表达式
+         * @return 返回对应的值
+         */
         public Object mapParamFormula(String paramName){
             // 判断是否为机构表达式， 如果 首字母为 * 则为用户表达式
             if(paramName.contains("(")){
                 String formula =  StringEscapeUtils.unescapeHtml4(paramName).trim();
                 if(formula.startsWith("*")){
                     return SysUserFilterEngine.calcSystemOperators(
-                        formula, null, null, null, dataPowerFilter);
+                        formula.substring(1), null, null, null, dataPowerFilter);
                 }else {
                     return SysUnitFilterEngine.calcSystemUnitsByExp(
                         formula, null, dataPowerFilter);
@@ -215,15 +217,15 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
 
     }
 
-    public QueryUtils.IFilterTranslater getPowerFilterTranslater(){
+    public DataPowerFilterTranslater getPowerFilterTranslater(){
         return new DataPowerFilterTranslater(false, false,this);
     }
 
-    public QueryUtils.IFilterTranslater getPowerFilterTranslater(boolean toSql, boolean jointSql){
+    public DataPowerFilterTranslater getPowerFilterTranslater(boolean toSql, boolean jointSql){
         return new DataPowerFilterTranslater(toSql, jointSql,this);
     }
+
     /**
-     *
      * @param queryStatement queryStatement
      * @param filters Collection filters
      * @param toSql    是否为sql语句，否：表示hql ，是：表示 sql
@@ -237,7 +239,6 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
         return QueryUtils.translateQuery(queryStatement,
                 filters, isUnion, new DataPowerFilterTranslater(toSql, jointSql,this));
     }
-
 
     /**
      * 权限查询，不同的条件取并集
@@ -270,6 +271,7 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
      * @return 1 or -1
      */
     public int checkObjectFilter(Object obj,String filter){
+        DataPowerFilterTranslater translater = getPowerFilterTranslater();
         String poClassName = obj.getClass().getSimpleName();
         Lexer varMorp = new Lexer();
         varMorp.setFormula(filter);
@@ -303,7 +305,9 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
                 varMorp.seekTo('}');
                 prePos = varMorp.getCurrPos();
                 String valueDesc =  filter.substring(curPos,prePos-1).trim();
-                Object fieldValue = attainExpressionValue(valueDesc);
+                ImmutableTriple<String, String, String> paramMeta = QueryUtils.parseParameter(valueDesc);
+                String paramName = StringUtils.isBlank(paramMeta.left) ? paramMeta.middle : paramMeta.left;
+                Object fieldValue = translater.mapParamFormula(paramName);
 
                 checkStatement.append(QueryUtils.buildObjectStringForQuery(fieldValue));
             }
@@ -329,5 +333,4 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
         }
         return nFalse == 0; // 如果 过滤条件为 空 也算合法
     }
-
 }
