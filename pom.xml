@@ -37,7 +37,7 @@
         <module>centit-persistence-hibernate-config</module>
         <module>centit-persistence-jdbc-config</module>
         <module>centit-persistence-mybatis-config</module>
-        <module>centit-persistence-datapower</module>
+        <module>centit-persistence-extend</module>
     </modules>
 
     <licenses>
