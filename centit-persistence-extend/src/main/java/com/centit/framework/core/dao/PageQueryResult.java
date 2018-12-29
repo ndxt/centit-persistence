@@ -1,5 +1,6 @@
 package com.centit.framework.core.dao;
 
+import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.common.ResponseData;
 import com.centit.framework.common.ResponseMapData;
 import com.centit.framework.common.ToResponseData;
@@ -9,6 +10,11 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Collection;
 
+/**
+ * 功能，创建作为分页查询的返回结果，结果包括objList数据部分和pageDesc分页信息部分
+ * 这个对象还复制对 返回结果中的内容进行 数据字段转换 和 字段属性过滤功能
+ * @param <T> 模板对象，对于JSONArray来说这个对象就是 Object
+ */
 @ApiModel(description = "分页查询返回结果")
 public class PageQueryResult<T> implements ToResponseData {
     @ApiModelProperty(value = "查询结果")
@@ -41,7 +47,7 @@ public class PageQueryResult<T> implements ToResponseData {
      * @param <D> 对象类型
      * @return ToResponseData 用于 WarpUpResponseBody 的处理
      */
-    public static  <D>  PageQueryResult<D>
+    public static <D> PageQueryResult<D>
         createResult(Collection<D> objList, PageDesc pageDesc, String[] filterFields){
         return innerCreateResult(objList, pageDesc, false, filterFields);
     }
@@ -54,7 +60,7 @@ public class PageQueryResult<T> implements ToResponseData {
      * @param <D> 对象类型
      * @return ToResponseData 用于 WarpUpResponseBody 的处理
      */
-    public static  <D>  PageQueryResult<D>
+    public static <D> PageQueryResult<D>
         createResultMapDict(Collection<D> objList, PageDesc pageDesc, String[] filterFields){
         return innerCreateResult(objList, pageDesc, true, filterFields);
     }
@@ -66,7 +72,7 @@ public class PageQueryResult<T> implements ToResponseData {
      * @param <D> 对象类型
      * @return ToResponseData 用于 WarpUpResponseBody 的处理
      */
-    public static  <D>  PageQueryResult<D>
+    public static <D> PageQueryResult<D>
         createResult(Collection<D> objList, PageDesc pageDesc){
         return innerCreateResult(objList, pageDesc, false, null);
     }
@@ -78,9 +84,34 @@ public class PageQueryResult<T> implements ToResponseData {
      * @param <D> 对象类型
      * @return ToResponseData 用于 WarpUpResponseBody 的处理
      */
-    public static  <D>  PageQueryResult<D>
+    public static <D> PageQueryResult<D>
         createResultMapDict(Collection<D> objList, PageDesc pageDesc){
         return innerCreateResult(objList, pageDesc, true, null);
+    }
+
+    /**
+     * 将对象转换为分页返回结果
+     * @param objList 查询返回结果，需要 Collection 类型，并且类别中的对象不能为null
+     * @param pageDesc 分页信息
+     * @return ToResponseData 用于 WarpUpResponseBody 的处理
+     */
+    public static PageQueryResult<Object>
+        createJSONArrayResult(JSONArray objList, PageDesc pageDesc){
+        return innerCreateResult(objList, pageDesc, false, null);
+    }
+
+    /**
+     * 将对象转换为分页返回结果
+     * @param objList 查询返回结果，需要 Collection 类型，并且类别中的对象不能为null
+     * @param pageDesc 分页信息
+     * @param objTypes 需要做数据字典映射的对象，可以是多个
+     * @return ToResponseData 用于 WarpUpResponseBody 的处理
+     */
+    public static PageQueryResult<Object>
+        createJSONArrayResult(JSONArray objList, PageDesc pageDesc, Class<?>... objTypes){
+        return innerCreateResult(
+            DictionaryMapUtils.mapJsonArray(objList, objTypes),
+            pageDesc, false, null);
     }
 
     @Override
