@@ -391,7 +391,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public void deleteObjectById(Object id) {
         /* Integer execute = */
         T o = getObjectById(id);
-        innerDeleteObject(o);
+        if(o != null) {
+            innerDeleteObject(o);
+        }
     }
 
     public void deleteObjectsByProperties(Map<String, Object> filterMap) {

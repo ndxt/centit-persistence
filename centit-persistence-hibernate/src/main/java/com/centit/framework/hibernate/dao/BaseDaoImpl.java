@@ -144,7 +144,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     @Transactional(propagation=Propagation.MANDATORY)
     public void deleteObject(T o) {
-
         if(o instanceof EntityWithDeleteTag){
             ((EntityWithDeleteTag) o).setDeleted(true);
             saveObject(o);
@@ -175,8 +174,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     @SuppressWarnings("unchecked")
     @Transactional
     public T getObjectById(PK id) {
-        if (id == null)
+        if (id == null) {
             return null;
+        }
         // Type[] params = getClass().getTypeParameters();
         try {
             return (T) getCurrentSession().get(getPoClass(), id);
@@ -191,13 +191,17 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     @Transactional(propagation=Propagation.MANDATORY)
     public void deleteObjectForceById(PK id) {
         T o = getObjectById(id);
-        deleteObjectForce(o);
+        if(o != null) {
+            deleteObjectForce(o);
+        }
     }
 
     @Transactional(propagation=Propagation.MANDATORY)
     public void deleteObjectById(PK id) {
         T o = getObjectById(id);
-        deleteObject(o);
+        if(o != null) {
+            deleteObject(o);
+        }
     }
 
     @SuppressWarnings("unchecked")
