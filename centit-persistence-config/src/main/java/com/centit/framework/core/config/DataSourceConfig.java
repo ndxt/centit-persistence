@@ -1,19 +1,24 @@
 package com.centit.framework.core.config;
 
+import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.support.algorithm.StringRegularOpt;
+import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.QueryLogUtils;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.dom4j.DocumentException;
 import org.flywaydb.core.Flyway;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
-import java.beans.PropertyVetoException;
+import java.io.IOException;
 
 public class DataSourceConfig implements EnvironmentAware {
-
+    protected Logger logger = LoggerFactory.getLogger(DataSourceConfig.class);
     protected Environment env;
 
     @Resource
@@ -25,7 +30,7 @@ public class DataSourceConfig implements EnvironmentAware {
     }
 
     @Bean(destroyMethod = "close")
-    public BasicDataSource dataSource() throws PropertyVetoException {
+    public BasicDataSource dataSource() {
         /*String dataSourcePoolType = env.getProperty("connection.pool.type");
         if("proxool".equals(dataSourcePoolType)) {
             ProxoolDataSource dataSource = new ProxoolDataSource();
@@ -69,6 +74,20 @@ public class DataSourceConfig implements EnvironmentAware {
         if(StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))){
             QueryLogUtils.setJdbcShowSql(true);
         }
+
+        DBType dbType = DBType.mapDBType(env.getProperty("jdbc.url"));
+        try {
+            ExtendedQueryPool.loadResourceExtendedSqlMap(dbType);
+        } catch (DocumentException e) {
+            logger.error(e.getMessage());
+        }
+        try{
+            ExtendedQueryPool.loadExtendedSqlMaps(
+                env.getProperty("app.home",".") +"/sqlscript", dbType);
+        } catch (DocumentException | IOException e) {
+            logger.error(e.getMessage());
+        }
+
         return dataSource;
     }
 
