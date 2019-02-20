@@ -11,7 +11,6 @@
 
     <artifactId>centit-persistence-extend</artifactId>
     <name>com.centit.framework:centit-persistence-extend</name>
-    <version>1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <description>数据范围权限管理、数据分页查询返回值等等</description>
 

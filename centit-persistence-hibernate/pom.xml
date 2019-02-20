@@ -8,14 +8,12 @@
         <version>1.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>centit-persistence-hibernate</artifactId>
     <name>com.centit.framework:centit-persistence-hibernate</name>
     <packaging>jar</packaging>
     <description>整合hibernate框架</description>
 
     <dependencies>
-
         <dependency>
             <groupId>com.centit.framework</groupId>
             <artifactId>centit-persistence-core</artifactId>
@@ -24,7 +22,7 @@
 
         <dependency>
             <groupId>com.centit.framework</groupId>
-            <artifactId>centit-persistence-datapower</artifactId>
+            <artifactId>centit-persistence-extend</artifactId>
             <version>${project.version}</version>
         </dependency>
 
