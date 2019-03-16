@@ -84,11 +84,6 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public JSONObject getObjectById(final Map<String, Object> keyValues) throws SQLException, IOException {
-        return getCurrentDao().getObjectById(keyValues);
-    }
-
-    @Override
     public JSONObject getObjectByProperties(final Map<String, Object> properties) throws SQLException, IOException {
         return getCurrentDao().getObjectByProperties(properties);
     }
@@ -177,22 +172,17 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public int deleteObjectById(final Map<String, Object> keyValues) throws SQLException {
-        return getCurrentDao().deleteObjectById(keyValues);
-    }
-
-    @Override
     public int deleteObjectsByProperties(final Map<String, Object> properties) throws SQLException {
         return getCurrentDao().deleteObjectsByProperties(properties);
     }
 
     @Override
-    public int insertObjectsAsTabulation(final JSONArray objects) throws SQLException {
+    public int insertObjectsAsTabulation(final List<Map<String, Object>> objects) throws SQLException {
         return getCurrentDao().insertObjectsAsTabulation(objects);
     }
 
     @Override
-    public int deleteObjects(final JSONArray objects) throws SQLException {
+    public int deleteObjects(final List<Object> objects) throws SQLException {
         return getCurrentDao().deleteObjects(objects);
     }
 
@@ -207,18 +197,18 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public int replaceObjectsAsTabulation(final JSONArray newObjects, final JSONArray dbObjects) throws SQLException {
+    public int replaceObjectsAsTabulation(final List<Map<String, Object>> newObjects, final List<Map<String, Object>> dbObjects) throws SQLException {
         return getCurrentDao().replaceObjectsAsTabulation(newObjects,dbObjects);
     }
 
     @Override
-    public int replaceObjectsAsTabulation(final JSONArray newObjects, final String propertyName, final Object propertyValue)
+    public int replaceObjectsAsTabulation(final List<Map<String, Object>> newObjects, final String propertyName, final Object propertyValue)
             throws SQLException, IOException {
         return getCurrentDao().replaceObjectsAsTabulation(newObjects,propertyName,propertyValue);
     }
 
     @Override
-    public int replaceObjectsAsTabulation(final JSONArray newObjects, final Map<String, Object> properties)
+    public int replaceObjectsAsTabulation(final List<Map<String, Object>> newObjects, final Map<String, Object> properties)
             throws SQLException, IOException {
         return getCurrentDao().replaceObjectsAsTabulation(newObjects,properties);
     }

@@ -358,6 +358,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                             OrmDaoUtils.deleteObject(conn, o));
         }
     }
+
     public void deleteObjectForce(T o) {
         innerDeleteObjectForce(o);
     }

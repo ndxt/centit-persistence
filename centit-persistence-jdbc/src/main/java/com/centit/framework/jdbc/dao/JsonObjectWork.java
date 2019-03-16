@@ -85,11 +85,6 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public JSONObject getObjectById(final Map<String, Object> keyValues) throws SQLException, IOException {
-        return executeRealWork(dao -> dao.getObjectById(keyValues) );
-    }
-
-    @Override
     public JSONObject getObjectByProperties(final Map<String, Object> properties) throws SQLException, IOException {
         return executeRealWork(dao -> dao.getObjectByProperties(properties));
     }
@@ -208,16 +203,6 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public int deleteObjectById(final Map<String, Object> keyValues) throws SQLException {
-        try {
-            return executeRealWork(dao -> dao.deleteObjectById(keyValues));
-        } catch (IOException e) {
-            logger.error("error code :" + e.getLocalizedMessage(),e);
-            return 0;
-        }
-    }
-
-    @Override
     public int deleteObjectsByProperties(final Map<String, Object> properties) throws SQLException {
         try {
             return executeRealWork(dao -> dao.deleteObjectsByProperties(properties));
@@ -228,7 +213,7 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public int insertObjectsAsTabulation(final JSONArray objects) throws SQLException {
+    public int insertObjectsAsTabulation(final List<Map<String,Object>> objects) throws SQLException {
         try {
             return executeRealWork(dao -> dao.insertObjectsAsTabulation(objects));
         } catch (IOException e) {
@@ -238,7 +223,7 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public int deleteObjects(final JSONArray objects) throws SQLException {
+    public int deleteObjects(final List<Object> objects) throws SQLException {
         try {
             return executeRealWork(dao -> dao.deleteObjects(objects));
         } catch (IOException e) {
@@ -268,7 +253,7 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public int replaceObjectsAsTabulation(final JSONArray newObjects, final JSONArray dbObjects) throws SQLException {
+    public int replaceObjectsAsTabulation(final List<Map<String,Object>> newObjects, final List<Map<String,Object>> dbObjects) throws SQLException {
         try {
             return executeRealWork(dao -> dao.replaceObjectsAsTabulation(newObjects,dbObjects));
         } catch (IOException e) {
@@ -278,13 +263,13 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public int replaceObjectsAsTabulation(final JSONArray newObjects, final String propertyName, final Object propertyValue)
+    public int replaceObjectsAsTabulation(final List<Map<String,Object>> newObjects, final String propertyName, final Object propertyValue)
             throws SQLException, IOException {
         return executeRealWork(dao -> dao.replaceObjectsAsTabulation(newObjects,propertyName,propertyValue));
     }
 
     @Override
-    public int replaceObjectsAsTabulation(final JSONArray newObjects, final Map<String, Object> properties)
+    public int replaceObjectsAsTabulation(final List<Map<String,Object>> newObjects, final Map<String, Object> properties)
             throws SQLException, IOException {
         return executeRealWork(dao -> dao.replaceObjectsAsTabulation(newObjects,properties));
     }

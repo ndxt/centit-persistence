@@ -87,19 +87,6 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public JSONObject getObjectById(final Map<String, Object> keyValues) throws SQLException, IOException {
-        return baseDao.getCurrentSession().doReturningWork(connection -> {
-            JsonObjectDao dao = createDao(connection);
-            try {
-                return dao.getObjectById(keyValues);
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-                return null;
-            }
-        });
-    }
-
-    @Override
     public JSONObject getObjectByProperties(final Map<String, Object> properties) throws SQLException, IOException {
         return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
@@ -244,25 +231,19 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public int deleteObjectById(final Map<String, Object> keyValues) throws SQLException {
-        return baseDao.getCurrentSession().doReturningWork(connection ->
-                createDao(connection).deleteObjectById(keyValues));
-    }
-
-    @Override
     public int deleteObjectsByProperties(final Map<String, Object> properties) throws SQLException {
         return baseDao.getCurrentSession().doReturningWork(connection ->
                 createDao(connection).deleteObjectsByProperties(properties) );
     }
 
     @Override
-    public int insertObjectsAsTabulation(final JSONArray objects) throws SQLException {
+    public int insertObjectsAsTabulation(final List<Map<String, Object>> objects) throws SQLException {
         return baseDao.getCurrentSession().doReturningWork(connection ->
                 createDao(connection).insertObjectsAsTabulation(objects) );
     }
 
     @Override
-    public int deleteObjects(final JSONArray objects) throws SQLException {
+    public int deleteObjects(final List<Object> objects) throws SQLException {
         return baseDao.getCurrentSession().doReturningWork(connection ->
                 createDao(connection).deleteObjects(objects) );
     }
@@ -280,7 +261,7 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public int replaceObjectsAsTabulation(final JSONArray newObjects, final JSONArray dbObjects) throws SQLException {
+    public int replaceObjectsAsTabulation(final List<Map<String, Object>> newObjects, final List<Map<String, Object>> dbObjects) throws SQLException {
         return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
             return dao.replaceObjectsAsTabulation(newObjects,dbObjects);
@@ -288,7 +269,7 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public int replaceObjectsAsTabulation(final JSONArray newObjects, final String propertyName, final Object propertyValue)
+    public int replaceObjectsAsTabulation(final List<Map<String, Object>> newObjects, final String propertyName, final Object propertyValue)
             throws SQLException, IOException {
         return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
@@ -302,7 +283,7 @@ public class JsonObjectWork implements JsonObjectDao {
     }
 
     @Override
-    public int replaceObjectsAsTabulation(final JSONArray newObjects, final Map<String, Object> properties)
+    public int replaceObjectsAsTabulation(final List<Map<String, Object>> newObjects, final Map<String, Object> properties)
             throws SQLException, IOException {
         return baseDao.getCurrentSession().doReturningWork(connection -> {
             JsonObjectDao dao = createDao(connection);
