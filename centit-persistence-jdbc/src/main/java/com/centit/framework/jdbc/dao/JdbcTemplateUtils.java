@@ -443,13 +443,19 @@ public abstract class JdbcTemplateUtils {
                 });
     }
 
-    /* 这个代码可以作为示例代码
+    /** 这个代码可以作为示例代码*/
+    /*
     public  <T> T getObjectCascadeById(JdbcTemplate jdbcTemplate, Object id, final Class<T> type) {
         return jdbcTemplate.execute(
                 (ConnectionCallback<T>) conn ->
                         OrmDaoUtils.getObjectCascadeById(conn, id, type));
     }
 
+    public  <T> Integer updateObjectCascade(JdbcTemplate jdbcTemplate, Object id,) {
+        return jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.updateObjectCascade(conn, id));
+    }
 
     public  <T> T getObjectCascadeShallowById(JdbcTemplate jdbcTemplate, Object id, final Class<T> type) {
         return jdbcTemplate.execute(
@@ -480,7 +486,7 @@ public abstract class JdbcTemplateUtils {
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.saveObjectReferences(conn, o));
     }
-*/
+  */
 
     public static Object getScalarObjectQuery(JdbcTemplate jdbcTemplate, String sSql,
                                                     Map<String,Object> values){

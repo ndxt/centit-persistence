@@ -42,6 +42,13 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
+/**
+ * 这个类是jpa的一个浅层实现，对引用只处理了一层，如果需要循环处理引用可以调用
+ * OrmDaoUtils.*Cascade*()相关的方法
+ * @see OrmDaoUtils
+ * @param <T> po类
+ * @param <PK> po主键类型 ; 对多个字段联合主键的可以使用Map《String, Object》类型
+ */
 @SuppressWarnings({"unused","unchecked"})
 public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializable> {
     protected static Logger logger = LoggerFactory.getLogger(BaseDaoImpl.class);
