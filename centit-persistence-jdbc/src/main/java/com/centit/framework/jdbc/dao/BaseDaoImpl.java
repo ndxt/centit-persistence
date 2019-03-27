@@ -43,8 +43,8 @@ import java.sql.SQLException;
 import java.util.*;
 
 /**
- * 这个类是jpa的一个浅层实现，对引用只处理了一层，如果需要循环处理引用可以调用
- * OrmDaoUtils.*Cascade*()相关的方法
+ * 针对 EntityWithDeleteTag EntityWithVersionTag 这个jpa类只做了一个浅层实现。
+ * 如果需要循环处理引用可以调用 OrmDaoUtils.*Cascade*()相关的方法 自行实现
  * @see OrmDaoUtils
  * @param <T> po类
  * @param <PK> po主键类型 ; 对多个字段联合主键的可以使用Map《String, Object》类型
@@ -760,6 +760,34 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return nRes;
     }
 
+    /**
+     * 嵌套获取对象的引用，但是没有考虑 EntityWithDeleteTag EntityWithVersionTag 注解
+     * @param id 主键
+     * @return po 对象
+     */
+    public T getObjectCascadeById(Object id) {
+        return jdbcTemplate.execute(
+            (ConnectionCallback<T>) conn ->
+                OrmDaoUtils.getObjectCascadeById(conn, id, (Class<T>) getPoClass()));
+    }
+
+    public T fetchObjectReferencesCascade(T object) {
+        return jdbcTemplate.execute(
+            (ConnectionCallback<T>) conn ->
+                OrmDaoUtils.fetchObjectReferencesCascade(conn, object, getPoClass()));
+    }
+
+    public Integer updateObjectCascade(T object) {
+        return jdbcTemplate.execute(
+            (ConnectionCallback<Integer>) conn ->
+                OrmDaoUtils.updateObjectCascade(conn, object));
+    }
+
+    public Integer saveNewObjectCascade(T object) {
+        return jdbcTemplate.execute(
+            (ConnectionCallback<Integer>) conn ->
+                OrmDaoUtils.saveNewObjectCascade(conn, object));
+    }
 
     public T getObjectByProperties(Map<String, Object> properties) {
         return jdbcTemplate.execute(

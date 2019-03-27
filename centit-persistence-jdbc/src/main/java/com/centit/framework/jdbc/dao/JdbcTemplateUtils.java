@@ -443,7 +443,7 @@ public abstract class JdbcTemplateUtils {
                 });
     }
 
-    /** 这个代码可以作为示例代码*/
+    /* 这个代码可以作为示例代码*/
     /*
     public  <T> T getObjectCascadeById(JdbcTemplate jdbcTemplate, Object id, final Class<T> type) {
         return jdbcTemplate.execute(
