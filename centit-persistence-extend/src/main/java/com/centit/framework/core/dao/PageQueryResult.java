@@ -104,6 +104,17 @@ public class PageQueryResult<T> implements ToResponseData {
      * 将对象转换为分页返回结果
      * @param objList 查询返回结果，需要 Collection 类型，并且类别中的对象不能为null
      * @param pageDesc 分页信息
+     * @param filterFields 属性过滤器，只有这个列表中的属性才会被返回
+     * @return ToResponseData 用于 WarpUpResponseBody 的处理
+     */
+    public static PageQueryResult<Object>
+    createJSONArrayResult(JSONArray objList, PageDesc pageDesc, String[] filterFields){
+        return innerCreateResult(objList, pageDesc, false, filterFields);
+    }
+    /**
+     * 将对象转换为分页返回结果
+     * @param objList 查询返回结果，需要 Collection 类型，并且类别中的对象不能为null
+     * @param pageDesc 分页信息
      * @param objTypes 需要做数据字典映射的对象，可以是多个
      * @return ToResponseData 用于 WarpUpResponseBody 的处理
      */
@@ -112,6 +123,21 @@ public class PageQueryResult<T> implements ToResponseData {
         return innerCreateResult(
             DictionaryMapUtils.mapJsonArray(objList, objTypes),
             pageDesc, false, null);
+    }
+
+    /**
+     * 将对象转换为分页返回结果
+     * @param objList 查询返回结果，需要 Collection 类型，并且类别中的对象不能为null
+     * @param pageDesc 分页信息
+     * @param filterFields 属性过滤器，只有这个列表中的属性才会被返回
+     * @param objTypes 需要做数据字典映射的对象，可以是多个
+     * @return ToResponseData 用于 WarpUpResponseBody 的处理
+     */
+    public static PageQueryResult<Object>
+    createJSONArrayResult(JSONArray objList, PageDesc pageDesc, String[] filterFields, Class<?>... objTypes){
+        return innerCreateResult(
+            DictionaryMapUtils.mapJsonArray(objList, objTypes),
+            pageDesc, false, filterFields);
     }
 
     @Override
