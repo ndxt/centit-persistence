@@ -250,13 +250,7 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
      */
     public QueryAndNamedParams translateQuery
             (String queryStatement,Collection<String> filters){
-        return translateQuery(queryStatement, filters,false, false);
-    }
-
-    @Deprecated
-    public QueryAndNamedParams translateSqQuery
-        (String queryStatement,Collection<String> filters){
-        return translateQuery(queryStatement, filters,false, false);
+        return translateQuery(queryStatement, filters,false, true);
     }
 
     /**
