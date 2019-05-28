@@ -254,6 +254,33 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
     }
 
     /**
+     * @param tableMap 管理的表名 和 别名
+     * @param filters Collection filters
+     * @param jointSql 变量内嵌在语句中，不用参数
+     * @param isUnion 多个过滤之间是否是并集
+     * @return translateQuery
+     */
+    public QueryAndNamedParams translateQueryFilter
+        (Map<String,String> tableMap,Collection<String> filters,
+         boolean jointSql, boolean isUnion){
+        DataPowerFilterTranslater translater = new DataPowerFilterTranslater(jointSql,this);
+        translater.setTableAlias(tableMap);
+        return QueryUtils.translateQueryFilter(
+            filters, translater, isUnion);
+    }
+
+    /**
+     * @param tableMap 管理的表名 和 别名
+     * @param filters Collection filters
+     * @return translateQuery
+     */
+    public QueryAndNamedParams translateQueryFilter
+    (Map<String,String> tableMap,Collection<String> filters){
+        return translateQueryFilter(tableMap,
+            filters, false, true);
+    }
+
+    /**
      * 符合条件 返回1 否在 范围 -1
      * @param obj 验证对象
      * @param filter 过滤条件爱呢
