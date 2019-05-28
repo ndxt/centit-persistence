@@ -243,24 +243,19 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
     }
 
     /**
-     * 权限查询，不同的条件取并集
+     * 权限查询，不同的条件取交集
      * @param queryStatement queryStatement
      * @param filters Collection filters
      * @return translateSqlQuery
      */
-    public QueryAndNamedParams translateSqlQuery
+    public QueryAndNamedParams translateQuery
             (String queryStatement,Collection<String> filters){
-        return translateQuery(queryStatement, filters,false, true);
+        return translateQuery(queryStatement, filters,false, false);
     }
 
-    /**
-     * 视图过滤条件查询，不同的过滤条件取交接
-     * @param queryStatement queryStatement
-     * @param filters Collection filters
-     * @return translateSqlFilterQuery
-     */
-    public QueryAndNamedParams translateSqlFilterQuery
-            (String queryStatement,Collection<String> filters){
+    @Deprecated
+    public QueryAndNamedParams translateSqQuery
+        (String queryStatement,Collection<String> filters){
         return translateQuery(queryStatement, filters,false, false);
     }
 
