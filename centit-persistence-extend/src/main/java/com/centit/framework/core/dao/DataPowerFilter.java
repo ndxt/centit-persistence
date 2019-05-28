@@ -3,7 +3,10 @@ package com.centit.framework.core.dao;
 import com.centit.framework.components.SysUnitFilterEngine;
 import com.centit.framework.components.SysUserFilterEngine;
 import com.centit.framework.model.adapter.UserUnitVariableTranslate;
-import com.centit.support.algorithm.*;
+import com.centit.support.algorithm.BooleanBaseOpt;
+import com.centit.support.algorithm.ReflectionOpt;
+import com.centit.support.algorithm.StringBaseOpt;
+import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.common.LeftRightPair;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.compiler.VariableFormula;
@@ -128,7 +131,7 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
         private boolean jointSql;
         private DataPowerFilter dataPowerFilter;
 
-        public DataPowerFilterTranslater(boolean toSql,boolean jointSql,DataPowerFilter dataPowerFilter)
+        public DataPowerFilterTranslater(boolean jointSql,DataPowerFilter dataPowerFilter)
         {
             this.tableAlias = null;
             this.jointSql = jointSql;
@@ -218,26 +221,25 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
     }
 
     public DataPowerFilterTranslater getPowerFilterTranslater(){
-        return new DataPowerFilterTranslater(false, false,this);
+        return new DataPowerFilterTranslater(false,this);
     }
 
-    public DataPowerFilterTranslater getPowerFilterTranslater(boolean toSql, boolean jointSql){
-        return new DataPowerFilterTranslater(toSql, jointSql,this);
+    public DataPowerFilterTranslater getPowerFilterTranslater(boolean jointSql){
+        return new DataPowerFilterTranslater(jointSql,this);
     }
 
     /**
      * @param queryStatement queryStatement
      * @param filters Collection filters
-     * @param toSql    是否为sql语句，否：表示hql ，是：表示 sql
+     * toSql 是否为sql语句，否：表示hql ，是：表示 sql
      * @param jointSql 变量内嵌在语句中，不用参数
      * @param isUnion 多个过滤之间是否是并集
      * @return translateQuery
      */
     public QueryAndNamedParams translateQuery(String queryStatement, Collection<String> filters,
-                                              boolean toSql, boolean jointSql, boolean isUnion){
-
+                                              boolean jointSql, boolean isUnion){
         return QueryUtils.translateQuery(queryStatement,
-                filters, isUnion, new DataPowerFilterTranslater(toSql, jointSql,this));
+                filters, isUnion, new DataPowerFilterTranslater(jointSql,this));
     }
 
     /**
@@ -248,8 +250,7 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
      */
     public QueryAndNamedParams translateSqlQuery
             (String queryStatement,Collection<String> filters){
-        return translateQuery(queryStatement, filters,
-                true,false, true);
+        return translateQuery(queryStatement, filters,false, true);
     }
 
     /**
@@ -260,8 +261,7 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
      */
     public QueryAndNamedParams translateSqlFilterQuery
             (String queryStatement,Collection<String> filters){
-        return translateQuery(queryStatement, filters,
-                true,false, false);
+        return translateQuery(queryStatement, filters,false, false);
     }
 
     /**
