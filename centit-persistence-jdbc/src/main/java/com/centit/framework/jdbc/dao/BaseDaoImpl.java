@@ -804,6 +804,42 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.listObjectsByProperties(conn, propertiesMap, (Class<T>) getPoClass()));
     }
 
+    public JSONArray listObjectsByPropertiesAsJson(Map<String, Object> filterMap, PageDesc pageDesc) {
+        return jdbcTemplate.execute(
+            (ConnectionCallback<JSONArray>) conn -> {
+                TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+                GeneralJsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(conn, mapInfo);
+
+                Pair<String, String[]> q = sqlDialect.buildFieldSqlWithFieldName(mapInfo, null);
+                String filter = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, filterMap.keySet());
+                String sql = "select " + q.getLeft() + " from " + mapInfo.getTableName();
+                if (StringUtils.isNotBlank(filter)) {
+                    sql = sql + " where " + filter;
+                }
+                String orderBy = BaseDaoImpl.fetchSelfOrderSql(sql, filterMap);
+                if (StringUtils.isNotBlank(orderBy)) {
+                    sql = sql + " order by "
+                        + QueryUtils.cleanSqlStatement(orderBy);
+                }
+                try {
+                    if (pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
+                        pageDesc.setTotalRows(sqlDialect.fetchObjectsCount(filterMap).intValue());
+                        return sqlDialect.findObjectsByNamedSqlAsJSON(
+                            sql, filterMap, q.getRight(), pageDesc.getPageNo(), pageDesc.getPageSize());
+                    } else {
+                        JSONArray ja = sqlDialect.findObjectsByNamedSqlAsJSON(
+                            sql, filterMap, q.getRight());
+                        pageDesc.setTotalRows(ja.size());
+                        return ja;
+                    }
+                } catch (IOException e) {
+                    throw new DatabaseAccessException(sql, new SQLException(e));
+                }
+            }
+        );
+    }
+
+
     @Deprecated
     public List<T> listObjectsByProperties(Map<String, Object> filterMap, PageDesc pageDesc) {
         if (pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
