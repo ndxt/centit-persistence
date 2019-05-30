@@ -91,7 +91,7 @@ public class HibernatePowerFilter extends DataPowerFilter {
         Map<String, String> tables = new HashMap<String, String>();
         tables.put(shortClassName, "");
 
-        DataPowerFilterTranslater translater = new DataPowerFilterTranslater(false, jointSql,this);
+        DataPowerFilterTranslater translater = new DataPowerFilterTranslater(jointSql,this);
         translater.setTableAlias(tables);
 
         StringBuilder hql = new StringBuilder("From ").append(shortClassName).append(" where");

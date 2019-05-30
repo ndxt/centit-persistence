@@ -1,5 +1,6 @@
 package com.centit.framework.jdbc.dao;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.ExtendedQueryPool;
@@ -809,31 +810,19 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             (ConnectionCallback<JSONArray>) conn -> {
                 TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
                 GeneralJsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(conn, mapInfo);
-
-                Pair<String, String[]> q = sqlDialect.buildFieldSqlWithFieldName(mapInfo, null);
-                String filter = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, filterMap.keySet());
-                String sql = "select " + q.getLeft() + " from " + mapInfo.getTableName();
-                if (StringUtils.isNotBlank(filter)) {
-                    sql = sql + " where " + filter;
-                }
-                String orderBy = BaseDaoImpl.fetchSelfOrderSql(sql, filterMap);
-                if (StringUtils.isNotBlank(orderBy)) {
-                    sql = sql + " order by "
-                        + QueryUtils.cleanSqlStatement(orderBy);
-                }
                 try {
                     if (pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
                         pageDesc.setTotalRows(sqlDialect.fetchObjectsCount(filterMap).intValue());
-                        return sqlDialect.findObjectsByNamedSqlAsJSON(
-                            sql, filterMap, q.getRight(), pageDesc.getPageNo(), pageDesc.getPageSize());
+                        return sqlDialect.listObjectsByProperties(filterMap, pageDesc.getPageNo(), pageDesc.getPageSize());
                     } else {
-                        JSONArray ja = sqlDialect.findObjectsByNamedSqlAsJSON(
-                            sql, filterMap, q.getRight());
-                        pageDesc.setTotalRows(ja.size());
+                        JSONArray ja = sqlDialect.listObjectsByProperties(filterMap);
+                        if(ja!=null) {
+                            pageDesc.setTotalRows(ja.size());
+                        }
                         return ja;
                     }
                 } catch (IOException e) {
-                    throw new DatabaseAccessException(sql, new SQLException(e));
+                    throw new DatabaseAccessException(JSON.toJSONString(filterMap), new SQLException(e));
                 }
             }
         );
@@ -896,7 +885,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if (StringUtils.isBlank(querySql)) {
             return listObjectsByProperties(filterMap, pageDesc);
         } else {
-            String selfOrderBy = fetchSelfOrderSql(querySql, filterMap);
+            String selfOrderBy = fetchSelfOrderSql(filterMap);
             if (StringUtils.isNotBlank(selfOrderBy)) {
                 querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
             }
@@ -934,7 +923,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if (StringUtils.isBlank(querySql)) {
             return listObjectsByProperties(filterMap);
         } else {
-            String selfOrderBy = fetchSelfOrderSql(querySql, filterMap);
+            String selfOrderBy = fetchSelfOrderSql(filterMap);
             if (StringUtils.isNotBlank(selfOrderBy)) {
                 querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
             }
@@ -1064,6 +1053,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return selfOrderBy;
     }
 
+    public String fetchSelfOrderSql(Map<String, Object> filterMap) {
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        return GeneralJsonObjectDao.fetchSelfOrderSql(mapInfo,filterMap);
+    }
     /**
      * 根据 前端传入的参数 驱动查询
      * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
@@ -1078,7 +1071,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Pair<String, String[]> q = GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo, null);
 
-        String selfOrderBy = fetchSelfOrderSql(querySql, filterMap);
+        String selfOrderBy = GeneralJsonObjectDao.fetchSelfOrderSql(mapInfo, filterMap);
 
         if (StringUtils.isNotBlank(selfOrderBy)) {
             querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
