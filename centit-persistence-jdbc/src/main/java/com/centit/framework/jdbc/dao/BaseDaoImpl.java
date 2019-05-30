@@ -914,6 +914,17 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
+    private String buildQuerySqlByFilter(String whereSql,TableMapInfo mapInfo,String tableAlias){
+        String fieldsSql = GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias);
+        return "select " + fieldsSql + " from " + mapInfo.getTableName()
+            + ( StringUtils.isNotBlank(tableAlias)? " " + tableAlias + " " :" ") + whereSql;
+    }
+
+    private String buildQuerySqlByFilter(String whereSql,String tableAlias){
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        return buildQuerySqlByFilter(whereSql,mapInfo,tableAlias);
+    }
+
     /**
      * 根据条件查询对象
      *
@@ -922,11 +933,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 符合条件的对象
      */
     public List<T> listObjectsByFilter(String whereSql, Object[] params) {
-        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        String fieldsSql = GeneralJsonObjectDao.buildFieldSql(mapInfo, null);
-        String querySql = "select " + fieldsSql + " from " + mapInfo.getTableName()
-                + " " + whereSql;
-
+        String querySql = buildQuerySqlByFilter(whereSql, null);
         return jdbcTemplate.execute(
                 (ConnectionCallback<List<T>>) conn ->
                         OrmDaoUtils.queryObjectsByParamsSql(conn, querySql, params, (Class<T>) getPoClass()));
@@ -940,11 +947,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 符合条件的对象
      */
     public List<T> listObjectsByFilter(String whereSql, Map<String, Object> namedParams) {
-        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        String fieldsSql = GeneralJsonObjectDao.buildFieldSql(mapInfo, null);
-        String querySql = "select " + fieldsSql + " from " + mapInfo.getTableName()
-                + " " + whereSql;
-
+        String querySql = buildQuerySqlByFilter(whereSql, null);
         return listObjectsBySql(querySql, namedParams);
     }
 
@@ -959,11 +962,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     @Deprecated
     public List<T> listObjectsByFilter(String whereSql, Object[] params, PageDesc pageDesc) {
         if (pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
-
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-            String fieldsSql = GeneralJsonObjectDao.buildFieldSql(mapInfo, null);
-            String querySql = "select " + fieldsSql + " from " + mapInfo.getTableName()
-                    + " " + whereSql;
+            String querySql = buildQuerySqlByFilter(whereSql, mapInfo, null);
 
             pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
                     JdbcTemplateUtils.getScalarObjectQuery(this.jdbcTemplate,
@@ -996,28 +996,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      */
     @Deprecated
     public List<T> listObjectsByFilter(String whereSql, Map<String, Object> namedParams, PageDesc pageDesc) {
-
-        if (pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
-            TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-            String fieldsSql = GeneralJsonObjectDao.buildFieldSql(mapInfo, null);
-            String querySql = "select " + fieldsSql + " from " + mapInfo.getTableName()
-                    + " " + whereSql;
-            pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
-                    JdbcTemplateUtils.getScalarObjectQuery(this.jdbcTemplate, "select count(1) from " +
-                            mapInfo.getTableName() + " " + QueryUtils.removeOrderBy(whereSql), namedParams))
-            );
-            return jdbcTemplate.execute(
-                    (ConnectionCallback<List<T>>) conn ->
-                            OrmDaoUtils.queryObjectsByNamedParamsSql(
-                                    conn, querySql, namedParams, (Class<T>) getPoClass(),
-                                    pageDesc.getRowStart(), pageDesc.getPageSize()));
-        } else {
-            List<T> objList = listObjectsByFilter(whereSql, namedParams);
-            if (pageDesc != null && objList != null) {
-                pageDesc.setTotalRows(objList.size());
-            }
-            return objList;
-        }
+        QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(whereSql, namedParams);
+        return listObjectsByFilter(qap.getQuery(), qap.getParams(), pageDesc);
     }
 
     public List<T> listObjectsBySql(String querySql, Map<String, Object> namedParams) {
