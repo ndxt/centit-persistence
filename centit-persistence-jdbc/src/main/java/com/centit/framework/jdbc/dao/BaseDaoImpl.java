@@ -7,7 +7,6 @@ import com.centit.framework.core.dao.QueryParameterPrepare;
 import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.framework.core.po.EntityWithVersionTag;
 import com.centit.support.algorithm.CollectionsOpt;
-import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.compiler.Lexer;
@@ -796,11 +795,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public List<T> listObjectsByProperty(final String propertyName,final Object propertyValue) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<List<T>>) conn ->
-                        OrmDaoUtils.listObjectsByProperties(conn,
-                                CollectionsOpt.createHashMap(propertyName, propertyValue),
-                                (Class<T>) getPoClass()));
+        return listObjectsByProperties(CollectionsOpt.createHashMap(propertyName, propertyValue));
     }
 
     public List<T> listObjectsByProperties(final Map<String, Object> propertiesMap) {
@@ -809,11 +804,12 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.listObjectsByProperties(conn, propertiesMap, (Class<T>) getPoClass()));
     }
 
+    @Deprecated
     public List<T> listObjectsByProperties(Map<String, Object> filterMap, PageDesc pageDesc) {
         if (pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
             return jdbcTemplate.execute(
                     (ConnectionCallback<List<T>>) conn -> {
-                        pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn, filterMap, (Class<T>) getPoClass()));
+                        pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn, filterMap, getPoClass()));
                         return OrmDaoUtils.listObjectsByProperties(conn, filterMap, (Class<T>) getPoClass(),
                                 pageDesc.getRowStart(), pageDesc.getPageSize());
                     }
@@ -914,6 +910,20 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
+    public List<T> listObjectsBySql(String querySql, Map<String, Object> namedParams) {
+        return jdbcTemplate.execute(
+            (ConnectionCallback<List<T>>) conn ->
+                OrmDaoUtils.queryObjectsByNamedParamsSql(
+                    conn, querySql, namedParams, (Class<T>) getPoClass()));
+
+    }
+
+    public List<T> listObjectsBySql(String querySql, Object[] params) {
+        return jdbcTemplate.execute(
+            (ConnectionCallback<List<T>>) conn ->
+                OrmDaoUtils.queryObjectsByParamsSql(conn, querySql, params, (Class<T>) getPoClass()));
+    }
+
     private String buildQuerySqlByFilter(String whereSql,TableMapInfo mapInfo,String tableAlias){
         String fieldsSql = GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias);
         return "select " + fieldsSql + " from " + mapInfo.getTableName()
@@ -926,6 +936,34 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     /**
+     * 由于性能问题，不推荐使用这个方法，分页查询一般都是用于前端展示的，建议使用  listObjectsByFilterAsJson
+     *
+     * @param whereSql 查询po 所以只有套写 where 以后部分
+     * @param params   查询参数
+     * @param tableAlias 表的别名
+     * @return 返回对象
+     */
+    @Deprecated
+    public List<T> listObjectsByFilter(String whereSql, Object[] params, String tableAlias) {
+        String querySql = buildQuerySqlByFilter(whereSql, tableAlias);
+        return listObjectsBySql(querySql, params);
+    }
+
+    /**
+     * 由于性能问题，不推荐使用这个方法，分页查询一般都是用于前端展示的，建议使用  listObjectsByFilterAsJson
+     *
+     * @param whereSql    查询po 所以只有套写 where 以后部分
+     * @param namedParams 查询参数
+     * @param tableAlias 表的别名
+     * @return 返回对象
+     */
+    @Deprecated
+    public List<T> listObjectsByFilter(String whereSql, Map<String, Object> namedParams, String tableAlias) {
+        QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(whereSql, namedParams);
+        return listObjectsByFilter(qap.getQuery(), qap.getParams(), tableAlias);
+    }
+
+    /**
      * 根据条件查询对象
      *
      * @param whereSql 只有 where 部分， 不能有from部分 这个式hibernate的区别
@@ -933,10 +971,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 符合条件的对象
      */
     public List<T> listObjectsByFilter(String whereSql, Object[] params) {
-        String querySql = buildQuerySqlByFilter(whereSql, null);
-        return jdbcTemplate.execute(
-                (ConnectionCallback<List<T>>) conn ->
-                        OrmDaoUtils.queryObjectsByParamsSql(conn, querySql, params, (Class<T>) getPoClass()));
+        return listObjectsByFilter(whereSql, params, null);
     }
 
     /**
@@ -947,66 +982,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 符合条件的对象
      */
     public List<T> listObjectsByFilter(String whereSql, Map<String, Object> namedParams) {
-        String querySql = buildQuerySqlByFilter(whereSql, null);
-        return listObjectsBySql(querySql, namedParams);
-    }
-
-    /**
-     * 由于性能问题，不推荐使用这个方法，分页查询一般都是用于前端展示的，建议使用  listObjectsByFilterAsJson
-     *
-     * @param whereSql 查询po 所以只有套写 where 以后部分
-     * @param params   查询参数
-     * @param pageDesc 分页信息
-     * @return 返回对象
-     */
-    @Deprecated
-    public List<T> listObjectsByFilter(String whereSql, Object[] params, PageDesc pageDesc) {
-        if (pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
-            TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-            String querySql = buildQuerySqlByFilter(whereSql, mapInfo, null);
-
-            pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
-                    JdbcTemplateUtils.getScalarObjectQuery(this.jdbcTemplate,
-                            "select count(1) from " +
-                                    mapInfo.getTableName() + " " + QueryUtils.removeOrderBy(whereSql),
-                            params))
-            );
-
-            return jdbcTemplate.execute(
-                    (ConnectionCallback<List<T>>) conn ->
-                            OrmDaoUtils.queryObjectsByParamsSql(
-                                    conn, querySql, params, (Class<T>) getPoClass(),
-                                    pageDesc.getRowStart(), pageDesc.getPageSize()));
-        } else {
-            List<T> objList = listObjectsByFilter(whereSql, params);
-            if (pageDesc != null && objList != null) {
-                pageDesc.setTotalRows(objList.size());
-            }
-            return objList;
-        }
-    }
-
-    /**
-     * 由于性能问题，不推荐使用这个方法，分页查询一般都是用于前端展示的，建议使用  listObjectsByFilterAsJson
-     *
-     * @param whereSql    查询po 所以只有套写 where 以后部分
-     * @param namedParams 查询参数
-     * @param pageDesc    分页信息
-     * @return 返回对象
-     */
-    @Deprecated
-    public List<T> listObjectsByFilter(String whereSql, Map<String, Object> namedParams, PageDesc pageDesc) {
-        QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(whereSql, namedParams);
-        return listObjectsByFilter(qap.getQuery(), qap.getParams(), pageDesc);
-    }
-
-    public List<T> listObjectsBySql(String querySql, Map<String, Object> namedParams) {
-
-        return jdbcTemplate.execute(
-                (ConnectionCallback<List<T>>) conn ->
-                        OrmDaoUtils.queryObjectsByNamedParamsSql(
-                                conn, querySql, namedParams, (Class<T>) getPoClass()));
-
+        return listObjectsByFilter(whereSql, namedParams, null);
     }
 
     /**
@@ -1086,7 +1062,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return listObjectsAsJson(filterMap, null, pageDesc);
     }
 
+    private Pair<String,String[]> buildQuerySqlWithFieldNameByFilter(String whereSql,String tableAlias){
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        Pair<String,String[]>  fieldsDesc = GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo,tableAlias);
+         String querySql =  "select " + fieldsDesc.getLeft() + " from " + mapInfo.getTableName()
+            + ( StringUtils.isNotBlank(tableAlias)? " " + tableAlias + " " :" ") + whereSql;
 
+        return new ImmutablePair<>(querySql,fieldsDesc.getRight());
+
+    }
     /**
      *
      * @param whereSql 查询po 所以只有套写 where 以后部分
@@ -1094,18 +1078,19 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param pageDesc 分页信息
      * @return 返回JSONArray
      */
-    public JSONArray listObjectsByFilterAsJson(String whereSql,  Map<String, Object> namedParams, PageDesc pageDesc){
-        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        Pair<String,String[]>  fieldsDesc = GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo,null);
-        String querySql = "select " + fieldsDesc.getLeft() +" from " +mapInfo.getTableName()
-                + " " +whereSql;
+    public JSONArray listObjectsByFilterAsJson(String whereSql, Map<String, Object> namedParams, String tableAlias, PageDesc pageDesc){
+        Pair<String,String[]>  fieldsDesc = buildQuerySqlWithFieldNameByFilter(whereSql,tableAlias);
 
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, querySql, fieldsDesc.getRight() ,
-                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), namedParams,   pageDesc  );
+            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, fieldsDesc.getLeft(), fieldsDesc.getRight() ,
+                    QueryUtils.buildGetCountSQLByReplaceFields( fieldsDesc.getLeft() ), namedParams,   pageDesc  );
         }else{
-            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, querySql, fieldsDesc.getRight(), namedParams);
+            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, fieldsDesc.getLeft(), fieldsDesc.getRight(), namedParams);
         }
+    }
+
+    public JSONArray listObjectsByFilterAsJson(String whereSql, Map<String, Object> namedParams,  PageDesc pageDesc) {
+        return listObjectsByFilterAsJson(whereSql, namedParams, null, pageDesc);
     }
 
     /**
@@ -1115,18 +1100,18 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param pageDesc 分页信息
      * @return 返回JSONArray
      */
-    public JSONArray listObjectsByFilterAsJson(String whereSql,  Object[] params, PageDesc pageDesc){
-        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        Pair<String,String[]>  fieldsDesc = GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo,null);
-        String querySql = "select " + fieldsDesc.getLeft() +" from " +mapInfo.getTableName()
-                + " " +whereSql;
+    public JSONArray listObjectsByFilterAsJson(String whereSql, Object[] params, String tableAlias, PageDesc pageDesc){
+        Pair<String,String[]>  fieldsDesc = buildQuerySqlWithFieldNameByFilter(whereSql,tableAlias);
 
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            return JdbcTemplateUtils.listObjectsBySqlAsJson(this.jdbcTemplate, querySql, fieldsDesc.getRight() ,
-                    QueryUtils.buildGetCountSQLByReplaceFields( querySql ), params,   pageDesc  );
+            return JdbcTemplateUtils.listObjectsBySqlAsJson(this.jdbcTemplate, fieldsDesc.getLeft(), fieldsDesc.getRight() ,
+                    QueryUtils.buildGetCountSQLByReplaceFields( fieldsDesc.getLeft()), params,   pageDesc  );
         }else{
-            return JdbcTemplateUtils.listObjectsBySqlAsJson(this.jdbcTemplate, querySql, params, fieldsDesc.getRight());
+            return JdbcTemplateUtils.listObjectsBySqlAsJson(this.jdbcTemplate, fieldsDesc.getLeft(), params, fieldsDesc.getRight());
         }
     }
 
+    public JSONArray listObjectsByFilterAsJson(String whereSql,Object[] params,  PageDesc pageDesc) {
+        return listObjectsByFilterAsJson(whereSql, params, null, pageDesc);
+    }
 }
