@@ -1012,69 +1012,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return listObjectsByFilter(whereSql, namedParams, null);
     }
 
-    /**
-     * 在sql语句中找到属性对应的字段语句
-     * @param querySql sql语句
-     * @param fieldName 属性
-     * @return 返回的对应这个属性的语句，如果找不到返回 null
-     */
-    public static String mapFieldToColumnPiece(String querySql, String fieldName){
-        List<Pair<String,String>> fields = QueryUtils.getSqlFieldNamePieceMap(querySql);
-        for(Pair<String,String> field : fields){
-            if(fieldName.equalsIgnoreCase(field.getLeft()) ||
-                    fieldName.equals(DatabaseAccess.mapColumnNameToField(field.getKey())) ||
-                    fieldName.equalsIgnoreCase(field.getRight())){
-                return  field.getRight();
-            }
-        }
-        return null;
-    }
-    /**
-     * querySql 用户检查order by 中的字段属性 对应的查询标识 比如，
-     * select a+b as ab from table
-     * 在 filterMap 中的 CodeBook.TABLE_SORT_FIELD (sort) 为 ab 字段 返回的排序语句为 a+b
-     * @param querySql SQL语句 用来检查字段对应的查询语句 片段
-     * @param filterMap 查询条件map其中包含排序属性
-     * @return order by 字句
-     */
-    public static String fetchSelfOrderSql(String querySql, Map<String, Object> filterMap) {
-        String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(CodeBook.SELF_ORDER_BY));
-        if(StringUtils.isNotBlank(selfOrderBy)) {
-            Lexer lexer = new Lexer(selfOrderBy,Lexer.LANG_TYPE_SQL);
-            StringBuilder orderBuilder = new StringBuilder();
-            String aWord = lexer.getAWord();
-            while(StringUtils.isNotBlank(aWord)){
-                if(StringUtils.equalsAnyIgnoreCase(aWord,
-                    ",","order","by","desc","asc")){
-                    orderBuilder.append(aWord);
-                }else{
-                    String orderField = BaseDaoImpl.mapFieldToColumnPiece(querySql, aWord);
-                    if(orderField != null) {
-                        orderBuilder.append(orderField);
-                    } else {
-                        orderBuilder.append(aWord);
-                    }
-                }
-                orderBuilder.append(" ");
-            }
-            return orderBuilder.toString();
-        }
-
-        String sortField = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_FIELD));
-        if (StringUtils.isNotBlank(sortField)) {
-            sortField = BaseDaoImpl.mapFieldToColumnPiece(querySql, sortField);
-            if (sortField != null) {
-                String sOrder = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_ORDER));
-                if (/*"asc".equalsIgnoreCase(sOrder) ||*/ "desc".equalsIgnoreCase(sOrder)) {
-                    selfOrderBy = sortField + " desc";
-                } else {
-                    selfOrderBy = sortField;
-                }
-            }
-        }
-        return selfOrderBy;
-    }
-
     public String fetchSelfOrderSql(Map<String, Object> filterMap) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         return GeneralJsonObjectDao.fetchSelfOrderSql(mapInfo,filterMap);
