@@ -217,9 +217,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 String skey = ent.getKey();
                 String sSqlFormat = ent.getValue().getLeft();
 
-                if (CodeBook.ORDER_BY_HQL_ID.equalsIgnoreCase(skey))
+                if (StringUtils.equalsAnyIgnoreCase(
+                    skey, CodeBook.SELF_ORDER_BY, CodeBook.TABLE_SORT_FIELD,
+                        CodeBook.TABLE_SORT_ORDER, CodeBook.ORDER_BY_HQL_ID)) {
                     continue;
-
+                }
                 if (skey.startsWith(CodeBook.NO_PARAM_FIX)) {
                     sBuilder.append(" [").append(skey).append("| and ")
                             .append(JpaMetadata.translateSqlPropertyToColumn(mapInfo, sSqlFormat, alias))

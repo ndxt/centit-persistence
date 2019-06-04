@@ -839,10 +839,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         for (Map.Entry<String, Object> ent : filterDesc.entrySet()) {
             String skey = ent.getKey();
 
-            if (! CodeBook.SELF_ORDER_BY.equalsIgnoreCase(skey)
-                   && ! CodeBook.TABLE_SORT_FIELD.equalsIgnoreCase(skey)
-                   && ! CodeBook.TABLE_SORT_ORDER.equalsIgnoreCase(skey)) {
-
+            if (! StringUtils.equalsAnyIgnoreCase(
+                    skey,CodeBook.ORDER_BY_HQL_ID,CodeBook.SELF_ORDER_BY,
+                        CodeBook.TABLE_SORT_FIELD,CodeBook.TABLE_SORT_ORDER)) {
                 ImmutableTriple<String,String,Object> sqlPiece =
                         makeSubQueryStmt(filterFieldWtihPretreatment,skey,ent.getValue());
                 if(sqlPiece!=null) {
