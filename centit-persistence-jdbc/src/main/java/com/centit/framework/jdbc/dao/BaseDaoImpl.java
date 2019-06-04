@@ -1062,10 +1062,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if (StringUtils.isNotBlank(sortField)) {
             sortField = BaseDaoImpl.mapFieldToColumnPiece(querySql, sortField);
             if (sortField != null) {
-                selfOrderBy = sortField;
                 String sOrder = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_ORDER));
                 if (/*"asc".equalsIgnoreCase(sOrder) ||*/ "desc".equalsIgnoreCase(sOrder)) {
                     selfOrderBy = sortField + " desc";
+                } else {
+                    selfOrderBy = sortField;
                 }
             }
         }
