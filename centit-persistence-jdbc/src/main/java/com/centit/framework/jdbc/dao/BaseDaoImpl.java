@@ -1037,16 +1037,35 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      */
     public static String fetchSelfOrderSql(String querySql, Map<String, Object> filterMap) {
         String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(CodeBook.SELF_ORDER_BY));
-        if (StringUtils.isBlank(selfOrderBy)) {
-            String sortField = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_FIELD));
-            if (StringUtils.isNotBlank(sortField)) {
-                sortField = BaseDaoImpl.mapFieldToColumnPiece(querySql, sortField);
-                if (sortField != null) {
-                    selfOrderBy = sortField;
-                    String sOrder = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_ORDER));
-                    if (/*"asc".equalsIgnoreCase(sOrder) ||*/ "desc".equalsIgnoreCase(sOrder)) {
-                        selfOrderBy = sortField + " desc";
+        if(StringUtils.isNotBlank(selfOrderBy)) {
+            Lexer lexer = new Lexer(selfOrderBy,Lexer.LANG_TYPE_SQL);
+            StringBuilder orderBuilder = new StringBuilder();
+            String aWord = lexer.getAWord();
+            while(StringUtils.isNotBlank(aWord)){
+                if(StringUtils.equalsAnyIgnoreCase(aWord,
+                    ",","order","by","desc","asc")){
+                    orderBuilder.append(aWord);
+                }else{
+                    String orderField = BaseDaoImpl.mapFieldToColumnPiece(querySql, aWord);
+                    if(orderField != null) {
+                        orderBuilder.append(orderField);
+                    } else {
+                        orderBuilder.append(aWord);
                     }
+                }
+                orderBuilder.append(" ");
+            }
+            return orderBuilder.toString();
+        }
+
+        String sortField = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_FIELD));
+        if (StringUtils.isNotBlank(sortField)) {
+            sortField = BaseDaoImpl.mapFieldToColumnPiece(querySql, sortField);
+            if (sortField != null) {
+                selfOrderBy = sortField;
+                String sOrder = StringBaseOpt.objectToString(filterMap.get(CodeBook.TABLE_SORT_ORDER));
+                if (/*"asc".equalsIgnoreCase(sOrder) ||*/ "desc".equalsIgnoreCase(sOrder)) {
+                    selfOrderBy = sortField + " desc";
                 }
             }
         }
