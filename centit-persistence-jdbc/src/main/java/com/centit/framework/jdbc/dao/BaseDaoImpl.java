@@ -830,8 +830,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         );
     }
 
-
-    @Deprecated
     public List<T> listObjectsByProperties(Map<String, Object> filterMap, PageDesc pageDesc) {
         if (pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
             return jdbcTemplate.execute(
