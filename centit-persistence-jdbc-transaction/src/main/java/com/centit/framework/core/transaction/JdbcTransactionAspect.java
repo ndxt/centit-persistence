@@ -35,7 +35,7 @@ public class JdbcTransactionAspect {
     public void doAfterThrowing(JoinPoint joinPoint, JdbcTransaction transaction, Throwable ex) {
         if (ex instanceof ObjectException){
             try {
-                ConnectThreadHolder.commitAndRelease();
+                ConnectThreadHolder.rollbackAndRelease();
             } catch (SQLException e) {
                 logger.error(e.getLocalizedMessage());
             }
