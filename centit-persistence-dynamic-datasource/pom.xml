@@ -9,25 +9,31 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>centit-persistence-extend</artifactId>
-    <name>com.centit.framework:centit-persistence-extend</name>
-    <packaging>jar</packaging>
-    <description>数据范围权限管理、数据分页查询返回值等等</description>
+    <artifactId>centit-persistence-dynamic-datasource</artifactId>
 
     <dependencies>
 
         <dependency>
-            <groupId>com.centit.framework</groupId>
-            <artifactId>centit-persistence-core</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.centit.support</groupId>
+            <artifactId>centit-database</artifactId>
+            <version>${centit.commons.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.centit.framework</groupId>
-            <artifactId>framework-core</artifactId>
-            <version>4.5.1901</version>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
             <scope>provided</scope>
-            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- server runtime library -->
@@ -40,5 +46,4 @@
         </dependency>
 
     </dependencies>
-
 </project>
