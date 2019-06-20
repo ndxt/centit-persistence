@@ -15,7 +15,6 @@ import java.util.Map;
 
 @Aspect
 public class DynamicDataSourceAspect {
-
     /**
      * 注册 注入点
      */
@@ -62,8 +61,6 @@ public class DynamicDataSourceAspect {
             DynamicDataSourceContextHolder.setDataSourceType(targetDataSourceName);
         }
     }
-
-
 
     /**
      * 清楚数据源，恢复为默认的数据源
