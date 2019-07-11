@@ -98,7 +98,7 @@ public class DataSourceConfig implements EnvironmentAware {
             Flyway flywayMigration = new Flyway();
             flywayMigration.setDataSource(dataSource);
             flywayMigration.setBaselineOnMigrate(true);
-            flywayMigration.setLocations(env.getProperty("flyway.sql.dir"), "com.centit.framework.system.update");
+            flywayMigration.setLocations(env.getProperty("flyway.sql.dir").concat(",com.centit.framework.system.update").split(","));
             flywayMigration.migrate();
             return flywayMigration;
         }else{
