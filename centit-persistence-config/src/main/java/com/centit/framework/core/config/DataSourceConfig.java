@@ -16,6 +16,7 @@ import org.springframework.core.env.Environment;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class DataSourceConfig implements EnvironmentAware {
     protected Logger logger = LoggerFactory.getLogger(DataSourceConfig.class);
@@ -24,7 +25,7 @@ public class DataSourceConfig implements EnvironmentAware {
     @Resource
     @Override
     public void setEnvironment(Environment environment) {
-        if(environment!=null) {
+        if (environment != null) {
             this.env = environment;
         }
     }
@@ -71,7 +72,7 @@ public class DataSourceConfig implements EnvironmentAware {
         dataSource.setDefaultAutoCommit(env.getProperty("jdbc.defaultAutoCommit", Boolean.class));
         dataSource.setRemoveAbandonedTimeout(env.getProperty("jdbc.removeAbandonedTimeout", Integer.class));
 
-        if(StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))){
+        if (StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))) {
             QueryLogUtils.setJdbcShowSql(true);
         }
 
@@ -81,9 +82,9 @@ public class DataSourceConfig implements EnvironmentAware {
         } catch (DocumentException e) {
             logger.error(e.getMessage());
         }
-        try{
+        try {
             ExtendedQueryPool.loadExtendedSqlMaps(
-                env.getProperty("app.home",".") +"/sqlscript", dbType);
+                env.getProperty("app.home", ".") + "/sqlscript", dbType);
         } catch (DocumentException | IOException e) {
             logger.error(e.getMessage());
         }
@@ -92,16 +93,21 @@ public class DataSourceConfig implements EnvironmentAware {
     }
 
     @Bean
-    public Flyway flyway(DataSource dataSource) {
+    public Flyway flyway(DataSource dataSource) throws SQLException {
         String flywayEnable = env.getProperty("flyway.enable");
-        if(StringRegularOpt.isTrue(flywayEnable)){
-            Flyway flywayMigration = new Flyway();
+        if (StringRegularOpt.isTrue(flywayEnable)) {
+            Flyway flywayMigration;
+            if (DBType.DM.equals(DBType.mapDBType(dataSource.getConnection()))) {
+                flywayMigration = new FlywayDM();
+            } else {
+                flywayMigration = new Flyway();
+            }
             flywayMigration.setDataSource(dataSource);
             flywayMigration.setBaselineOnMigrate(true);
             flywayMigration.setLocations(env.getProperty("flyway.sql.dir").concat(",com.centit.framework.system.update").split(","));
             flywayMigration.migrate();
             return flywayMigration;
-        }else{
+        } else {
             return null;
         }
     }
