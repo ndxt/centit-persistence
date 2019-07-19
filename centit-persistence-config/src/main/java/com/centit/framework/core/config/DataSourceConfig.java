@@ -1,6 +1,7 @@
 package com.centit.framework.core.config;
 
 import com.centit.framework.core.dao.ExtendedQueryPool;
+import com.centit.framework.flyway.plugin.FlywayDM;
 import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.QueryLogUtils;

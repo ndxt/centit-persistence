@@ -43,6 +43,7 @@ public class ExtendedQueryPoolController {
     }
     /**
      * 重新load Sql ExtendedMap
+     * @return Map &lt; query_ID, 查询语句 &gt; 查询语句了列表
      */
     @ApiOperation(value = "重启加载数据", notes = "重启加载数据")
     @RequestMapping(value = "/reloadextendedsqlmap", method = { RequestMethod.GET })

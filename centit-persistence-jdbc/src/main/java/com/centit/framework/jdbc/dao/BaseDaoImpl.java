@@ -1073,6 +1073,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      *
      * @param whereSql 查询po 所以只有套写 where 以后部分
      * @param namedParams 查询参数
+     * @param tableAlias 数据库别名
      * @param pageDesc 分页信息
      * @return 返回JSONArray
      */
@@ -1095,6 +1096,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      *
      * @param whereSql 查询po 所以只有套写 where 以后部分
      * @param params 查询参数
+     * @param tableAlias 数据库别名
      * @param pageDesc 分页信息
      * @return 返回JSONArray
      */

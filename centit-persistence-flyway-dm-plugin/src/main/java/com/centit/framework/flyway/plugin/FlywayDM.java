@@ -1,53 +1,27 @@
-package com.centit.framework.core.config;
+package com.centit.framework.flyway.plugin;
 
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.FlywayException;
-import org.flywaydb.core.api.MigrationInfoService;
-import org.flywaydb.core.api.MigrationVersion;
 import org.flywaydb.core.api.callback.FlywayCallback;
-import org.flywaydb.core.api.configuration.FlywayConfiguration;
 import org.flywaydb.core.api.resolver.MigrationResolver;
 import org.flywaydb.core.internal.callback.SqlScriptFlywayCallback;
 import org.flywaydb.core.internal.command.DbBaseline;
-import org.flywaydb.core.internal.command.DbClean;
-import org.flywaydb.core.internal.command.DbMigrate;
 import org.flywaydb.core.internal.command.DbRepair;
 import org.flywaydb.core.internal.command.DbSchemas;
-import org.flywaydb.core.internal.command.DbValidate;
 import org.flywaydb.core.internal.dbsupport.DbSupport;
-import org.flywaydb.core.internal.dbsupport.DbSupportFactory;
 import org.flywaydb.core.internal.dbsupport.Schema;
 import org.flywaydb.core.internal.dbsupport.oracle.OracleDbSupport;
-import org.flywaydb.core.internal.info.MigrationInfoServiceImpl;
 import org.flywaydb.core.internal.metadatatable.MetaDataTable;
 import org.flywaydb.core.internal.metadatatable.MetaDataTableImpl;
 import org.flywaydb.core.internal.resolver.CompositeMigrationResolver;
-import org.flywaydb.core.internal.util.ClassUtils;
-import org.flywaydb.core.internal.util.ConfigurationInjectionUtils;
-import org.flywaydb.core.internal.util.Locations;
-import org.flywaydb.core.internal.util.PlaceholderReplacer;
-import org.flywaydb.core.internal.util.StringUtils;
-import org.flywaydb.core.internal.util.VersionPrinter;
-import org.flywaydb.core.internal.util.jdbc.DriverDataSource;
+import org.flywaydb.core.internal.util.*;
 import org.flywaydb.core.internal.util.jdbc.JdbcUtils;
-import org.flywaydb.core.internal.util.jdbc.TransactionTemplate;
 import org.flywaydb.core.internal.util.logging.Log;
 import org.flywaydb.core.internal.util.logging.LogFactory;
 import org.flywaydb.core.internal.util.scanner.Scanner;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.Callable;
+import java.util.*;
 
 /**
  * This is the centre point of Flyway, and for most users, the only class they will ever have to deal with.
@@ -57,7 +31,7 @@ import java.util.concurrent.Callable;
  */
 public class FlywayDM extends Flyway {
     private static final Log LOG = LogFactory.getLog(FlywayDM.class);
-
+    private Locations locations = new Locations("db/migration");
 
     /**
      * Creates a new instance of Flyway. This is your starting point.
@@ -65,9 +39,6 @@ public class FlywayDM extends Flyway {
     public FlywayDM() {
         // Do nothing
     }
-
-    private Locations locations = new Locations("db/migration");
-    private boolean dbConnectionInfoPrinted;
 
     public void setLocations(String... locations) {
         this.locations = new Locations(locations);
@@ -80,7 +51,7 @@ public class FlywayDM extends Flyway {
      * @param <T>     The type of the result.
      * @return The result of the command.
      */
-    /*private -> testing*/ <T> T execute(Command<T> command) {
+    private <T> T execute(Command<T> command) {
         T result;
 
         VersionPrinter.printVersion();
@@ -95,7 +66,7 @@ public class FlywayDM extends Flyway {
             connectionMetaDataTable = JdbcUtils.openConnection(getDataSource());
 
             DbSupport dbSupport = new OracleDbSupport(connectionMetaDataTable);
-            dbConnectionInfoPrinted = true;
+            //boolean dbConnectionInfoPrinted = true;
             LOG.debug("DDL Transactions Supported: " + dbSupport.supportsDdlTransactions());
 
             if (getSchemas().length == 0) {
@@ -160,35 +131,14 @@ public class FlywayDM extends Flyway {
         return PlaceholderReplacer.NO_PLACEHOLDERS;
     }
 
-    /**
-     * A Flyway command that can be executed.
-     *
-     * @param <T> The result type of the command.
-     */
-    /*private -> testing*/ interface Command<T> {
-        /**
-         * Execute the operation.
-         *
-         * @param connectionMetaDataTable The database connection for the metadata table changes.
-         * @param migrationResolver       The migration resolver to use.
-         * @param metaDataTable           The metadata table.
-         * @param dbSupport               The database-specific support for these connections.
-         * @param schemas                 The schemas managed by Flyway.   @return The result of the operation.
-         * @param flywayCallbacks         The callbacks to use.
-         */
-        T execute(Connection connectionMetaDataTable, MigrationResolver migrationResolver, MetaDataTable metaDataTable, DbSupport dbSupport, Schema[] schemas, FlywayCallback[] flywayCallbacks);
-    }
-
     public int migrate() throws FlywayException {
-        return execute(new Command<Integer>() {
-            public Integer execute(Connection connectionMetaDataTable,
-                                   MigrationResolver migrationResolver, MetaDataTable metaDataTable, DbSupport dbSupport, Schema[] schemas, FlywayCallback[] flywayCallbacks) {
-
+        return execute(
+            (connectionMetaDataTable, migrationResolver, metaDataTable, dbSupport, schemas, flywayCallbacks) -> {
 
                 new DbSchemas(connectionMetaDataTable, schemas, metaDataTable).create();
 
                 if (!metaDataTable.exists()) {
-                    List<Schema> nonEmptySchemas = new ArrayList<Schema>();
+                    List<Schema> nonEmptySchemas = new ArrayList<>();
                     for (Schema schema : schemas) {
                         if (!schema.empty()) {
                             nonEmptySchemas.add(schema);
@@ -216,7 +166,7 @@ public class FlywayDM extends Flyway {
                         dbSupport.useSingleConnection() ? connectionMetaDataTable : JdbcUtils.openConnection(getDataSource());
                     DbMigrateDM dbMigrate =
                         new DbMigrateDM(connectionUserObjects, dbSupport, metaDataTable,
-                            schemas[0], migrationResolver, isIgnoreFailedFutureMigration(), FlywayDM.this);
+                            schemas[0], migrationResolver, isIgnoreFutureMigrations(), FlywayDM.this);
                     return dbMigrate.migrate();
                 } finally {
                     if (!dbSupport.useSingleConnection()) {
@@ -224,6 +174,25 @@ public class FlywayDM extends Flyway {
                     }
                 }
             }
-        });
+        );
+    }
+
+    /**
+     * A Flyway command that can be executed.
+     *
+     * @param <T> The result type of the command.
+     */
+    /*private -> testing*/ interface Command<T> {
+        /**
+         * Execute the operation.
+         *
+         * @param connectionMetaDataTable The database connection for the metadata table changes.
+         * @param migrationResolver       The migration resolver to use.
+         * @param metaDataTable           The metadata table.
+         * @param dbSupport               The database-specific support for these connections.
+         * @param schemas                 The schemas managed by Flyway.   @return The result of the operation.
+         * @param flywayCallbacks         The callbacks to use.
+         */
+        T execute(Connection connectionMetaDataTable, MigrationResolver migrationResolver, MetaDataTable metaDataTable, DbSupport dbSupport, Schema[] schemas, FlywayCallback[] flywayCallbacks);
     }
 }
