@@ -130,18 +130,30 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return pkClass;
     }
 
-    public String encapsulateFilterToSql(String filterQuery) {
+    public String encapsulateFilterToSql(Collection<String> fields, String filterQuery, String tableAlias) {
         //QueryUtils.hasOrderBy(filterQuery)
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         if (mapInfo == null)
             throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION,
-                    "没有对应的元数据信息：" + getPoClass().getName());
+                "没有对应的元数据信息：" + getPoClass().getName());
+        boolean addAlias = StringUtils.isNotBlank(tableAlias);
 
-        return "select " + GeneralJsonObjectDao.buildFieldSql(mapInfo, null) +
-                " from " + mapInfo.getTableName() +
-                " where 1=1 {" + mapInfo.getTableName() + "}" + filterQuery +
-                (StringUtils.isBlank(mapInfo.getOrderBy()) ? "" : " order by " + mapInfo.getOrderBy())
-                ;
+        return "select " +
+                ((fields != null && fields.size()>0)
+                    ? GeneralJsonObjectDao.buildPartFieldSql(mapInfo, fields, tableAlias)
+                    : GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias) )+
+            " from " + mapInfo.getTableName() + (addAlias? tableAlias: "") +
+            " where 1=1 {" + mapInfo.getTableName() + (addAlias? tableAlias: "") + "}" +
+            filterQuery +
+            (StringUtils.isBlank(mapInfo.getOrderBy()) ? "" : " order by " + mapInfo.getOrderBy());
+    }
+
+    public String encapsulateFilterToSql(String filterQuery, String tableAlias) {
+        return encapsulateFilterToSql(null, filterQuery,tableAlias);
+    }
+
+    public String encapsulateFilterToSql(String filterQuery) {
+        return encapsulateFilterToSql(null, filterQuery,null);
     }
 
     /**
