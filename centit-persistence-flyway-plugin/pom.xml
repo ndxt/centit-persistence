@@ -9,10 +9,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>centit-persistence-flyway-dm-plugin</artifactId>
-    <name>com.centit.framework:centit-persistence-flyway-dm-plugin</name>
+    <artifactId>centit-persistence-flyway-plugin</artifactId>
+    <name>com.centit.framework:centit-persistence-flyway-plugin</name>
     <packaging>jar</packaging>
-    <description>达梦数据库flyway插件</description>
+    <description>国内数据库flyway插件</description>
 
     <dependencies>
         <dependency>

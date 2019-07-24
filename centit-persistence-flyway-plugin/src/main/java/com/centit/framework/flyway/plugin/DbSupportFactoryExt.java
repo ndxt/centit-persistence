@@ -3,6 +3,7 @@ package com.centit.framework.flyway.plugin;
 import com.centit.framework.flyway.plugin.kbase.KBaseDbSupport;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.internal.dbsupport.DbSupport;
+import org.flywaydb.core.internal.dbsupport.DbSupportFactory;
 import org.flywaydb.core.internal.dbsupport.FlywaySqlException;
 import org.flywaydb.core.internal.dbsupport.oracle.OracleDbSupport;
 import org.flywaydb.core.internal.util.logging.Log;
@@ -46,7 +47,8 @@ public class DbSupportFactoryExt {
             return new KBaseDbSupport(connection);
         }
 
-        throw new FlywayException("Unsupported Database: " + databaseProductName);
+        return DbSupportFactory.createDbSupport(connection, printInfo);
+        //throw new FlywayException("Unsupported Database: " + databaseProductName);
     }
 
     /**

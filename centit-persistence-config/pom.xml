@@ -30,7 +30,7 @@
 
         <dependency>
             <groupId>com.centit.framework</groupId>
-            <artifactId>centit-persistence-flyway-dm-plugin</artifactId>
+            <artifactId>centit-persistence-flyway-plugin</artifactId>
             <version>${project.version}</version>
         </dependency>
 
