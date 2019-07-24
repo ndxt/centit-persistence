@@ -1,28 +1,10 @@
 package com.centit.framework.flyway.plugin;
 
+import com.centit.framework.flyway.plugin.kbase.KBaseDbSupport;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.internal.dbsupport.DbSupport;
 import org.flywaydb.core.internal.dbsupport.FlywaySqlException;
-import org.flywaydb.core.internal.dbsupport.db2.DB2DbSupport;
-import org.flywaydb.core.internal.dbsupport.db2zos.DB2zosDbSupport;
-import org.flywaydb.core.internal.dbsupport.derby.DerbyDbSupport;
-import org.flywaydb.core.internal.dbsupport.greenplum.GreenPlumDbSupport;
-import org.flywaydb.core.internal.dbsupport.enterprisedb.EnterpriseDBDbSupport;
-import org.flywaydb.core.internal.dbsupport.h2.H2DbSupport;
-import org.flywaydb.core.internal.dbsupport.hsql.HsqlDbSupport;
-import org.flywaydb.core.internal.dbsupport.mysql.MySQLDbSupport;
 import org.flywaydb.core.internal.dbsupport.oracle.OracleDbSupport;
-import org.flywaydb.core.internal.dbsupport.phoenix.PhoenixDbSupport;
-import org.flywaydb.core.internal.dbsupport.postgresql.PostgreSQLDbSupport;
-import org.flywaydb.core.internal.dbsupport.redshift.RedshfitDbSupportViaPostgreSQLDriver;
-import org.flywaydb.core.internal.dbsupport.redshift.RedshfitDbSupportViaRedshiftDriver;
-import org.flywaydb.core.internal.dbsupport.redshift.RedshiftDbSupport;
-import org.flywaydb.core.internal.dbsupport.saphana.SapHanaDbSupport;
-import org.flywaydb.core.internal.dbsupport.solid.SolidDbSupport;
-import org.flywaydb.core.internal.dbsupport.sqlite.SQLiteDbSupport;
-import org.flywaydb.core.internal.dbsupport.sqlserver.SQLServerDbSupport;
-import org.flywaydb.core.internal.dbsupport.sybase.ase.SybaseASEDbSupport;
-import org.flywaydb.core.internal.dbsupport.vertica.VerticaDbSupport;
 import org.flywaydb.core.internal.util.logging.Log;
 import org.flywaydb.core.internal.util.logging.LogFactory;
 

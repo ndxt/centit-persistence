@@ -1,4 +1,4 @@
-package com.centit.framework.flyway.plugin;
+package com.centit.framework.flyway.plugin.kbase;
 
 import org.flywaydb.core.internal.dbsupport.oracle.OracleDbSupport;
 
