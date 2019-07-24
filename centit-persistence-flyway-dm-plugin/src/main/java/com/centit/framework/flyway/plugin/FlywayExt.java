@@ -10,9 +10,7 @@ import org.flywaydb.core.internal.command.DbRepair;
 import org.flywaydb.core.internal.command.DbSchemas;
 import org.flywaydb.core.internal.dbsupport.DbSupport;
 import org.flywaydb.core.internal.dbsupport.Schema;
-import org.flywaydb.core.internal.dbsupport.oracle.OracleDbSupport;
 import org.flywaydb.core.internal.metadatatable.MetaDataTable;
-import org.flywaydb.core.internal.metadatatable.MetaDataTableImpl;
 import org.flywaydb.core.internal.resolver.CompositeMigrationResolver;
 import org.flywaydb.core.internal.util.*;
 import org.flywaydb.core.internal.util.jdbc.JdbcUtils;
@@ -29,14 +27,14 @@ import java.util.*;
  * It is THE public API from which all important Flyway functions such as clean, validate and migrate can be called.
  * </p>
  */
-public class FlywayDM extends Flyway {
-    private static final Log LOG = LogFactory.getLog(FlywayDM.class);
+public class FlywayExt extends Flyway {
+    private static final Log LOG = LogFactory.getLog(FlywayExt.class);
     private Locations locations = new Locations("db/migration");
 
     /**
      * Creates a new instance of Flyway. This is your starting point.
      */
-    public FlywayDM() {
+    public FlywayExt() {
         // Do nothing
     }
 
@@ -65,7 +63,7 @@ public class FlywayDM extends Flyway {
 
             connectionMetaDataTable = JdbcUtils.openConnection(getDataSource());
 
-            DbSupport dbSupport = new OracleDbSupport(connectionMetaDataTable);
+            DbSupport dbSupport = DbSupportFactoryExt.createDbSupport(connectionMetaDataTable, false);
             //boolean dbConnectionInfoPrinted = true;
             LOG.debug("DDL Transactions Supported: " + dbSupport.supportsDdlTransactions());
 
@@ -103,7 +101,7 @@ public class FlywayDM extends Flyway {
                 ConfigurationInjectionUtils.injectFlywayConfiguration(callback, this);
             }
 
-            MetaDataTable metaDataTable = new MetaDataTableImpl(dbSupport, schemas[0].getTable(getTable()), getInstalledBy());
+            MetaDataTable metaDataTable = new MetaDataExtTableImpl(dbSupport, schemas[0].getTable(getTable()), getInstalledBy());
             if (metaDataTable.upgradeIfNecessary()) {
                 new DbRepair(dbSupport, connectionMetaDataTable, schemas[0], migrationResolver, metaDataTable, getCallbacks()).repairChecksumsAndDescriptions();
                 LOG.info("Metadata table " + getTable() + " successfully upgraded to the Flyway 4.0 format.");
@@ -164,9 +162,9 @@ public class FlywayDM extends Flyway {
                 try {
                     connectionUserObjects =
                         dbSupport.useSingleConnection() ? connectionMetaDataTable : JdbcUtils.openConnection(getDataSource());
-                    DbMigrateDM dbMigrate =
-                        new DbMigrateDM(connectionUserObjects, dbSupport, metaDataTable,
-                            schemas[0], migrationResolver, isIgnoreFutureMigrations(), FlywayDM.this);
+                    DbMigrateExt dbMigrate =
+                        new DbMigrateExt(connectionUserObjects, dbSupport, metaDataTable,
+                            schemas[0], migrationResolver, isIgnoreFutureMigrations(), FlywayExt.this);
                     return dbMigrate.migrate();
                 } finally {
                     if (!dbSupport.useSingleConnection()) {

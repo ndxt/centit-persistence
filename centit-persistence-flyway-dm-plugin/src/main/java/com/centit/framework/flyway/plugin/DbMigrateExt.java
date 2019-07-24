@@ -13,7 +13,6 @@ import org.flywaydb.core.internal.command.DbMigrate;
 import org.flywaydb.core.internal.dbsupport.DbSupport;
 import org.flywaydb.core.internal.dbsupport.FlywaySqlScriptException;
 import org.flywaydb.core.internal.dbsupport.Schema;
-import org.flywaydb.core.internal.dbsupport.oracle.OracleDbSupport;
 import org.flywaydb.core.internal.info.MigrationInfoImpl;
 import org.flywaydb.core.internal.info.MigrationInfoServiceImpl;
 import org.flywaydb.core.internal.metadatatable.AppliedMigration;
@@ -30,7 +29,7 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DbMigrateDM {
+public class DbMigrateExt {
     private static final Log LOG = LogFactory.getLog(DbMigrate.class);
 
     /**
@@ -84,9 +83,9 @@ public class DbMigrateDM {
      * @param ignoreFutureMigration       Flag whether to ignore future migrations or not.
      * @param configuration               The Flyway configuration.
      */
-    public DbMigrateDM(Connection connectionUserObjects, DbSupport dbSupport,
-                       MetaDataTable metaDataTable, Schema schema, MigrationResolver migrationResolver,
-                       boolean ignoreFutureMigration, FlywayConfiguration configuration) {
+    public DbMigrateExt(Connection connectionUserObjects, DbSupport dbSupport,
+                        MetaDataTable metaDataTable, Schema schema, MigrationResolver migrationResolver,
+                        boolean ignoreFutureMigration, FlywayConfiguration configuration) {
         this.connectionUserObjects = connectionUserObjects;
         this.dbSupport = dbSupport;
         this.metaDataTable = metaDataTable;
@@ -95,7 +94,7 @@ public class DbMigrateDM {
         this.ignoreFutureMigration = ignoreFutureMigration;
         this.configuration = configuration;
 
-        dbSupportUserObjects = new OracleDbSupport(connectionUserObjects);
+        dbSupportUserObjects = DbSupportFactoryExt.createDbSupport(connectionUserObjects, false);;
     }
 
     /**
@@ -310,9 +309,9 @@ public class DbMigrateDM {
             try {
                 migration.getResolvedMigration().getExecutor().execute(connectionUserObjects);
             } catch (FlywaySqlScriptException e) {
-                throw new DbMigrateDM.FlywayMigrateSqlException(migration, isOutOfOrder, e);
+                throw new DbMigrateExt.FlywayMigrateSqlException(migration, isOutOfOrder, e);
             } catch (SQLException e) {
-                throw new DbMigrateDM.FlywayMigrateSqlException(migration, isOutOfOrder, e);
+                throw new DbMigrateExt.FlywayMigrateSqlException(migration, isOutOfOrder, e);
             }
             LOG.debug("Successfully completed migration of " + migrationText);
 

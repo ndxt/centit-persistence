@@ -1,7 +1,7 @@
 package com.centit.framework.core.config;
 
 import com.centit.framework.core.dao.ExtendedQueryPool;
-import com.centit.framework.flyway.plugin.FlywayDM;
+import com.centit.framework.flyway.plugin.FlywayExt;
 import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.QueryLogUtils;
@@ -98,8 +98,9 @@ public class DataSourceConfig implements EnvironmentAware {
         String flywayEnable = env.getProperty("flyway.enable");
         if (StringRegularOpt.isTrue(flywayEnable)) {
             Flyway flywayMigration;
-            if (DBType.DM.equals(DBType.mapDBType(dataSource.getConnection()))) {
-                flywayMigration = new FlywayDM();
+            DBType dbType = DBType.mapDBType(dataSource.getConnection());
+            if (DBType.DM.equals(dbType) || DBType.KBase.equals(dbType)) {
+                flywayMigration = new FlywayExt();
             } else {
                 flywayMigration = new Flyway();
             }
