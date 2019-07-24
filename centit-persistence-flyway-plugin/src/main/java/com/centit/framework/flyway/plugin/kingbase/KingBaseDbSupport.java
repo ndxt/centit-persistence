@@ -1,18 +1,18 @@
-package com.centit.framework.flyway.plugin.kbase;
+package com.centit.framework.flyway.plugin.kingbase;
 
 import org.flywaydb.core.internal.dbsupport.oracle.OracleDbSupport;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class KBaseDbSupport extends OracleDbSupport {
+public class KingBaseDbSupport extends OracleDbSupport {
 
     /**
      * Creates a new instance.
      *
      * @param connection The connection to use.
      */
-    public KBaseDbSupport(Connection connection) {
+    public KingBaseDbSupport(Connection connection) {
         super(connection);
     }
 

@@ -1,9 +1,8 @@
 package com.centit.framework.flyway.plugin;
 
-import com.centit.framework.flyway.plugin.kbase.KBaseDbSupport;
+import com.centit.framework.flyway.plugin.kingbase.KingBaseDbSupport;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.internal.dbsupport.DbSupport;
-import org.flywaydb.core.internal.dbsupport.DbSupportFactory;
 import org.flywaydb.core.internal.dbsupport.FlywaySqlException;
 import org.flywaydb.core.internal.dbsupport.oracle.OracleDbSupport;
 import org.flywaydb.core.internal.util.logging.Log;
@@ -44,7 +43,7 @@ public class DbSupportFactoryExt {
             return new OracleDbSupport(connection);
         }
         if (databaseProductName.startsWith("KingbaseES")) {
-            return new KBaseDbSupport(connection);
+            return new KingBaseDbSupport(connection);
         }
 
         //return DbSupportFactory.createDbSupport(connection, printInfo);
