@@ -38,7 +38,7 @@ public abstract class ExtendedQueryPool {
         Element root = doc.getRootElement();//获取根元素
         for(Object element : root.elements()){
             String strDbType = ((Element)element).attributeValue("dbtype");
-            if(StringUtils.isBlank(strDbType) || dbtype == DBType.valueOf(strDbType) ) {
+            if(StringUtils.isBlank(strDbType) || dbtype == DBType.mapDBType(strDbType) ) {
                 EXTENDED_SQL_MAP.put(
                         ((Element) element).attributeValue("id"),
                         ((Element) element).getStringValue());
