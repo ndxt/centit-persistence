@@ -157,7 +157,11 @@ public abstract class JdbcTemplateUtils {
             return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(jdbcTemplate, querySql, null,
                     QueryUtils.buildGetCountSQLByReplaceFields( querySql), namedParams, pageDesc);
         }else{
-            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(jdbcTemplate, querySql, namedParams);
+            JSONArray ja = JdbcTemplateUtils.listObjectsByNamedSqlAsJson(jdbcTemplate, querySql, namedParams);
+            if(ja != null && pageDesc != null){
+                pageDesc.noPaging(ja.size());
+            }
+            return ja;
         }
     }
 
@@ -234,7 +238,11 @@ public abstract class JdbcTemplateUtils {
             return JdbcTemplateUtils.listObjectsBySqlAsJson(jdbcTemplate, querySql,
                     QueryUtils.buildGetCountSQLByReplaceFields( querySql), params, pageDesc);
         }else{
-            return JdbcTemplateUtils.listObjectsBySqlAsJson(jdbcTemplate, querySql, params);
+            JSONArray ja = JdbcTemplateUtils.listObjectsBySqlAsJson(jdbcTemplate, querySql, params);
+            if(ja != null && pageDesc != null){
+                pageDesc.noPaging(ja.size());
+            }
+            return ja;
         }
     }
 
@@ -265,7 +273,11 @@ public abstract class JdbcTemplateUtils {
                         }
                     });
         }else{
-            return JdbcTemplateUtils.listObjectsBySql(jdbcTemplate,querySql,params);
+            List<Object[]> ja = JdbcTemplateUtils.listObjectsBySql(jdbcTemplate,querySql,params);
+            if(ja != null && pageDesc != null){
+                pageDesc.noPaging(ja.size());
+            }
+            return ja;
         }
     }
 
@@ -274,7 +286,11 @@ public abstract class JdbcTemplateUtils {
             String queryCountSql = QueryUtils.buildGetCountSQL(querySql);
             return JdbcTemplateUtils.listObjectsBySql(jdbcTemplate,querySql, queryCountSql,params, pageDesc);
         }else{
-            return JdbcTemplateUtils.listObjectsBySql(jdbcTemplate,querySql,params);
+            List<Object[]> ja = JdbcTemplateUtils.listObjectsBySql(jdbcTemplate,querySql,params);
+            if(ja != null && pageDesc != null){
+                pageDesc.noPaging(ja.size());
+            }
+            return ja;
         }
     }
 
@@ -306,7 +322,11 @@ public abstract class JdbcTemplateUtils {
                         }
                     });
         }else{
-            return JdbcTemplateUtils.listObjectsByNamedSql(jdbcTemplate,querySql,namedParams);
+            List<Object[]> ja = JdbcTemplateUtils.listObjectsByNamedSql(jdbcTemplate,querySql,namedParams);
+            if(ja != null && pageDesc != null){
+                pageDesc.noPaging(ja.size());
+            }
+            return ja;
         }
     }
 
@@ -316,7 +336,11 @@ public abstract class JdbcTemplateUtils {
             String queryCountSql = QueryUtils.buildGetCountSQL(querySql);
             return JdbcTemplateUtils.listObjectsByNamedSql(jdbcTemplate,querySql, queryCountSql,namedParams, pageDesc);
         }else{
-            return JdbcTemplateUtils.listObjectsByNamedSql(jdbcTemplate,querySql,namedParams);
+            List<Object[]> ja = JdbcTemplateUtils.listObjectsByNamedSql(jdbcTemplate,querySql,namedParams);
+            if(ja != null && pageDesc != null){
+                pageDesc.noPaging(ja.size());
+            }
+            return ja;
         }
     }
     /**
