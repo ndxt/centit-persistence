@@ -99,7 +99,7 @@ public class DataSourceConfig implements EnvironmentAware {
         if (StringRegularOpt.isTrue(flywayEnable)) {
             Flyway flywayMigration;
             DBType dbType = DBType.mapDBType(dataSource.getConnection());
-            if (DBType.DM.equals(dbType) || DBType.KBase.equals(dbType)) {
+            if (dbType.isMadeInChina()) {
                 flywayMigration = new FlywayExt();
             } else {
                 flywayMigration = new Flyway();

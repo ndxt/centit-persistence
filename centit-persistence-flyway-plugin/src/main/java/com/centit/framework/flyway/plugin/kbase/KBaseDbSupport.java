@@ -15,13 +15,16 @@ public class KBaseDbSupport extends OracleDbSupport {
     public KBaseDbSupport(Connection connection) {
         super(connection);
     }
+
     public String getDbName() {
-        return "kbase";
+        return "kingbase";
     }
+
     @Override
     protected String doGetCurrentSchemaName() throws SQLException {
         return jdbcTemplate.queryForString("SELECT CURRENT_SCHEMA()");
     }
+
     @Override
     protected void doChangeCurrentSchemaTo(String schema) throws SQLException {
         jdbcTemplate.execute("SET search_path to " + quote(schema));

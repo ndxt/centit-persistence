@@ -47,8 +47,8 @@ public class DbSupportFactoryExt {
             return new KBaseDbSupport(connection);
         }
 
-        return DbSupportFactory.createDbSupport(connection, printInfo);
-        //throw new FlywayException("Unsupported Database: " + databaseProductName);
+        //return DbSupportFactory.createDbSupport(connection, printInfo);
+        throw new FlywayException("Unsupported Database: " + databaseProductName);
     }
 
     /**
