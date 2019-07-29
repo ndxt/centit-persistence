@@ -42,7 +42,7 @@ public class DbSupportFactoryExt {
         if (databaseProductName.startsWith("DM")) {
             return new OracleDbSupport(connection);
         }
-        if (databaseProductName.startsWith("KingbaseES")) {
+        if (databaseProductName.startsWith("KingbaseES")||databaseProductName.startsWith("OSCAR")) {
             return new KingBaseDbSupport(connection);
         }
 
