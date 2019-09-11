@@ -803,6 +803,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 OrmDaoUtils.saveNewObjectCascade(conn, object));
     }
 
+    public T getObjectByProperty(final String propertyName,final Object propertyValue) {
+        return getObjectByProperties(CollectionsOpt.createHashMap(propertyName, propertyValue));
+    }
+
     public T getObjectByProperties(Map<String, Object> properties) {
         return jdbcTemplate.execute(
                 (ConnectionCallback<T>) conn ->
