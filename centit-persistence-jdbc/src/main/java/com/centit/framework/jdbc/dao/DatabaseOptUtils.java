@@ -164,6 +164,16 @@ public abstract class DatabaseOptUtils {
                 querySql, params, pageDesc);
     }
 
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql) {
+        return JdbcTemplateUtils.listObjectsBySqlAsJson(baseDao.getJdbcTemplate(),
+            querySql, null);
+    }
+
+    public static JSONArray listObjectsBySqlAsJson(BaseDaoImpl<?, ?> baseDao, String querySql,  PageDesc pageDesc) {
+        return JdbcTemplateUtils.listObjectsBySqlAsJson(baseDao.getJdbcTemplate(),
+            querySql, null, pageDesc);
+    }
+
     public static List<Object[]> listObjectsByNamedSql(BaseDaoImpl<?, ?> baseDao,
                                                        String querySql, Map<String, Object> namedParams) {
         return JdbcTemplateUtils.listObjectsByNamedSql(baseDao.getJdbcTemplate(),
@@ -181,6 +191,8 @@ public abstract class DatabaseOptUtils {
         return JdbcTemplateUtils.listObjectsByNamedSql(baseDao.getJdbcTemplate(),
                 querySql, namedParams, pageDesc);
     }
+
+
     /**
      * 参数驱动sql查询
      * @param baseDao 任意dao对象，需要用dao中的session访问数据库
