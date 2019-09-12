@@ -147,9 +147,20 @@ public abstract class DatabaseOptUtils {
                 querySql, params, pageDesc);
     }
 
+    public static List<Object[]> listObjectsBySql(BaseDaoImpl<?, ?> baseDao, String querySql) {
+        return JdbcTemplateUtils.listObjectsBySql(baseDao.getJdbcTemplate(),
+            querySql, null);
+    }
+
     public static List<Object[]> listObjectsBySql(BaseDaoImpl<?, ?> baseDao, String querySql, Object[] params) {
         return JdbcTemplateUtils.listObjectsBySql(baseDao.getJdbcTemplate(),
                 querySql, params);
+    }
+
+    public static List<Object[]> listObjectsBySql(BaseDaoImpl<?, ?> baseDao,
+                                                  String querySql, String queryCountSql,PageDesc pageDesc) {
+        return JdbcTemplateUtils.listObjectsBySql(baseDao.getJdbcTemplate(),
+            querySql, queryCountSql, null, pageDesc);
     }
 
     public static List<Object[]> listObjectsBySql(BaseDaoImpl<?, ?> baseDao,
