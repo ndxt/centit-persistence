@@ -9,7 +9,6 @@ import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.framework.core.po.EntityWithVersionTag;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.ReflectionOpt;
-import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;

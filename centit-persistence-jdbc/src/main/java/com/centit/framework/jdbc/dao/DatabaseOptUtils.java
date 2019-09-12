@@ -427,4 +427,18 @@ public abstract class DatabaseOptUtils {
                 propertiesValue, propertiesFilter);
     }
 
+    public static <T> Integer replaceObjectsAsTabulation(
+        BaseDaoImpl<?, ?> baseDao, List<T> oldDbObject,
+        List<T> newObjects){
+        return JdbcTemplateUtils.replaceObjectsAsTabulation
+            (baseDao.getJdbcTemplate(), oldDbObject, newObjects);
+    }
+
+    public static Integer replaceObjectsAsTabulation(
+        BaseDaoImpl<?, ?> baseDao, Class<?> type,
+        List<Map<String, Object>> oldDbObject,
+        List<Map<String, Object>> newObjects){
+        return JdbcTemplateUtils.replaceObjectsAsTabulation
+            (baseDao.getJdbcTemplate(), type, oldDbObject, newObjects);
+    }
 }

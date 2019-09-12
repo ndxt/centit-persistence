@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
+import com.centit.support.database.jsonmaptable.JsonObjectDao;
+import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.utils.*;
 import org.slf4j.Logger;
@@ -696,6 +699,26 @@ public abstract class JdbcTemplateUtils {
         return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.batchUpdateObject(conn, type, propertiesValue, propertiesFilter));
+    }
+
+    public static <T> Integer replaceObjectsAsTabulation(
+        JdbcTemplate jdbcTemplate, List<T> oldDbObject,
+        List<T> newObjects){
+        return jdbcTemplate.execute(
+            (ConnectionCallback<Integer>) conn ->
+                OrmDaoUtils.replaceObjectsAsTabulation(conn, oldDbObject, newObjects));
+    }
+
+    public static Integer replaceObjectsAsTabulation(
+        JdbcTemplate jdbcTemplate, Class<?> type,
+        List<Map<String, Object>> oldDbObject,
+        List<Map<String, Object>> newObjects){
+        return jdbcTemplate.execute(
+            (ConnectionCallback<Integer>) conn -> {
+                JsonObjectDao dao = GeneralJsonObjectDao.createJsonObjectDao(
+                    conn, JpaMetadata.fetchTableMapInfo(type));
+                return dao.replaceObjectsAsTabulation(oldDbObject, newObjects);
+            });
     }
 
 }
