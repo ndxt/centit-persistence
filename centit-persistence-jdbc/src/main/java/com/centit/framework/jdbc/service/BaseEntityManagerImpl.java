@@ -56,6 +56,13 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
 
     @Override
     @Transactional
+    @Deprecated
+    public List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc){
+        return baseDao.listObjectsByProperties(filterMap, pageDesc);
+    }
+
+    @Override
+    @Transactional
     public List<T> listObjectsByProperty(String propertyName, Object propertyValue) {
         return baseDao.listObjectsByProperty(propertyName,propertyValue );
     }

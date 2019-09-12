@@ -2,14 +2,12 @@ package com.centit.framework.jdbc.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.centit.support.database.utils.PageDesc;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 @SuppressWarnings("unused")
 public interface BaseEntityManager<T extends Serializable, PK extends Serializable> {
-
 
     /**
      * 查找表中的所有记录， 包括禁用的 isValid = 'F' 的记录, 如果没有isValid这个字段也可以使用
@@ -25,6 +23,14 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      */
     List<T> listObjects(Map<String, Object> filterMap);
 
+    /**
+     * 根据过滤条件筛选
+     * @param filterMap 过滤条件
+     * @param pageDesc 分页信息
+     * @return 过滤后的对象
+     */
+    @Deprecated
+    List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc);
     /**
      * 根据属性筛选 严格等于
      * @param propertyName 属性名
@@ -56,21 +62,21 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      *  Serializable
      */
     void saveNewObject(T o);
-    
+
     /**
      * 更新泛型参数对象
      *
      * @param o T
      */
     void updateObject(T o);
-    
+
     /**
      * 保存泛型参数对象
      *
      * @param o T
      */
     void mergeObject(T o);
-    
+
 
     /**
      * 删除泛型参数对象
@@ -110,7 +116,7 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      * @param pageDesc 分页信息
      * @return JSONArray
      */
-    JSONArray listObjectsAsJson(Map<String, Object> filterMap, PageDesc pageDesc  );
+    JSONArray listObjectsAsJson(Map<String, Object> filterMap, PageDesc pageDesc);
 
     /**
      * 查询数据库，可以查询任意表
