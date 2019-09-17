@@ -997,7 +997,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param tableAlias 表的别名
      * @return 返回对象
      */
-    @Deprecated
     public List<T> listObjectsByFilter(String whereSql, Map<String, Object> namedParams, String tableAlias) {
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(whereSql, namedParams);
         return listObjectsByFilter(qap.getQuery(), qap.getParams(), tableAlias);
