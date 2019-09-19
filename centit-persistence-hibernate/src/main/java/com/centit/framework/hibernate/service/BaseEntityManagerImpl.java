@@ -1,8 +1,8 @@
 package com.centit.framework.hibernate.service;
 
-import com.centit.support.database.utils.PageDesc;
 import com.centit.framework.hibernate.dao.BaseDaoImpl;
 import com.centit.support.algorithm.ReflectionOpt;
+import com.centit.support.database.utils.PageDesc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Propagation;
@@ -19,7 +19,7 @@ import java.util.Map;
  * @author codefan
  * 2012-2-16
  */
-public abstract class BaseEntityManagerImpl<T extends Serializable, 
+public abstract class BaseEntityManagerImpl<T extends Serializable,
          PK extends Serializable, D extends BaseDaoImpl<T, PK>> implements
         BaseEntityManager<T, PK> {
 
@@ -66,7 +66,7 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
     public void saveNewObject(T o){
         /*return*/ baseDao.saveNewObject(o);
     }
-    
+
     /**
      * 更新泛型参数对象
      *
@@ -75,17 +75,17 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
     @Override
     @Transactional(propagation=Propagation.REQUIRED)
     public void updateObject(T o){
-        baseDao.saveObject(o); 
+        baseDao.saveObject(o);
     }
-    
+
     @Override
     @Transactional(propagation=Propagation.REQUIRED)
     public void mergeObject(T o) {
         baseDao.mergeObject(o);
 
     }
-    
-    
+
+
     /**
      * 修改之前check一下版本号，不一致抛异常
      * @param o T
@@ -96,7 +96,7 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
         baseDao.updateObjectCheckTimestamp(o);
 
     }
-    
+
     @Override
     @Transactional(propagation=Propagation.REQUIRED)
     public T getObjectById(PK id) {
@@ -127,7 +127,7 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
     public void copyObject(T des, T sou) {
         ReflectionOpt.invokeBinaryOpt(des, "copy", sou);
     }
-    
+
     @Override
     @Transactional(propagation=Propagation.REQUIRED)
     public List<T> listObjects() {
@@ -160,7 +160,7 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
     public List<T> listObjects(Map<String, Object> filterMap) {
         return baseDao.listObjects(filterMap,null);
     }
-    
+
     /**
      * 查询数据库并且对查询结果分页
      *
@@ -174,7 +174,7 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
     public List<T> listObjects(String shql, Map<String, Object> filterMap, PageDesc pageDesc) {
         return baseDao.listObjects(shql, filterMap, pageDesc);
     }
-    
+
     @Override
     @Transactional(propagation=Propagation.REQUIRED)
     public List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc) {

@@ -3,7 +3,6 @@ package com.centit.framework.mybatis.dao;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.support.algorithm.CollectionsOpt;
-import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.utils.*;
@@ -31,7 +30,7 @@ public abstract class DatabaseOptUtils {
     public static final int ORACLE_TYPES_CURSOR = -10; // oracle.jdbc.OracleTypes.CURSOR
 
     protected static Logger logger = LoggerFactory.getLogger(DatabaseOptUtils.class);
-    
+
 
     private DatabaseOptUtils() {
 
@@ -72,7 +71,7 @@ public abstract class DatabaseOptUtils {
             Map<String,Object> values) throws SQLException {
         DatabaseAccess.doExecuteNamedSql(sqlSession.getConnection(), sSql,values);
     }
-    
+
 
     /**
      * 获取分页语句
@@ -118,8 +117,8 @@ public abstract class DatabaseOptUtils {
         return sKey;
     }
 
-    
-    /** 用表来模拟sequence 
+
+    /** 用表来模拟sequence
      create table simulate_sequence (seqname varchar(100) not null primary key,
      currvalue integer, increment integer);
      * @param sqlSession sqlSession
@@ -133,7 +132,7 @@ public abstract class DatabaseOptUtils {
         GeneralJsonObjectDao jsonObjectDao = GeneralJsonObjectDao.createJsonObjectDao(sqlSession.getConnection());
         return jsonObjectDao.getSimulateSequenceNextValue(sequenceName);
     }
-    
+
     /**
      * 获取sequence的下一个新值 只有oracle DB2支持
      *
@@ -169,7 +168,7 @@ public abstract class DatabaseOptUtils {
         return String.valueOf(sequence);
     }
 
- 
+
 
     public final static Object getSingleObjectBySql(SqlSession sqlSession,
             final String sSql) throws SQLException, IOException {
@@ -197,9 +196,9 @@ public abstract class DatabaseOptUtils {
         return DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(),sSql,paramObjects);
     }
 
-    
-    
-    
+
+
+
     /**
      * 获取唯一的一个整形数据的SQL
      * @param sqlSession sqlSession
@@ -221,7 +220,7 @@ public abstract class DatabaseOptUtils {
             return ((BigDecimal) obj).longValue();
         return 0;
     }
-    
+
     public final static long getSingleIntBySql(SqlSession sqlSession,
             final String sSql, final Object paramObject) throws SQLException, IOException {
          Object obj = getSingleObjectBySql(sqlSession, sSql,  paramObject);
@@ -235,10 +234,10 @@ public abstract class DatabaseOptUtils {
              return ((BigDecimal) obj).longValue();
          return 0;
     }
-    
-   
 
-    
+
+
+
     /**
      * 获取唯一的一个字符串数据的SQL
      * @param sqlSession sqlSession
@@ -253,11 +252,11 @@ public abstract class DatabaseOptUtils {
 
         if (obj == null)
             return "";
-        
+
         return String.valueOf(obj);
     }
 
-   
+
     public final static boolean callProcedure(SqlSession sqlSession,
             String procName, Object... paramObjs) {
         try {
@@ -267,9 +266,9 @@ public abstract class DatabaseOptUtils {
             throw new PersistenceException("call procedure : " + procName ,e);
         }
     }
-    
-    
-    
+
+
+
     /**
      * 执行一个Oracle存储过程 返回一个数据集，这个数据集是一个out的游标,这个参数必需为存储过程的最后一个参数
      * @param conn conn
@@ -294,12 +293,12 @@ public abstract class DatabaseOptUtils {
             return (ResultSet) stmt.getObject(n + 1);
         }
     }
-    
+
     public final static ResultSet callProcedureOutRS(SqlSession sqlSession,
             String procName, Object... paramObjs) throws SQLException {
         return callProcedureOutRS(sqlSession.getConnection(), procName, paramObjs);
     }
-    
+
     public final static Object callFunction(SqlSession sqlSession,
             String procName,int resultType, Object... paramObjs) {
         try {
@@ -309,11 +308,11 @@ public abstract class DatabaseOptUtils {
             throw new PersistenceException("call procedure : " + procName ,e);
         }
     }
- 
+
 
     /**
      * 执行原生的SQL查询语句，返回的类型为 List
-     * 
+     *
      * @param sSql sSql
      * @param sqlSession sqlSession
      * @return List
@@ -324,7 +323,7 @@ public abstract class DatabaseOptUtils {
         return DatabaseAccess.findObjectsBySql(sqlSession.getConnection(), sSql);
     }
 
-  
+
     /**
      * 用原生SQL 查询数据库 objectType 如果没有的话可以为NULL
      * @param <T> T
@@ -338,12 +337,12 @@ public abstract class DatabaseOptUtils {
          BaseDaoImpl mapper = new BaseDaoImpl(sqlSession);
          return  mapper.selectList(ssql,objectType);
     }
-   
 
- 
- 
+
+
+
     /**
-     * 获取 符合条件的记录数量 
+     * 获取 符合条件的记录数量
      * @param sqlSession 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
      * @param sSql  sql语句，这个语句中的参数用？作为占位符
      * @param values 参数对应的变量
@@ -352,20 +351,20 @@ public abstract class DatabaseOptUtils {
      * @throws SQLException SQLException
      */
     public final static int getSqlReturnObjectCounts(SqlSession sqlSession, String sSql,
-            Object[] values) throws SQLException, IOException { 
+            Object[] values) throws SQLException, IOException {
         Object obj = DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(), sSql,values);
         return Integer.valueOf(obj.toString());
     }
-    
+
     /**
-     * 获取 符合条件的记录数量 
+     * 获取 符合条件的记录数量
      * @param sqlSession 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
      * @param sSql sql语句，这个语句必须用命名参数
      * @param values    命名参数对应的变量
      * @return 符合条件的记录数量
      * @throws IOException IOException
      * @throws SQLException SQLException
-     */    
+     */
     public final static int getSqlReturnObjectCounts(SqlSession sqlSession, String sSql,
             Map<String, Object> values) throws SQLException, IOException {
         Object obj = DatabaseAccess.getScalarObjectQuery(sqlSession.getConnection(), sSql,values);
@@ -384,7 +383,7 @@ public abstract class DatabaseOptUtils {
      */
     public final static List<?> findObjectsBySql(SqlSession sqlSession, String ssql,
             Map<String, Object> values, PageDesc pageDesc,Class<?> objectType) {
-        
+
         String pageSql;
         int startPos = 0;
         int maxSize = 0;
@@ -397,7 +396,7 @@ public abstract class DatabaseOptUtils {
         }else{
             pageSql = ssql;
         }
-        
+
         BaseDaoImpl mapper = new BaseDaoImpl(sqlSession);
         List<?> listT = null;
         if(objectType==null){
@@ -405,7 +404,7 @@ public abstract class DatabaseOptUtils {
         }else{
             listT = mapper.selectList(pageSql,values ,objectType);
         }
-        
+
         if(listT!=null && pageDesc!=null){
             if(maxSize>0){
                 List<Map<String, Object>> rowSumMap =
@@ -419,7 +418,7 @@ public abstract class DatabaseOptUtils {
         }
         return listT;
     }
-    
+
 
     /**
      * 返回的类型为 List
@@ -430,21 +429,21 @@ public abstract class DatabaseOptUtils {
      * @return List
      */
     public final static List<?> findObjectsBySql(SqlSession sqlSession, String ssql,
-            Map<String, Object> values, PageDesc pageDesc) {        
+            Map<String, Object> values, PageDesc pageDesc) {
         return findObjectsBySql( sqlSession,  ssql,
-                 values,  pageDesc,null);       
-    }    
-    
+                 values,  pageDesc,null);
+    }
+
     public final static List<?> findObjectsBySql(SqlSession sqlSession, String shql,
             Map<String, Object> values) {
         return findObjectsBySql(sqlSession,  shql,
                 values , new PageDesc(-1,-1),null);
-    }   
+    }
 
 
-     
+
     /**
-     * 
+     *
      * @param sqlSession 这个Dao和sqlSen语句中的对象没有任何关系，这个只用了获取session来访问数据
      * @param ssql sql语句，这个语句必须用命名参数
      * @param fieldnames 字段名称作为json中Map的key，没有这个参数的函数会自动从sql语句中解析字段名作为json中map的
@@ -463,7 +462,7 @@ public abstract class DatabaseOptUtils {
         String [] fieldNames  = fieldnames;
         if(fieldNames==null){
              List<String> fields = QueryUtils.getSqlFiledNames(ssql);
-             
+
              if(fields==null || fields.size()<1)
                  return null;
              fieldNames = DatabaseAccess.mapColumnsNameToFields(fields);
@@ -477,39 +476,39 @@ public abstract class DatabaseOptUtils {
             }else{*/
                 JSONObject jo = new JSONObject();
                 for(int i=0;i<fieldNames.length;i++){
-                    jo.put(fieldNames[i], 
+                    jo.put(fieldNames[i],
                             DatabaseAccess.fetchLobField(
                                     ((Object [])dataList.get(j))[i],false));
                 }
                 ja.add(jo);
-            //}      
+            //}
         }
-        
+
         return ja;
     }
-    
-   
-    
+
+
+
     public final static JSONArray findObjectsAsJSONBySql(SqlSession sqlSession, String ssql, String [] fieldNames) {
         return findObjectsAsJSONBySql(sqlSession, ssql,fieldNames,(Map<String,Object>) null , new PageDesc(-1,-1));
     }
-    
- 
-    
+
+
+
     public final static JSONArray findObjectsAsJSONBySql(SqlSession sqlSession, String shql,
                                                          Map<String,Object> values, PageDesc pageDesc) {
         return findObjectsAsJSONBySql(sqlSession,  shql, null,
                 values,  pageDesc);
-    }    
-  
-    
+    }
+
+
     public final static JSONArray findObjectsAsJSONBySql(SqlSession sqlSession, String ssql) {
         return findObjectsAsJSONBySql(sqlSession, ssql,null,(Map<String,Object>) null ,  new PageDesc(-1,-1));
     }
-    
+
     /**
      * 刷新Session缓存中的数据进行强制提交
-     * 
+     *
      * @param dbSession HibernateDaoSupport
      *
      */

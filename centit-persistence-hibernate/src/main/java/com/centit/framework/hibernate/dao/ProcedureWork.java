@@ -1,18 +1,13 @@
 package com.centit.framework.hibernate.dao;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.centit.support.algorithm.DatetimeOpt;
+import org.hibernate.jdbc.Work;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.hibernate.jdbc.Work;
 
-import com.centit.support.algorithm.DatetimeOpt;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 存储过程调用接口
@@ -29,7 +24,7 @@ public class ProcedureWork implements Work {
     protected static Logger logger = LoggerFactory.getLogger(ProcedureWork.class);
     private boolean isOracleProcedureWithReturnCursor;
     private boolean isSucceedExecuted;
-    
+
     public ProcedureWork(String procName, Object... params) {
         isOracleProcedureWithReturnCursor = false;
         isSucceedExecuted = false;
@@ -38,25 +33,25 @@ public class ProcedureWork implements Work {
             paramObjs.add(obj);
         }
     }
-    
+
     public void setOracleProcedureWithReturnCursor(boolean isOPWRC){
         isOracleProcedureWithReturnCursor = isOPWRC;
     }
-    
+
     public boolean hasBeSucceedExecuted(){
         return isSucceedExecuted;
     }
-    
+
     public ResultSet getRetrunResultSet() {
         return rs;
     }
-    
+
     @Override
     public void execute(Connection connection) throws SQLException
     {
         int n = paramObjs.size();
         StringBuilder procDesc = new StringBuilder("{call ");
-        
+
         procDesc.append(procName).append("(");
         for (int i = 0; i < n; i++) {
             if (i > 0)
@@ -81,12 +76,12 @@ public class ProcedureWork implements Work {
                 else
                     stmt.setObject(i + 1, paramObjs.get(i));
             }
-            
+
             if(isOracleProcedureWithReturnCursor)
                 stmt.registerOutParameter(n + 1, ORACLE_TYPES_CURSOR);
-            
+
             stmt.execute();
-            
+
             if(isOracleProcedureWithReturnCursor)
                 this.rs = (ResultSet) stmt.getObject(n + 1);
             isSucceedExecuted = true;

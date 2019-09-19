@@ -20,8 +20,8 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/sqlPool")
-@Api(value="框架将所有的系统信息都缓存在内存中，这个类提供了大量的访问框架数据的接口",
-        tags= "框架数据缓存接口")
+@Api(value="持久化框架中的sql语句资源",
+        tags= "框架中的sql语句资源")
 public class ExtendedQueryPoolController {
 
     protected Logger logger = LoggerFactory.getLogger(ExtendedQueryPoolController.class);
@@ -45,7 +45,7 @@ public class ExtendedQueryPoolController {
      * 重新load Sql ExtendedMap
      * @return Map &lt; query_ID, 查询语句 &gt; 查询语句了列表
      */
-    @ApiOperation(value = "重启加载数据", notes = "重启加载数据")
+    @ApiOperation(value = "重启加载[home]/sqlscript目录中的sql(*.xml)脚本文件", notes = "重启加载sql语句")
     @RequestMapping(value = "/reloadextendedsqlmap", method = { RequestMethod.GET })
     @ResponseBody
     public Map<String,Object> reloadExtendedSqlMap() {

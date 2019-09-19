@@ -39,7 +39,6 @@
         <module>centit-persistence-mybatis-config</module>
         <module>centit-persistence-extend</module>
         <module>centit-persistence-dynamic-datasource</module>
-        <module>centit-persistence-jdbc-transaction</module>
         <module>centit-persistence-flyway-plugin</module>
     </modules>
 

@@ -2,7 +2,6 @@ package com.centit.framework.mybatis.plugin;
 
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.utils.QueryUtils;
-
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;

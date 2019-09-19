@@ -1,23 +1,9 @@
 package com.centit.framework.jdbc.test.server.impl;
 
-import com.centit.framework.core.po.EntityWithDeleteTag;
-import com.centit.framework.jdbc.dao.DatabaseOptUtils;
 import com.centit.framework.jdbc.test.dao.OfficeWorkerDao;
-import com.centit.framework.jdbc.test.po.Career;
 import com.centit.framework.jdbc.test.po.OfficeWorker;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.DatetimeOpt;
-import com.centit.support.database.orm.GeneratorCondition;
-import com.centit.support.database.orm.GeneratorTime;
-import com.centit.support.database.orm.GeneratorType;
-import com.centit.support.database.orm.ValueGenerator;
-import com.centit.support.database.utils.PageDesc;
-import com.centit.support.database.utils.QueryUtils;
-
-import javax.persistence.*;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
 
 /**
  * 员工信息表
