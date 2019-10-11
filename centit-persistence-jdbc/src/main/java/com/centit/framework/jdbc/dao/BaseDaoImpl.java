@@ -1029,16 +1029,20 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     /**
      * 根据 前端传入的参数 驱动查询
      * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @param fields 返回字段
      * @param filters 数据权限顾虑语句
      * @param pageDesc 分页信息
      * @return 返回的对象列表
      */
-    public JSONArray listObjectsAsJson(Map<String, Object> filterMap, Collection<String> filters, PageDesc pageDesc) {
+    public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, Collection<String> fields,
+                                       Collection<String> filters, PageDesc pageDesc) {
 
         String querySql = getFilterQuerySql();
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        Pair<String, String[]> q = GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo, null);
+        Pair<String, String[]> q = ((fields != null && fields.size()>0)
+            ? GeneralJsonObjectDao.buildPartFieldSqlWithFieldName(mapInfo, fields, null)
+            : GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo, null));
 
         String selfOrderBy = GeneralJsonObjectDao.fetchSelfOrderSql(mapInfo, filterMap);
 
@@ -1056,8 +1060,42 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
+    /**
+     * 根据 前端传入的参数 驱动查询
+     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @param fields 返回字段
+     * @param filters 数据权限顾虑语句
+     * @param pageDesc 分页信息
+     * @return 返回的对象列表
+     */
+    public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, String [] fields,
+                                       Collection<String> filters, PageDesc pageDesc) {
+        return listObjectsPartFieldAsJson(filterMap, CollectionsOpt.createList(fields), filters , pageDesc);
+    }
+
+    /**
+     * 根据 前端传入的参数 驱动查询
+     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @param fields 返回字段
+     * @param pageDesc 分页信息
+     * @return 返回的对象列表
+     */
+    public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, String [] fields, PageDesc pageDesc) {
+        return listObjectsPartFieldAsJson(filterMap, CollectionsOpt.createList(fields), null , pageDesc);
+    }
+    /**
+     * 根据 前端传入的参数 驱动查询
+     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @param filters 数据权限顾虑语句
+     * @param pageDesc 分页信息
+     * @return 返回的对象列表
+     */
+    public JSONArray listObjectsAsJson(Map<String, Object> filterMap, Collection<String> filters, PageDesc pageDesc) {
+        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, filters , pageDesc);
+    }
+
     public JSONArray listObjectsAsJson(Map<String, Object> filterMap, PageDesc pageDesc){
-        return listObjectsAsJson(filterMap, null, pageDesc);
+        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, null, pageDesc);
     }
 
     private Pair<String,String[]> buildQuerySqlWithFieldNameByFilter(String whereSql,String tableAlias){
