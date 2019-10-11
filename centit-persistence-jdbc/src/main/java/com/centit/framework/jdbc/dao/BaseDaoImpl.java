@@ -866,7 +866,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public int countObjectByProperties(Map<String, Object> filterMap) {
         return jdbcTemplate.execute(
             (ConnectionCallback<Integer>) conn ->
-                OrmDaoUtils.countObjectByProperties(conn, filterMap, (Class<T>) getPoClass())
+                OrmDaoUtils.countObjectByProperties(conn, filterMap, getPoClass())
         );
     }
     /**
@@ -901,6 +901,27 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                             OrmDaoUtils.queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass())
             );
         }
+    }
+
+    public List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc) {
+        String querySql = getFilterQuerySql();
+        if (StringUtils.isBlank(querySql)) {
+            return listObjectsByProperties(filterMap, pageDesc);
+        } else {
+            String selfOrderBy = fetchSelfOrderSql(filterMap);
+            if (StringUtils.isNotBlank(selfOrderBy)) {
+                querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
+            }
+            QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, filterMap);
+            return jdbcTemplate.execute(
+                  (ConnectionCallback<List<T>>) conn -> {
+                    pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn,
+                        QueryUtils.buildGetCountSQLByReplaceFields(qap.getSql()),qap.getParams()));
+                    return OrmDaoUtils
+                    .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass(),
+                        pageDesc.getRowStart(), pageDesc.getPageSize());});
+        }
+
     }
 
     public List<T> listObjectsBySql(String querySql, Map<String, Object> namedParams) {
