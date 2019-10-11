@@ -6,9 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 @SuppressWarnings("unused")
-public interface BaseDao<T extends Serializable, PK extends Serializable>
-{
-    Long getSequenceNextValue(final String sequenceName);
+public interface BaseDao<T extends Serializable, PK extends Serializable>{
 
     void deleteObject(T o);
 
@@ -29,13 +27,5 @@ public interface BaseDao<T extends Serializable, PK extends Serializable>
     int mergeObject(T o) ;
 
     List<T> listObjects();
-
-    int pageCount(String sql, Map<String, Object> filterMap) ;
-
-    int pageCount(Map<String, Object> filterMap);
-
-    List<T> pageQuery(String sql, Map<String, Object> filterMap);
-
-    List<T> pageQuery(Map<String, Object> filterMap);
 
 }

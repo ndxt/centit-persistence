@@ -5,6 +5,7 @@ import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.framework.core.po.EntityWithTimestamp;
 import com.centit.support.algorithm.*;
 import com.centit.support.common.LeftRightPair;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.database.utils.PersistenceException;
 import com.centit.support.database.utils.QueryAndNamedParams;
@@ -301,7 +302,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             T dbo = (T) getCurrentSession().get(o.getClass(),//getPoClass(),
                     (Serializable)getPoObjectId(o));//{getCurrentSession().getIdentifier(o) );
             if(dbo==null)
-                throw new PersistenceException(PersistenceException.NULL_EXCEPTION,"被更改对象找不到");
+                throw new PersistenceException(ObjectException.NULL_EXCEPTION,"被更改对象找不到");
 
             for(String p:properties){
                 ReflectionOpt.forceSetProperty(dbo, p,
@@ -331,7 +332,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 T dbo = (T) sessionFactory.getCurrentSession().get(o.getClass(),//getPoClass(),
                         (Serializable)getPoObjectId(o));//getCurrentSession().getIdentifier(o));
                 if(dbo==null)
-                    throw new PersistenceException(PersistenceException.NULL_EXCEPTION,"被更改对象找不到");
+                    throw new PersistenceException(ObjectException.NULL_EXCEPTION,"被更改对象找不到");
 
                 if(!  ((EntityWithTimestamp) o).getLastModifyDate()
                         .equals(((EntityWithTimestamp) dbo).getLastModifyDate())){
@@ -367,7 +368,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     (Serializable)getPoObjectId(o));//getCurrentSession().getIdentifier(o) );
 
             if(dbo==null)
-                throw new PersistenceException(PersistenceException.NULL_EXCEPTION,"被更改对象找不到");
+                throw new PersistenceException(ObjectException.NULL_EXCEPTION,"被更改对象找不到");
 
             if(o instanceof EntityWithTimestamp){
                 if(!  ((EntityWithTimestamp) o).getLastModifyDate()
@@ -481,7 +482,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             boolean checkTimestamp){
 
         if(newObjects==null){
-            throw new PersistenceException(PersistenceException.NULL_EXCEPTION,"请直接调用删除操作");
+            throw new PersistenceException(ObjectException.NULL_EXCEPTION, "请直接调用删除操作");
         }
         List<PK> pks = new ArrayList<>();
         Date replaceTime  = DatetimeOpt.currentUtilDate();

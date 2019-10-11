@@ -864,59 +864,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     /**
-     * 这个函数仅仅是为了兼容mybatis版本中的查询
-     *
-     * @param filterMap 过滤条件
-     * @return 总行数
-     * 在 JDBC 版本中 请用 listObjectsAsJSON
-     */
-    @Deprecated
-    public int pageCount(Map<String, Object> filterMap) {
-        String sql = getFilterQuerySql();
-        if (StringUtils.isBlank(sql)) {
-            return jdbcTemplate.execute(
-                    (ConnectionCallback<Integer>) conn ->
-                            OrmDaoUtils.fetchObjectsCount(conn, filterMap, (Class<T>) getPoClass()));
-        } else {
-            QueryAndNamedParams qap = QueryUtils.translateQuery(
-                    QueryUtils.buildGetCountSQLByReplaceFields(sql), filterMap);
-            return jdbcTemplate.execute(
-                    (ConnectionCallback<Integer>) conn ->
-                            OrmDaoUtils.fetchObjectsCount(conn, qap.getQuery(), qap.getParams()));
-        }
-    }
-
-    /**
-     * 这个函数仅仅是为了兼容mybatis版本中的查询
-     *
-     * @param filterMap 过滤条件
-     * @return 分页数据
-     * 在 JDBC 版本中 请用 listObjectsAsJSON
-     */
-    @Deprecated
-    public List<T> pageQuery(Map<String, Object> filterMap) {
-        String querySql = getFilterQuerySql();
-        PageDesc pageDesc = QueryParameterPrepare.fetchPageDescParams(filterMap);
-        if (StringUtils.isBlank(querySql)) {
-            return listObjectsByProperties(filterMap, pageDesc);
-        } else {
-            String selfOrderBy = fetchSelfOrderSql(filterMap);
-            if (StringUtils.isNotBlank(selfOrderBy)) {
-                querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
-            }
-            QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, filterMap);
-            return jdbcTemplate.execute(
-                    /** 这个地方可以用replaceField 已提高效率
-                     *  pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn,
-                     QueryUtils.buildGetCountSQLByReplaceFields(qap.getSql()),qap.getParams()));
-                     * */
-                    (ConnectionCallback<List<T>>) conn -> OrmDaoUtils
-                            .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass(),
-                                    pageDesc.getRowStart(), pageDesc.getPageSize()));
-        }
-    }
-
-    /**
      * 查询所有数据
      *
      * @return 返回所有数据 listAllObjects
