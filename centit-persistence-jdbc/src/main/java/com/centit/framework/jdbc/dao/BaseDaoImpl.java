@@ -4,10 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
 import com.centit.framework.core.dao.ExtendedQueryPool;
-import com.centit.framework.core.dao.QueryParameterPrepare;
 import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.framework.core.po.EntityWithVersionTag;
 import com.centit.support.algorithm.CollectionsOpt;
+import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
@@ -863,6 +863,12 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
+    public int countObjectByProperties(Map<String, Object> filterMap) {
+        return jdbcTemplate.execute(
+            (ConnectionCallback<Integer>) conn ->
+                OrmDaoUtils.countObjectByProperties(conn, filterMap, (Class<T>) getPoClass())
+        );
+    }
     /**
      * 查询所有数据
      *
@@ -975,6 +981,30 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         return GeneralJsonObjectDao.fetchSelfOrderSql(mapInfo,filterMap);
     }
+
+    /**
+     * 根据 前端传入的参数 对数据库中的数据进行计数
+     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @return 返回的对象列表
+     */
+    public int countObject(Map<String, Object> filterMap) {
+        return countObject(filterMap,null);
+    }
+
+    /**
+     * 根据 前端传入的参数 对数据库中的数据进行计数
+     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @param filters 数据权限顾虑语句
+     * @return 返回的对象列表
+     */
+    public int countObject(Map<String, Object> filterMap, Collection<String> filters) {
+        String querySql = getFilterQuerySql();
+        QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, filters, filterMap, false);
+        String countSql = QueryUtils.buildGetCountSQLByReplaceFields(qap.getQuery());
+        return NumberBaseOpt.castObjectToInteger(
+            DatabaseOptUtils.getScalarObjectQuery(this, countSql, qap.getParams()), 0);
+    }
+
     /**
      * 根据 前端传入的参数 驱动查询
      * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
