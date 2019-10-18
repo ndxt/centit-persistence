@@ -17,6 +17,8 @@ import java.util.Collection;
  */
 @ApiModel(description = "分页查询返回结果")
 public class PageQueryResult<T> implements ToResponseData {
+    public static final String OBJECT_LIST_LABEL = "objList";
+    public static final String PAGE_INFO_LABEL = "pageDesc";
     @ApiModelProperty(value = "查询结果")
     private Collection<T> objList;
     @ApiModelProperty(value = "分页信息")
@@ -145,17 +147,17 @@ public class PageQueryResult<T> implements ToResponseData {
 
         ResponseMapData respData = new ResponseMapData();
         if(this.mapDictionary){
-            respData.addResponseData("objList",
+            respData.addResponseData(PageQueryResult.OBJECT_LIST_LABEL,
                 DictionaryMapUtils.objectsToJSONArray(this.objList, this.filterFields));
         } else {
             if(this.filterFields != null && this.filterFields.length > 0){
-                respData.addResponseData("objList",
+                respData.addResponseData(PageQueryResult.OBJECT_LIST_LABEL,
                     DictionaryMapUtils.objectsToJSONArrayNotMapDict(this.objList, this.filterFields));
             }else {
-                respData.addResponseData("objList", this.objList);
+                respData.addResponseData(PageQueryResult.OBJECT_LIST_LABEL, this.objList);
             }
         }
-        respData.addResponseData("pageDesc", this.pageDesc);
+        respData.addResponseData(PageQueryResult.PAGE_INFO_LABEL, this.pageDesc);
 
         return respData;
     }

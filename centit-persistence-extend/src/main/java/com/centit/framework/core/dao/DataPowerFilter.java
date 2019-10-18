@@ -212,12 +212,6 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
                 return "\"\"";
             return StringRegularOpt.quotedString(StringBaseOpt.objectToString(res));
         }
-
-        @Override
-        public String getLabelValue(String labelName) {
-            return getVarValue(labelName);
-        }
-
     }
 
     public DataPowerFilterTranslater getPowerFilterTranslater(){
