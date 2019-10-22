@@ -17,8 +17,11 @@ import java.util.Collection;
  */
 @ApiModel(description = "分页查询返回结果")
 public class PageQueryResult<T> implements ToResponseData {
+    // 同 BaseController.OBJLIST 耦合代码
     public static final String OBJECT_LIST_LABEL = "objList";
+    // 同 BaseController.PAGE_DESC 耦合代码
     public static final String PAGE_INFO_LABEL = "pageDesc";
+
     @ApiModelProperty(value = "查询结果")
     private Collection<T> objList;
     @ApiModelProperty(value = "分页信息")
