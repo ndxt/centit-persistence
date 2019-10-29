@@ -3,7 +3,10 @@ package com.centit.framework.jdbc.test.po;
 import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.framework.core.po.EntityWithVersionTag;
 import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.database.orm.*;
+import com.centit.support.database.orm.GeneratorCondition;
+import com.centit.support.database.orm.GeneratorTime;
+import com.centit.support.database.orm.GeneratorType;
+import com.centit.support.database.orm.ValueGenerator;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -20,7 +23,7 @@ public class OfficeWorker implements EntityWithDeleteTag,EntityWithVersionTag,Se
      * 主键，在创建时根据序列S_WORKER_ID自动生成
      */
     @Column(name = "WORKER_ID")
-    @ValueGenerator( strategy= GeneratorType.UUID, value = "S_WORKER_ID")
+    @ValueGenerator(strategy= GeneratorType.UUID, value = "S_WORKER_ID")
     private String workerId;
     @Column(name = "WORKER_NAME")
     private String workerName;
@@ -29,7 +32,7 @@ public class OfficeWorker implements EntityWithDeleteTag,EntityWithVersionTag,Se
     @Column(name = "WORKER_BIRTHDAY")
     private Date workerBirthday;
 
-    @Lazy
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "HEAD_IMAGE")
     private byte[] headImage;
 
