@@ -26,6 +26,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -839,7 +840,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         return ja;
                     }
                 } catch (IOException e) {
-                    throw new DatabaseAccessException(JSON.toJSONString(filterMap), new SQLException(e));
+                    throw new DataAccessResourceFailureException(JSON.toJSONString(filterMap), new SQLException(e));
                 }
             }
         );
