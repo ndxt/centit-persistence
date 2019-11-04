@@ -57,7 +57,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     protected Map<String, String> filterField = null;
     protected JdbcTemplate jdbcTemplate;
-
+    private static final int DEFAULT_CASCADE_DEPTH = 3;
     /**
      * Set the JDBC DataSource to obtain connections from.
      * @param dataSource 数据源
@@ -775,32 +775,53 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     /**
+     * 这个方法会导致死循环，所以默认 只获取3层，并且这个方法没有重复测试 不推荐使用
      * 嵌套获取对象的引用，但是没有考虑 EntityWithDeleteTag EntityWithVersionTag 注解
      * @param id 主键
      * @return po 对象
      */
+    @Deprecated
     public T getObjectCascadeById(Object id) {
         return jdbcTemplate.execute(
             (ConnectionCallback<T>) conn ->
-                OrmDaoUtils.getObjectCascadeById(conn, id, (Class<T>) getPoClass()));
+                OrmDaoUtils.getObjectCascadeById(conn, id, (Class<T>) getPoClass(), DEFAULT_CASCADE_DEPTH));
     }
 
+    /**
+     * 这个方法会导致死循环，所以默认 只获取3层，并且这个方法没有重复测试 不推荐使用
+     * 嵌套获取对象的引用，但是没有考虑 EntityWithDeleteTag EntityWithVersionTag 注解
+     * @param object 对象
+     * @return po 对象
+     */
+    @Deprecated
     public T fetchObjectReferencesCascade(T object) {
         return jdbcTemplate.execute(
             (ConnectionCallback<T>) conn ->
-                OrmDaoUtils.fetchObjectReferencesCascade(conn, object, getPoClass()));
+                OrmDaoUtils.fetchObjectReferencesCascade(conn, object, getPoClass(), DEFAULT_CASCADE_DEPTH));
     }
-
+    /**
+     * 这个方法会导致死循环，所以默认 只获取3层，并且这个方法没有重复测试 不推荐使用
+     * 嵌套获取对象的引用，但是没有考虑 EntityWithDeleteTag EntityWithVersionTag 注解
+     * @param object 对象
+     * @return 变更数量
+     */
+    @Deprecated
     public Integer updateObjectCascade(T object) {
         return jdbcTemplate.execute(
             (ConnectionCallback<Integer>) conn ->
-                OrmDaoUtils.updateObjectCascade(conn, object));
+                OrmDaoUtils.updateObjectCascade(conn, object, DEFAULT_CASCADE_DEPTH));
     }
-
+    /**
+     * 这个方法会导致死循环，所以默认 只获取3层，并且这个方法没有重复测试 不推荐使用
+     * 嵌套获取对象的引用，但是没有考虑 EntityWithDeleteTag EntityWithVersionTag 注解
+     * @param object 对象
+     * @return 变更数量
+     */
+    @Deprecated
     public Integer saveNewObjectCascade(T object) {
         return jdbcTemplate.execute(
             (ConnectionCallback<Integer>) conn ->
-                OrmDaoUtils.saveNewObjectCascade(conn, object));
+                OrmDaoUtils.saveNewObjectCascade(conn, object, DEFAULT_CASCADE_DEPTH));
     }
 
     public T getObjectByProperty(final String propertyName,final Object propertyValue) {

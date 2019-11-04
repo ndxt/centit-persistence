@@ -470,57 +470,13 @@ public abstract class JdbcTemplateUtils {
                 });
     }
 
-    /* 这个代码可以作为示例代码*/
-    /*
-    public  <T> T getObjectCascadeById(JdbcTemplate jdbcTemplate, Object id, final Class<T> type) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.getObjectCascadeById(conn, id, type));
-    }
 
-    public  <T> Integer updateObjectCascade(JdbcTemplate jdbcTemplate, Object id,) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<Integer>) conn ->
-                        OrmDaoUtils.updateObjectCascade(conn, id));
-    }
-
-    public  <T> T getObjectCascadeShallowById(JdbcTemplate jdbcTemplate, Object id, final Class<T> type) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.getObjectCascadeShallowById(conn, id, type));
-    }
-
-    public <T> T fetchObjectReference(JdbcTemplate jdbcTemplate, T o, String columnName) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.fetchObjectReference(conn, o, columnName));
-    }
-
-    public <T> T fetchObjectReferences(JdbcTemplate jdbcTemplate, T o) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.fetchObjectReferences(conn, o));
-    }
-
-    public <T> Integer saveObjectReference(JdbcTemplate jdbcTemplate, T o, String columnName) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<Integer>) conn ->
-                        OrmDaoUtils.saveObjectReference(conn, o, columnName));
-    }
-
-    public <T> Integer saveObjectReferences(JdbcTemplate jdbcTemplate, T o) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<Integer>) conn ->
-                        OrmDaoUtils.saveObjectReferences(conn, o));
-    }
-  */
-
-    public static Object getScalarObjectQuery(JdbcTemplate jdbcTemplate, String sSql,
+    public static Object getScalarObjectQuery(JdbcTemplate jdbcTemplate, String sNamedSql,
                                                     Map<String,Object> values){
         return jdbcTemplate.execute(
                 (ConnectionCallback<Object>) conn -> {
                     try {
-                        return DatabaseAccess.getScalarObjectQuery(conn, sSql,values);
+                        return DatabaseAccess.getScalarObjectQuery(conn, sNamedSql, values);
                     } catch (SQLException | IOException e) {
                         throw new PersistenceException(e);
                     }
