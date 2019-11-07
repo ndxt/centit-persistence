@@ -141,7 +141,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return "select " +
                 ((fields != null && fields.size()>0)
                     ? GeneralJsonObjectDao.buildPartFieldSql(mapInfo, fields, tableAlias)
-                    : GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias) )+
+                    : GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias, 1))+
             " from " + mapInfo.getTableName() + (addAlias? tableAlias: "") +
             " where 1=1 {" + mapInfo.getTableName() + (addAlias? tableAlias: "") + "}" +
             filterQuery +
@@ -529,10 +529,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.getObjectById(conn, id, (Class<T>) getPoClass()));
     }
 
-    public T getObjectIncludeLazyById(Object id) {
+    public T getObjectExcludeLazyById(Object id) {
         return jdbcTemplate.execute(
                 (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.getObjectIncludeLazyById(conn, id, (Class<T>) getPoClass()));
+                        OrmDaoUtils.getObjectExcludeLazyById(conn, id, (Class<T>) getPoClass()));
     }
 
 
@@ -961,7 +961,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     private String buildQuerySqlByFilter(String whereSql,TableMapInfo mapInfo,String tableAlias){
-        String fieldsSql = GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias);
+        String fieldsSql = GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias, 1);
         return "select " + fieldsSql + " from " + mapInfo.getTableName()
             + ( StringUtils.isNotBlank(tableAlias)? " " + tableAlias + " " :" ") + whereSql;
     }
@@ -1064,7 +1064,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Pair<String, String[]> q = ((fields != null && fields.size()>0)
             ? GeneralJsonObjectDao.buildPartFieldSqlWithFieldName(mapInfo, fields, null)
-            : GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo, null));
+            : GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo, null, true));
 
         String selfOrderBy = GeneralJsonObjectDao.fetchSelfOrderSql(mapInfo, filterMap);
 
@@ -1122,7 +1122,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     private Pair<String,String[]> buildQuerySqlWithFieldNameByFilter(String whereSql,String tableAlias){
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        Pair<String,String[]>  fieldsDesc = GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo,tableAlias);
+        Pair<String,String[]>  fieldsDesc =
+            GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo, tableAlias, true);
          String querySql =  "select " + fieldsDesc.getLeft() + " from " + mapInfo.getTableName()
             + ( StringUtils.isNotBlank(tableAlias)? " " + tableAlias + " " :" ") + whereSql;
 
