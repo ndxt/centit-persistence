@@ -455,8 +455,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         throw new SQLException("缺少主键对应的属性。");
                     }
                     String sql = GeneralJsonObjectDao.buildUpdateSql(mapInfo,
-                            fields==null?objMap.keySet():fields, true) +
-                            " where " + GeneralJsonObjectDao.buildFilterSqlByPk(mapInfo, null) +
+                            fields==null? objMap.keySet():fields);
+                    if(sql==null) { // 没有需要更新的内容
+                        return 0;
+                    }
+                    sql = sql + " where " + GeneralJsonObjectDao.buildFilterSqlByPk(mapInfo, null) +
                             " and " + field.getColumnName() + " = :_oldVersion";
                     objMap.put("_oldVersion", oleVsersion);
                     return DatabaseAccess.doExecuteNamedSql(conn, sql, objMap);
