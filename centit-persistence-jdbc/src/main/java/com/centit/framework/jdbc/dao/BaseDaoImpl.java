@@ -510,6 +510,18 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return  updateObject(CollectionsOpt.arrayToList(fields), object);
     }
 
+    public int updateObjectWithNullField(T object, boolean includeLazy)
+        throws PersistenceException {
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        List<String> fields = includeLazy ? mapInfo.getAllFieldsName()
+                  : mapInfo.getFieldsNameWithoutLazy();
+        return updateObject(fields, object);
+    }
+
+    public int updateObjectWithNullField(T object)
+        throws PersistenceException {
+        return updateObjectWithNullField(object, false);
+    }
 
     public int mergeObject(T o) {
         if (o instanceof EntityWithVersionTag) {
@@ -561,7 +573,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             return null;
 
         Class<?> refType = ref.getTargetEntityType();
-        TableMapInfo refMapInfo = JpaMetadata.fetchTableMapInfo( refType );
+        TableMapInfo refMapInfo = JpaMetadata.fetchTableMapInfo(refType );
         if( refMapInfo == null )
             return null;
 
