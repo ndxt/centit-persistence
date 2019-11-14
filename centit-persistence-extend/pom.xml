@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.centit.framework</groupId>
             <artifactId>framework-core</artifactId>
-            <version>4.5.1901</version>
+            <version>4.6-SNAPSHOT</version>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>

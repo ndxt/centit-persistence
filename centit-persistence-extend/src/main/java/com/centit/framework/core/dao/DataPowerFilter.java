@@ -85,19 +85,12 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
             this.sourceData.put(obj.getClass().getSimpleName(), obj);
     }
 
-    /**
-     * 获取表达式敌营的值；这个地方需要根据业务的类型多样性和具体需求不断的完善
-     * @param expression String
-     * @return 表达式对应的值
-     */
-    public Object attainExpressionValue(String expression){
-        return ReflectionOpt.attainExpressionValue(sourceData, expression);
-    }
+
 
     @Override
     public Set<String> getUsersVariable(String s) {
         Set<String> retSet = new HashSet<>(20);
-        Object obj = attainExpressionValue(s);
+        Object obj = getVarValue(s);
         if(obj instanceof Object[]) {
             Object[] objs = (Object[]) obj;
             if (objs.length > 0) {
@@ -121,9 +114,14 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
         return getUsersVariable(s);
     }
 
+    /**
+     * 获取表达式敌营的值；这个地方需要根据业务的类型多样性和具体需求不断的完善
+     * @param labelName String
+     * @return 表达式对应的值
+     */
     @Override
-    public Object getGeneralVariable(String s) {
-        return attainExpressionValue(s);
+    public Object getVarValue(String labelName) {
+        return ReflectionOpt.attainExpressionValue(sourceData, labelName);
     }
 
     protected static class DataPowerFilterTranslater implements QueryUtils.IFilterTranslater {
@@ -180,7 +178,7 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
                         formula, null, dataPowerFilter);
                 }
             }else {
-                return dataPowerFilter.attainExpressionValue(paramName);
+                return dataPowerFilter.getVarValue(paramName);
             }
         }
 
