@@ -440,7 +440,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(conn, mapInfo);
                     try {
                         OrmUtils.prepareObjectForUpdate(o, mapInfo, sqlDialect);
-                    } catch (NoSuchFieldException | IOException e) {
+                    } catch (IOException | IllegalAccessException | InstantiationException e) {
                         throw new PersistenceException(e);
                     }
                     EntityWithVersionTag ewvto = (EntityWithVersionTag) o;
