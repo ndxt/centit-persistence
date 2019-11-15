@@ -8,7 +8,6 @@ import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.framework.core.po.EntityWithVersionTag;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
-import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
@@ -581,11 +580,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         TableMapInfo refMapInfo = JpaMetadata.fetchTableMapInfo(refType );
         if( refMapInfo == null )
             return null;
-
-        Map<String, Object> properties = new HashMap<>(6);
-        for(Map.Entry<String,String> ent : ref.getReferenceColumns().entrySet()){
-            properties.put(ent.getValue(), ReflectionOpt.getFieldValue(object,ent.getKey()));
-        }
+        Map<String, Object> properties = ref.fetchChildFk(object);
 
         return jdbcTemplate.execute(
                 (ConnectionCallback<List<?>>) conn ->
@@ -722,10 +717,12 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         OrmDaoUtils.OrmObjectComparator refObjComparator = new OrmDaoUtils.OrmObjectComparator(refMapInfo);
         if (//ref.getReferenceType().equals(refType) || oneToOne
                 ref.getReferenceType().isAssignableFrom(refType) ){
+
             for(Map.Entry<String, String> ent : ref.getReferenceColumns().entrySet()){
-                Object obj = mapInfo.findFieldByName(ent.getKey()).getObjectFieldValue(object);
-                refMapInfo.findFieldByName(ent.getValue()).setObjectFieldValue(newObj,obj);
+                Object obj = mapInfo.getObjectFieldValue(object, ent.getKey());
+                refMapInfo.setObjectFieldValue(newObj, ent.getValue(), obj);
             }
+
             boolean haveSaved = false;
             if(refs!=null && refs.size()>0) {
                 for (Object refObject : refs) {
@@ -748,10 +745,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             List<Object> newListObj = Set.class.isAssignableFrom(ref.getReferenceType())?
                     new ArrayList<>((Set<?>) newObj):(List<Object>) newObj;
 
-            for(Map.Entry<String, String> ent : ref.getReferenceColumns().entrySet()){
-                Object obj = mapInfo.findFieldByName(ent.getKey()).getObjectFieldValue(object);
-                for(Object subObj : newListObj) {
-                    refMapInfo.findFieldByName(ent.getValue()).setObjectFieldValue(subObj, obj);
+            for (Map.Entry<String, String> ent : ref.getReferenceColumns().entrySet()) {
+                //ref.setObjectGetFieldValueFunc();
+                Object obj = mapInfo.getObjectFieldValue(object, ent.getKey());
+                for (Object subObj : newListObj) {
+                    refMapInfo.setObjectFieldValue(subObj, ent.getValue(), obj);
                 }
             }
 
@@ -1074,15 +1072,22 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return jdbcTemplate.execute(
             (ConnectionCallback<JSONArray>) conn -> {
                 try {
-                    String pageQuerySql =
-                        QueryUtils.buildLimitQuerySQL(querySql,
-                            pageDesc.getRowStart(), pageDesc.getPageSize(),false, DBType.mapDBType(conn));
+                    if(pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
+                        String pageQuerySql =
+                            QueryUtils.buildLimitQuerySQL(querySql,
+                                pageDesc.getRowStart(), pageDesc.getPageSize(), false, DBType.mapDBType(conn));
 
-                    pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
-                        DatabaseAccess.getScalarObjectQuery(
-                            conn, QueryUtils.buildGetCountSQLByReplaceFields(querySql), params)));
-                    return GeneralJsonObjectDao.findObjectsBySql(conn, pageQuerySql, params, fields );
-
+                        pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
+                            DatabaseAccess.getScalarObjectQuery(
+                                conn, QueryUtils.buildGetCountSQLByReplaceFields(querySql), params)));
+                        return GeneralJsonObjectDao.findObjectsBySql(conn, pageQuerySql, params, fields);
+                    } else {
+                        JSONArray ja = GeneralJsonObjectDao.findObjectsBySql(conn, querySql, params, fields);
+                        if(ja!=null) {
+                            pageDesc.setTotalRows(ja.size());
+                        }
+                        return ja;
+                    }
                 } catch (SQLException | IOException e) {
                     throw new PersistenceException(e);
                 }
@@ -1151,7 +1156,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回的对象列表
      */
     public JSONArray listObjectsAsJson(Map<String, Object> filterMap, Collection<String> filters, PageDesc pageDesc) {
-        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, filters , pageDesc);
+        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, filters, pageDesc);
     }
 
     public JSONArray listObjectsAsJson(Map<String, Object> filterMap, PageDesc pageDesc){
