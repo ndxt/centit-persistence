@@ -10,6 +10,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>centit-persistence-dynamic-datasource</artifactId>
+    <name>com.centit.framework:centit-persistence-dynamic-datasource</name>
+    <packaging>jar</packaging>
+    <description>动态数据库资源</description>
 
     <dependencies>
 
