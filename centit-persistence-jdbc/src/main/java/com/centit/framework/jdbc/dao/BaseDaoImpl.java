@@ -335,9 +335,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             EntityWithVersionTag ewvto = (EntityWithVersionTag) o;
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
             SimpleTableField field = mapInfo.findFieldByColumn(ewvto.obtainVersionProperty());
-            Object obj = field.getObjectFieldValue(o);
+            Object obj = mapInfo.getObjectFieldValue(o, field);
             if(obj == null){
-                field.setObjectFieldValue(o, ewvto.calcNextVersion());
+                mapInfo.setObjectFieldValue(o, field, ewvto.calcNextVersion());
             }
         }
         /* Integer execute = */
@@ -359,9 +359,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 EntityWithVersionTag ewvto = (EntityWithVersionTag) o;
                 SimpleTableField field = mapInfo.findFieldByColumn(ewvto.obtainVersionProperty());
                 //获取旧版本
-                Object oleVsersion = field.getObjectFieldValue(o);
+                Object oleVsersion = mapInfo.getObjectFieldValue(o, field);
 
-                Map<String, Object> idMap = OrmUtils.fetchObjectDatabaseField(o,mapInfo);
+                Map<String, Object> idMap = OrmUtils.fetchObjectDatabaseField(o, mapInfo);
                 if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, idMap)) {
                     throw new SQLException("缺少主键对应的属性。");
                 }
@@ -444,15 +444,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(conn, mapInfo);
                     try {
                         OrmUtils.prepareObjectForUpdate(o, mapInfo, sqlDialect);
-                    } catch (IOException | IllegalAccessException | InstantiationException e) {
+                    } catch (IOException e) {
                         throw new PersistenceException(e);
                     }
                     EntityWithVersionTag ewvto = (EntityWithVersionTag) o;
                     SimpleTableField field = mapInfo.findFieldByColumn(ewvto.obtainVersionProperty());
                     //获取旧版本
-                    Object oleVsersion = field.getObjectFieldValue(o);
+                    Object oleVsersion = mapInfo.getObjectFieldValue(o, field);
                     //设置新版本
-                    field.setObjectFieldValue(o, ewvto.calcNextVersion());
+                    mapInfo.setObjectFieldValue(o, field, ewvto.calcNextVersion());
                     Map<String, Object> objMap = OrmUtils.fetchObjectDatabaseField(o, mapInfo);
 
                     if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, objMap)) {
@@ -1072,7 +1072,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return jdbcTemplate.execute(
             (ConnectionCallback<JSONArray>) conn -> {
                 try {
-                    if(pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
+                    if(pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
                         String pageQuerySql =
                             QueryUtils.buildLimitQuerySQL(querySql,
                                 pageDesc.getRowStart(), pageDesc.getPageSize(), false, DBType.mapDBType(conn));
@@ -1083,7 +1083,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         return GeneralJsonObjectDao.findObjectsBySql(conn, pageQuerySql, params, fields);
                     } else {
                         JSONArray ja = GeneralJsonObjectDao.findObjectsBySql(conn, querySql, params, fields);
-                        if(ja!=null) {
+                        if(pageDesc != null && ja!=null) {
                             pageDesc.setTotalRows(ja.size());
                         }
                         return ja;
@@ -1200,7 +1200,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回JSONArray
      */
     public JSONArray listObjectsByFilterAsJson(String whereSql, Object[] params, String tableAlias, PageDesc pageDesc){
-        Pair<String, TableField[]>  fieldsDesc = buildQuerySqlWithFieldsandWhere(whereSql, tableAlias);
+        Pair<String, TableField[]> fieldsDesc = buildQuerySqlWithFieldsandWhere(whereSql, tableAlias);
         return listObjectsBySqlAsJson(fieldsDesc.getLeft(), params, fieldsDesc.getRight(), pageDesc);
     }
 
