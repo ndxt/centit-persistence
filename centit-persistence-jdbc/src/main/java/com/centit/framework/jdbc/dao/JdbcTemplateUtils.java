@@ -158,7 +158,7 @@ public abstract class JdbcTemplateUtils {
                                             Map<String, Object> namedParams, PageDesc pageDesc) {
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
             return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(jdbcTemplate, querySql, null,
-                    QueryUtils.buildGetCountSQLByReplaceFields( querySql), namedParams, pageDesc);
+                    QueryUtils.buildGetCountSQLByReplaceFields(querySql), namedParams, pageDesc);
         }else{
             JSONArray ja = JdbcTemplateUtils.listObjectsByNamedSqlAsJson(jdbcTemplate, querySql, namedParams);
             if(ja != null && pageDesc != null){

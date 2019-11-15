@@ -14,6 +14,7 @@ import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.SimpleTableReference;
+import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.orm.OrmUtils;
@@ -130,30 +131,34 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return pkClass;
     }
 
-    public String encapsulateFilterToSql(Collection<String> fields, String filterQuery, String tableAlias) {
+    public String encapsulateFilterToSql(String fieldsSql, String filterQuery, String tableAlias, String orderBySql) {
+        boolean addAlias = StringUtils.isNotBlank(tableAlias);
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+        StringBuilder sqlBuilder = new StringBuilder("select ");
+        sqlBuilder.append(fieldsSql).append(" from ")
+            .append(mapInfo.getTableName());
+        if(addAlias){
+            sqlBuilder.append(" ").append(tableAlias);
+        }
+        sqlBuilder.append(" where 1=1 {").append(mapInfo.getTableName());
+        if(addAlias){
+            sqlBuilder.append(" ").append(tableAlias);
+        }
+        sqlBuilder.append(" }").append(filterQuery);
+        if(StringUtils.isNotBlank(orderBySql)){
+            sqlBuilder.append(" order by " ).append(orderBySql);
+        }
+        return sqlBuilder.toString();
+    }
+
+    public String encapsulateFilterToFields(Collection<String> fields, String filterQuery, String tableAlias) {
         //QueryUtils.hasOrderBy(filterQuery)
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        if (mapInfo == null)
-            throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION,
-                "没有对应的元数据信息：" + getPoClass().getName());
-        boolean addAlias = StringUtils.isNotBlank(tableAlias);
-
-        return "select " +
+        String fieldsSql =
                 ((fields != null && fields.size()>0)
                     ? GeneralJsonObjectDao.buildPartFieldSql(mapInfo, fields, tableAlias)
-                    : GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias, 1))+
-            " from " + mapInfo.getTableName() + (addAlias? tableAlias: "") +
-            " where 1=1 {" + mapInfo.getTableName() + (addAlias? tableAlias: "") + "}" +
-            filterQuery +
-            (StringUtils.isBlank(mapInfo.getOrderBy()) ? "" : " order by " + mapInfo.getOrderBy());
-    }
-
-    public String encapsulateFilterToSql(String filterQuery, String tableAlias) {
-        return encapsulateFilterToSql(null, filterQuery,tableAlias);
-    }
-
-    public String encapsulateFilterToSql(String filterQuery) {
-        return encapsulateFilterToSql(null, filterQuery,null);
+                    : GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias, 1));
+        return encapsulateFilterToSql(fieldsSql, filterQuery, tableAlias, mapInfo.getOrderBy());
     }
 
     /**
@@ -317,10 +322,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         String querySql = getExtendFilterQuerySql();
         if (StringUtils.isBlank(querySql)) {
             querySql = buildDefaultFieldFilterSql();
-            return encapsulateFilterToSql(querySql);
+            return encapsulateFilterToFields(null, querySql, null);
         } else {
             if ("[".equals(Lexer.getFirstWord(querySql))) {
-                return encapsulateFilterToSql(querySql);
+                return encapsulateFilterToFields(null, querySql, null);
             }
             return querySql;
         }
@@ -1063,6 +1068,35 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             DatabaseOptUtils.getScalarObjectQuery(this, countSql, qap.getParams()), 0);
     }
 
+
+    private JSONArray listObjectsBySqlAsJson(String querySql, Object [] params,
+                                                  TableField[] fields, PageDesc pageDesc) {
+        return jdbcTemplate.execute(
+            (ConnectionCallback<JSONArray>) conn -> {
+                try {
+                    String pageQuerySql =
+                        QueryUtils.buildLimitQuerySQL(querySql,
+                            pageDesc.getRowStart(), pageDesc.getPageSize(),false, DBType.mapDBType(conn));
+
+                    pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
+                        DatabaseAccess.getScalarObjectQuery(
+                            conn, QueryUtils.buildGetCountSQLByReplaceFields(querySql), params)));
+                    return GeneralJsonObjectDao.findObjectsBySql(conn, pageQuerySql, params, fields );
+
+                } catch (SQLException | IOException e) {
+                    throw new PersistenceException(e);
+                }
+            });
+    }
+
+    private JSONArray listObjectsByNamedSqlAsJson(String querySql, Map<String, Object> paramsMap,
+                                            TableField[] fields, PageDesc pageDesc) {
+        QueryAndParams sqlQuery = QueryAndParams.createFromQueryAndNamedParams(
+            new QueryAndNamedParams(querySql, paramsMap));
+        return listObjectsBySqlAsJson(sqlQuery.getQuery(), sqlQuery.getParams(),
+              fields, pageDesc);
+    }
+
     /**
      * 根据 前端传入的参数 驱动查询
      * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
@@ -1074,27 +1108,16 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, Collection<String> fields,
                                        Collection<String> filters, PageDesc pageDesc) {
 
-        String querySql = getFilterQuerySql();
-
+        String filterSql = buildDefaultFieldFilterSql();
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        Pair<String, String[]> q = ((fields != null && fields.size()>0)
-            ? GeneralJsonObjectDao.buildPartFieldSqlWithFieldName(mapInfo, fields, null)
-            : GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo, null, true));
+        Pair<String, TableField[]> q = ((fields != null && fields.size()>0)
+            ? GeneralJsonObjectDao.buildPartFieldSqlWithFields(mapInfo, fields, null)
+            : GeneralJsonObjectDao.buildFieldSqlWithFields(mapInfo, null, true));
 
         String selfOrderBy = GeneralJsonObjectDao.fetchSelfOrderSql(mapInfo, filterMap);
-
-        if (StringUtils.isNotBlank(selfOrderBy)) {
-            querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
-        }
-
+        String querySql = encapsulateFilterToSql(q.getLeft(), filterSql, null, selfOrderBy);
         QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, filters, filterMap, false);
-
-        if (pageDesc != null && pageDesc.getPageSize() > 0) {
-            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, qap.getQuery(), q.getRight(),
-                    QueryUtils.buildGetCountSQLByReplaceFields(qap.getQuery()), qap.getParams(), pageDesc);
-        } else {
-            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, qap.getQuery(), q.getRight(), qap.getParams());
-        }
+        return listObjectsByNamedSqlAsJson(qap.getQuery(), qap.getParams(), q.getRight(), pageDesc);
     }
 
     /**
@@ -1135,12 +1158,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, null, pageDesc);
     }
 
-    private Pair<String,String[]> buildQuerySqlWithFieldNameByFilter(String whereSql,String tableAlias){
+    private Pair<String, TableField[]> buildQuerySqlWithFieldsandWhere(String whereSql, String tableAlias){
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        Pair<String,String[]>  fieldsDesc =
-            GeneralJsonObjectDao.buildFieldSqlWithFieldName(mapInfo, tableAlias, true);
+        Pair<String, TableField[]>  fieldsDesc =
+            GeneralJsonObjectDao.buildFieldSqlWithFields(mapInfo, tableAlias, true);
+
          String querySql =  "select " + fieldsDesc.getLeft() + " from " + mapInfo.getTableName()
-            + ( StringUtils.isNotBlank(tableAlias)? " " + tableAlias + " " :" ") + whereSql;
+            + (StringUtils.isNotBlank(tableAlias)? " " + tableAlias + " " :" ") + whereSql;
 
         return new ImmutablePair<>(querySql,fieldsDesc.getRight());
 
@@ -1154,14 +1178,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回JSONArray
      */
     public JSONArray listObjectsByFilterAsJson(String whereSql, Map<String, Object> namedParams, String tableAlias, PageDesc pageDesc){
-        Pair<String,String[]>  fieldsDesc = buildQuerySqlWithFieldNameByFilter(whereSql,tableAlias);
-
-        if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, fieldsDesc.getLeft(), fieldsDesc.getRight() ,
-                    QueryUtils.buildGetCountSQLByReplaceFields( fieldsDesc.getLeft() ), namedParams,   pageDesc  );
-        }else{
-            return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(this.jdbcTemplate, fieldsDesc.getLeft(), fieldsDesc.getRight(), namedParams);
-        }
+        Pair<String, TableField[]> fieldsDesc = buildQuerySqlWithFieldsandWhere(whereSql, tableAlias);
+        return listObjectsByNamedSqlAsJson(fieldsDesc.getLeft(), namedParams, fieldsDesc.getRight(), pageDesc);
     }
 
     public JSONArray listObjectsByFilterAsJson(String whereSql, Map<String, Object> namedParams,  PageDesc pageDesc) {
@@ -1177,14 +1195,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回JSONArray
      */
     public JSONArray listObjectsByFilterAsJson(String whereSql, Object[] params, String tableAlias, PageDesc pageDesc){
-        Pair<String,String[]>  fieldsDesc = buildQuerySqlWithFieldNameByFilter(whereSql,tableAlias);
-
-        if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            return JdbcTemplateUtils.listObjectsBySqlAsJson(this.jdbcTemplate, fieldsDesc.getLeft(), fieldsDesc.getRight() ,
-                    QueryUtils.buildGetCountSQLByReplaceFields( fieldsDesc.getLeft()), params,   pageDesc  );
-        }else{
-            return JdbcTemplateUtils.listObjectsBySqlAsJson(this.jdbcTemplate, fieldsDesc.getLeft(), params, fieldsDesc.getRight());
-        }
+        Pair<String, TableField[]>  fieldsDesc = buildQuerySqlWithFieldsandWhere(whereSql, tableAlias);
+        return listObjectsBySqlAsJson(fieldsDesc.getLeft(), params, fieldsDesc.getRight(), pageDesc);
     }
 
     public JSONArray listObjectsByFilterAsJson(String whereSql,Object[] params,  PageDesc pageDesc) {
