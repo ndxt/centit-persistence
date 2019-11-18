@@ -1115,7 +1115,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
         String filterSql = buildDefaultFieldFilterSql();
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        Pair<String, ? extends TableField[]> q = ((fields != null && fields.size()>0)
+        Pair<String, TableField[]> q = ((fields != null && fields.size()>0)
             ? GeneralJsonObjectDao.buildPartFieldSqlWithFields(mapInfo, fields, null)
             : GeneralJsonObjectDao.buildFieldSqlWithFields(mapInfo, null, true));
 
@@ -1163,9 +1163,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, null, pageDesc);
     }
 
-    private Pair<String, ? extends TableField[]> buildQuerySqlWithFieldsandWhere(String whereSql, String tableAlias){
+    private Pair<String, TableField[]> buildQuerySqlWithFieldsandWhere(String whereSql, String tableAlias){
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        Pair<String, ? extends TableField[]>  fieldsDesc =
+        Pair<String, TableField[]>  fieldsDesc =
             GeneralJsonObjectDao.buildFieldSqlWithFields(mapInfo, tableAlias, true);
 
          String querySql =  "select " + fieldsDesc.getLeft() + " from " + mapInfo.getTableName()
@@ -1183,7 +1183,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回JSONArray
      */
     public JSONArray listObjectsByFilterAsJson(String whereSql, Map<String, Object> namedParams, String tableAlias, PageDesc pageDesc){
-        Pair<String, ? extends TableField[]> fieldsDesc = buildQuerySqlWithFieldsandWhere(whereSql, tableAlias);
+        Pair<String, TableField[]> fieldsDesc = buildQuerySqlWithFieldsandWhere(whereSql, tableAlias);
         return listObjectsByNamedSqlAsJson(fieldsDesc.getLeft(), namedParams, fieldsDesc.getRight(), pageDesc);
     }
 
@@ -1200,7 +1200,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回JSONArray
      */
     public JSONArray listObjectsByFilterAsJson(String whereSql, Object[] params, String tableAlias, PageDesc pageDesc){
-        Pair<String, ? extends TableField[]> fieldsDesc = buildQuerySqlWithFieldsandWhere(whereSql, tableAlias);
+        Pair<String, TableField[]> fieldsDesc = buildQuerySqlWithFieldsandWhere(whereSql, tableAlias);
         return listObjectsBySqlAsJson(fieldsDesc.getLeft(), params, fieldsDesc.getRight(), pageDesc);
     }
 
