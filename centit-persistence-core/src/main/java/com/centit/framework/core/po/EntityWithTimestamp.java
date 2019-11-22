@@ -9,7 +9,7 @@ import java.util.Date;
  * hibernate 中实现了这个接口
  * jdbc 中没有实现这个接口，请用注解
  *      ValueGenerator(strategy=GeneratorType.FUNCTIION, occasion=GeneratorTime.ALWAYS,
- *          condition=GeneratorCondition.ALWAYS, value="now") 来代替
+ *          condition=GeneratorCondition.ALWAYS, value="today()") 来代替
  * @see com.centit.support.database.orm.ValueGenerator
  * mybatis 中没有实现这个接口也没有代替方案
  */
