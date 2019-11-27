@@ -5,6 +5,7 @@ import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.TableMapInfo;
+import com.centit.support.database.utils.PageDesc;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.Map;
  * @author codefan
  */
 @SuppressWarnings("unused")
+@Deprecated
 public abstract class QueryParameterPrepare {
     /**
      * 处理翻页参数
@@ -24,18 +26,17 @@ public abstract class QueryParameterPrepare {
      * @return Map类型
      */
     public static Map<String, Object> prepPageParams
-    (Map<String, Object> pageQureyMap, com.centit.support.database.utils.PageDesc pageDesc, int total) {
-
+    (Map<String, Object> pageQureyMap, PageDesc pageDesc, int total) {
         int pageNo = pageDesc.getPageNo()<1?1:pageDesc.getPageNo();
         int pageSize = pageDesc.getPageSize();
-        if(total > 0) {
+        if(total > 0 && pageSize > 0) {
             int maxPageNo = (total - 1) / pageSize + 1;
             if (maxPageNo < pageNo) {
                 pageNo = maxPageNo;// 页码校验
             }
-            //回写总数量
-            pageDesc.setTotalRows(total);
         }
+        //回写总数量
+        pageDesc.setTotalRows(total);
         int start = (pageNo - 1) * pageSize;
         int end = pageNo * pageSize;
         pageQureyMap.put("startRow",start);
@@ -45,23 +46,21 @@ public abstract class QueryParameterPrepare {
         return pageQureyMap;
     }
 
-    public static com.centit.support.database.utils.PageDesc fetchPageDescParams(Map<String, Object> pageQureyMap) {
-        com.centit.support.database.utils.PageDesc pageDesc = new  com.centit.support.database.utils.PageDesc();
+    public static PageDesc fetchPageDescParams(Map<String, Object> pageQureyMap) {
+        PageDesc pageDesc = new PageDesc();
         Integer pageSize = NumberBaseOpt.castObjectToInteger(pageQureyMap.get("maxSize"));
         if(pageSize!=null) {
             pageDesc.setPageSize(pageSize);
         }
-
         Integer startRow = NumberBaseOpt.castObjectToInteger(pageQureyMap.get("startRow"));
         if( startRow != null && pageSize!=null && pageSize > 1 ){
             pageDesc.setPageNo( startRow/pageSize+1 );
         }else{
             pageDesc.setPageNo(1);
         }
-
-
         return pageDesc;
     }
+
     /**
      * 这个方法只是为了在框架中和 MyBatis 排序兼容，所对应的PO必须有jpa注解
      * @param qureyParamMap 查询参数
@@ -87,7 +86,6 @@ public abstract class QueryParameterPrepare {
                 }
             }
         }
-
         return qureyParamMap;
     }
 
