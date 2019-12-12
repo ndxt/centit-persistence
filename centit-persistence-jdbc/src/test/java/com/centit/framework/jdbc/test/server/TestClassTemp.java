@@ -19,7 +19,7 @@ public class TestClassTemp {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(OfficeWorker.class);
 
         System.out.println(mapInfo.getReferences().get(0).getTargetEntityType());
-        System.out.println(mapInfo.getReferences().get(0).getReferenceType());
+        System.out.println(mapInfo.getReferences().get(0).getReferenceFieldType());
 
         OfficeWorkerDao baseDao = new OfficeWorkerDao();
         System.out.println(baseDao.getPoClass().getTypeName());

@@ -594,8 +594,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         List<?> refs = innerFetchObjectReference(object, ref);
 
         if(refs!=null && refs.size()>0) {
-            if (//ref.getReferenceType().equals(refType) /*||
-                    ref.getReferenceType().isAssignableFrom(refType) ){
+            if (//ref.getReferenceFieldType().equals(refType) /*||
+                    ref.getReferenceFieldType().isAssignableFrom(refType) ){
                 if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
                     for(Object refObject : refs)
                     if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
@@ -605,7 +605,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 }else {
                     ref.setObjectFieldValue(object, refs.get(0));
                 }
-            }else if(Set.class.isAssignableFrom(ref.getReferenceType())){
+            }else if(Set.class.isAssignableFrom(ref.getReferenceFieldType())){
                 Set<Object> validRefDate = new HashSet<>(refs.size()+1);
                 if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
                     for(Object refObject : refs)
@@ -616,7 +616,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     validRefDate.addAll(refs);
                 }
                 ref.setObjectFieldValue(object,validRefDate);
-            }else if(List.class.isAssignableFrom(ref.getReferenceType())){
+            }else if(List.class.isAssignableFrom(ref.getReferenceFieldType())){
                 if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
                     List<Object>  validRefDate = new ArrayList<>(refs.size());
                     for(Object refObject : refs) {
@@ -715,8 +715,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
 
         OrmDaoUtils.OrmObjectComparator refObjComparator = new OrmDaoUtils.OrmObjectComparator(refMapInfo);
-        if (//ref.getReferenceType().equals(refType) || oneToOne
-                ref.getReferenceType().isAssignableFrom(refType) ){
+        if (//ref.getReferenceFieldType().equals(refType) || oneToOne
+                ref.getReferenceFieldType().isAssignableFrom(refType) ){
 
             for(Map.Entry<String, String> ent : ref.getReferenceColumns().entrySet()){
                 Object obj = mapInfo.getObjectFieldValue(object, ent.getKey());
@@ -742,7 +742,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             return 1;
         }else {
             //oneToMany 一对多的情况
-            List<Object> newListObj = Set.class.isAssignableFrom(ref.getReferenceType())?
+            List<Object> newListObj = Set.class.isAssignableFrom(ref.getReferenceFieldType())?
                     new ArrayList<>((Set<?>) newObj):(List<Object>) newObj;
 
             for (Map.Entry<String, String> ent : ref.getReferenceColumns().entrySet()) {
