@@ -14,7 +14,7 @@ import java.sql.SQLException;
  * Created by codefan on 17-8-31.
  */
 public class TestClassTemp {
-    public static void main(String[] args) throws SQLException, IOException, InstantiationException, IllegalAccessException {
+    public static void main(String[] args) throws SQLException, IOException{
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(OfficeWorker.class);
 
