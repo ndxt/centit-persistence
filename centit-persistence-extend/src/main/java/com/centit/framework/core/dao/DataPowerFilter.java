@@ -10,12 +10,14 @@ import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.common.LeftRightPair;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.compiler.VariableFormula;
+import com.centit.support.database.utils.FieldType;
 import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 @SuppressWarnings("unused")
@@ -289,27 +291,30 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
         while( sWord!=null && ! "".equals(sWord) ){
             if( "[".equals(sWord)){
                 int curPos = varMorp.getCurrPos();
-                if(curPos-1>prePos)
-                    checkStatement.append( filter.substring(prePos, curPos-1));
+                if(curPos-1>prePos) {
+                    checkStatement.append(filter.substring(prePos, curPos - 1));
+                }
                 varMorp.seekTo(']');
                 prePos = varMorp.getCurrPos();
                 String columnDesc =  filter.substring(curPos,prePos-1).trim();
                 int n = columnDesc.indexOf('.');
-                if(n<0)
-                    return 0;
+                if(n<0) return 0;
 
                 String tempClassName = columnDesc.substring(0,n);
-                if(!poClassName.equals(tempClassName))
-                    return 0;
-
-                Object fieldValue = ReflectionOpt.attainExpressionValue(obj, columnDesc.substring(n+1));
-
+                if(!poClassName.equals(tempClassName)) return 0;
+                String columnName = columnDesc.substring(n+1);
+                Object fieldValue = ReflectionOpt.attainExpressionValue(obj,
+                    FieldType.mapPropName(columnName));
+                if(fieldValue==null){
+                    fieldValue = ReflectionOpt.attainExpressionValue(obj,columnName);
+                }
                 checkStatement.append(QueryUtils.buildObjectStringForQuery(fieldValue));
 
             }else if( "{".equals(sWord)){
                 int curPos = varMorp.getCurrPos();
-                if(curPos-1>prePos)
-                    checkStatement.append( filter.substring(prePos, curPos-1));
+                if(curPos-1>prePos) {
+                    checkStatement.append(filter.substring(prePos, curPos - 1));
+                }
                 varMorp.seekTo('}');
                 prePos = varMorp.getCurrPos();
                 String valueDesc =  filter.substring(curPos,prePos-1).trim();
@@ -322,7 +327,6 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
             sWord = varMorp.getAWord();
         }
         checkStatement.append(filter.substring(prePos));
-
         return BooleanBaseOpt.castObjectToBoolean(
                 VariableFormula.calculate(checkStatement.toString()),false)?
                 1:-1;
