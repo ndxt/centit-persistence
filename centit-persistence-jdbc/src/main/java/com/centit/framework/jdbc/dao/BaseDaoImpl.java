@@ -155,7 +155,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         String fieldsSql =
                 ((fields != null && fields.size()>0)
-                    ? GeneralJsonObjectDao.buildPartFieldSql(mapInfo, fields, tableAlias)
+                    ? GeneralJsonObjectDao.buildPartFieldSql(mapInfo, fields, tableAlias, true)
                     : GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias, 1));
         return encapsulateFilterToSql(fieldsSql, filterQuery, tableAlias, mapInfo.getOrderBy());
     }
@@ -1116,7 +1116,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         String filterSql = buildDefaultFieldFilterSql();
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Pair<String, TableField[]> q = ((fields != null && fields.size()>0)
-            ? GeneralJsonObjectDao.buildPartFieldSqlWithFields(mapInfo, fields, null)
+            ? GeneralJsonObjectDao.buildPartFieldSqlWithFields(mapInfo, fields, null, true)
             : GeneralJsonObjectDao.buildFieldSqlWithFields(mapInfo, null, true));
 
         String selfOrderBy = GeneralJsonObjectDao.fetchSelfOrderSql(mapInfo, filterMap);
