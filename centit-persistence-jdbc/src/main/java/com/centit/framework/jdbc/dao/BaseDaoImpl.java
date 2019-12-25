@@ -773,8 +773,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             }
             if(comRes.getMiddle() != null) {
                 for (Pair<Object, Object> pobj : comRes.getMiddle()) {
-                    innerUpdateObject(pobj.getRight());
-                    resN ++;
+                    if(GeneralJsonObjectDao.checkNeedUpdate(
+                        CollectionsOpt.objectToMap(pobj.getLeft()),
+                        CollectionsOpt.objectToMap(pobj.getRight()))) {
+                        resN += innerUpdateObject(pobj.getRight());
+                    }
                 }
             }
             return resN;
