@@ -946,6 +946,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
+
+
     public List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc) {
         String querySql = getFilterQuerySql();
         if (StringUtils.isBlank(querySql)) {
@@ -956,13 +958,24 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
             }
             QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, filterMap);
+
             return jdbcTemplate.execute(
-                  (ConnectionCallback<List<T>>) conn -> {
-                    pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn,
-                        QueryUtils.buildGetCountSQLByReplaceFields(qap.getSql()),qap.getParams()));
-                    return OrmDaoUtils
-                    .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass(),
-                        pageDesc.getRowStart(), pageDesc.getPageSize());});
+                (ConnectionCallback<List<T>>) conn -> {
+                    if(pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
+                        pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn,
+                            QueryUtils.buildGetCountSQLByReplaceFields(qap.getSql()), qap.getParams()));
+                        return OrmDaoUtils
+                            .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass(),
+                                pageDesc.getRowStart(), pageDesc.getPageSize());
+                    } else {
+                        List<T> objects = OrmDaoUtils
+                            .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass());
+                        if(pageDesc != null && objects != null){
+                            pageDesc.setTotalRows(objects.size());
+                        }
+                        return objects;
+                    }
+                });
         }
 
     }
