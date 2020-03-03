@@ -865,6 +865,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.listObjectsByProperties(conn, propertiesMap, (Class<T>) getPoClass()));
     }
 
+    public List<T> listObjectsByProperties(final Map<String, Object> propertiesMap, int startPos, int maxSize) {
+        return jdbcTemplate.execute(
+            (ConnectionCallback<List<T>>) conn ->
+                OrmDaoUtils.listObjectsByProperties(conn, propertiesMap, (Class<T>)getPoClass(),
+                                                    startPos, maxSize));
+    }
+
     public JSONArray listObjectsByPropertiesAsJson(Map<String, Object> filterMap, PageDesc pageDesc) {
         return jdbcTemplate.execute(
             (ConnectionCallback<JSONArray>) conn -> {
