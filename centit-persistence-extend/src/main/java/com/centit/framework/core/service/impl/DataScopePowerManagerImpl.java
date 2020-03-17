@@ -5,18 +5,18 @@ import com.centit.framework.core.dao.DataPowerFilter;
 import com.centit.framework.core.service.DataScopePowerManager;
 import com.centit.framework.model.basedata.IUserUnit;
 import com.centit.framework.security.model.CentitUserDetails;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+@Service
 public class DataScopePowerManagerImpl implements DataScopePowerManager {
 
     /**
      * 获取用户数据权限过滤器
-     *
      * @param sUserCode sUserCode
      * @param sOptId 业务名称
      * @param sOptMethod 对应的方法名称
@@ -26,6 +26,7 @@ public class DataScopePowerManagerImpl implements DataScopePowerManager {
     public List<String> listUserDataFiltersByOptIdAndMethod(String sUserCode, String sOptId, String sOptMethod) {
         return CodeRepositoryUtil.listUserDataFiltersByOptIdAndMethod(sUserCode,sOptId,sOptMethod);
     }
+
     /**
      * 创建用户数据范围过滤器
      * @return  DataPowerFilter
