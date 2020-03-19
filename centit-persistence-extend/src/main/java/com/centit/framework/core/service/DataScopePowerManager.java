@@ -1,10 +1,8 @@
 package com.centit.framework.core.service;
 
-
 import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.core.dao.DataPowerFilter;
 import com.centit.framework.security.model.CentitUserDetails;
-
 import java.util.List;
 
 /**
@@ -13,34 +11,34 @@ import java.util.List;
  *             (name = "generalService")
  *            protected GeneralService  generalService;
  * @author codefan
- *
  */
 public interface DataScopePowerManager {
-    /**
-     * 获得用户摸个功能方法的数据范围权限，返回null或者size==0表示拥有所有权限
-     * @param sUserCode sUserCode
-     * @param sOptid sOptid
-     * @param sOptMethod sOptMethod
-     * @return 用户摸个功能方法的数据范围权限
-     */
-     List<String> listUserDataFiltersByOptIdAndMethod
-        (String sUserCode, String sOptid, String sOptMethod);
-    /**
-     * 创建用户数据范围过滤器，和上面的方法结合使用
-     * @param userInfo JSONObject 用户信息
-     * @param currentUnit 用户当前机构
-     * @return DataPowerFilter
-     */
-
-     DataPowerFilter createUserDataPowerFilter(JSONObject userInfo, String currentUnit);
 
     /**
-     * 创建用户数据范围过滤器，和上面的方法结合使用
-     * @param userDetails CentitUserDetails
-     * @return DataPowerFilter
-     */
-     default DataPowerFilter createUserDataPowerFilter(CentitUserDetails userDetails){
-         return createUserDataPowerFilter(userDetails.getUserInfo(),
-             userDetails.getCurrentUnitCode());
-     }
+    * 获得用户摸个功能方法的数据范围权限，返回null或者size==0表示拥有所有权限
+    * @param sUserCode sUserCode
+    * @param sOptid sOptid
+    * @param sOptMethod sOptMethod
+    * @return 用户摸个功能方法的数据范围权限
+    */
+    List<String> listUserDataFiltersByOptIdAndMethod
+    (String sUserCode, String sOptid, String sOptMethod);
+
+    /**
+    * 创建用户数据范围过滤器，和上面的方法结合使用
+    * @param userInfo JSONObject 用户信息
+    * @param currentUnit 用户当前机构
+    * @return DataPowerFilter
+    */
+    DataPowerFilter createUserDataPowerFilter(JSONObject userInfo, String currentUnit);
+
+    /**
+    * 创建用户数据范围过滤器，和上面的方法结合使用
+    * @param userDetails CentitUserDetails
+    * @return DataPowerFilter
+    */
+    default DataPowerFilter createUserDataPowerFilter(CentitUserDetails userDetails){
+     return createUserDataPowerFilter(userDetails.getUserInfo(),
+         userDetails.getCurrentUnitCode());
+    }
 }
