@@ -5,8 +5,6 @@ import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.dao.DataPowerFilter;
 import com.centit.framework.core.service.DataScopePowerManager;
 import com.centit.framework.model.basedata.IUserUnit;
-import com.centit.framework.security.model.CentitUserDetails;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
