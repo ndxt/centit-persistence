@@ -4,13 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.dao.DataPowerFilter;
 import com.centit.framework.core.service.DataScopePowerManager;
+import com.centit.framework.model.basedata.IUnitInfo;
+import com.centit.framework.model.basedata.IUserRole;
 import com.centit.framework.model.basedata.IUserUnit;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.function.Supplier;
 
 public class DataScopePowerManagerImpl implements DataScopePowerManager {
     /**
@@ -25,45 +25,21 @@ public class DataScopePowerManagerImpl implements DataScopePowerManager {
         return CodeRepositoryUtil.listUserDataFiltersByOptIdAndMethod(sUserCode,sOptId,sOptMethod);
     }
 
-
     @Override
     public DataPowerFilter createUserDataPowerFilter(JSONObject userInfo, String currentUnit) {
         DataPowerFilter dpf = new DataPowerFilter();
         //当前用户信息
         dpf.addSourceData("currentUser", userInfo);
         dpf.addSourceData("currentStation", currentUnit);
-        //当前用户主机构信息
-        String userCode = userInfo.getString("userCode");
-        dpf.addSourceData("primaryUnit", CodeRepositoryUtil
-            .getUnitInfoByCode(userInfo.getString("primaryUnit")));
 
-        //当前用户所有机构关联关系信息
-        List<? extends IUserUnit>  userUnits = CodeRepositoryUtil
-            .listUserUnits(userCode);
-        if(userUnits!=null) {
-            dpf.addSourceData("userUnits", userUnits);
-            Map<String, List<IUserUnit>> rankUnits = new HashMap<>(5);
-            Map<String, List<IUserUnit>> stationUnits = new HashMap<>(5);
-            for(IUserUnit uu : userUnits ){
-                List<IUserUnit> rankUnit = rankUnits.get(uu.getUserRank());
-                if(rankUnit==null){
-                    rankUnit = new ArrayList<>(4);
-                }
-                rankUnit.add(uu);
-                rankUnits.put(uu.getUserRank(),rankUnit);
-
-                List<IUserUnit> stationUnit = stationUnits.get(uu.getUserStation());
-                if(stationUnit==null){
-                    stationUnit = new ArrayList<>(4);
-                }
-                stationUnit.add(uu);
-                stationUnits.put(uu.getUserStation(),rankUnit);
-            }
-            dpf.addSourceData("rankUnits", rankUnits);
-            dpf.addSourceData("stationUnits", stationUnits);
-        }
-        //当前用户的角色信息
-        dpf.addSourceData("userRoles", CodeRepositoryUtil.listUserRoles(userCode));
+        CurrentUserContext context = new CurrentUserContext(userInfo, currentUnit);
+        dpf.addSourceData("primaryUnit", (Supplier<IUnitInfo>)context::getPrimaryUnit);
+        dpf.addSourceData("userUnits", (Supplier<List<? extends IUserUnit>>)context::listUserUnits);
+        dpf.addSourceData("rankUnits", (Supplier<Map<String, List<IUserUnit>>>)context::getRankUnitsMap);
+        dpf.addSourceData("stationUnits", (Supplier<Map<String, List<IUserUnit>>>)context::getStationUnitsMap);
+        dpf.addSourceData("userRoles", (Supplier<List<? extends IUserRole>>)context::listUserRoles);
+        dpf.addSourceData("allSubUnits", (Supplier<List<IUnitInfo>>)context::listAllSubUnits);
+        dpf.addSourceData("subUnits", (Supplier<List<IUnitInfo>>)context::listSubUnits);
         return dpf;
     }
 
