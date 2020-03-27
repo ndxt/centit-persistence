@@ -55,6 +55,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     private Class<?> poClass = null;
     private Class<?> pkClass = null;
 
+    @Deprecated
     protected Map<String, String> filterField = null;
     protected JdbcTemplate jdbcTemplate;
     private static final int DEFAULT_CASCADE_DEPTH = 3;
