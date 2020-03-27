@@ -4,13 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.dao.DataPowerFilter;
 import com.centit.framework.core.service.DataScopePowerManager;
-import com.centit.framework.model.basedata.IUnitInfo;
-import com.centit.framework.model.basedata.IUserRole;
-import com.centit.framework.model.basedata.IUserUnit;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
 
 public class DataScopePowerManagerImpl implements DataScopePowerManager {
     /**
