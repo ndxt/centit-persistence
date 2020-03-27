@@ -33,13 +33,13 @@ public class DataScopePowerManagerImpl implements DataScopePowerManager {
         dpf.addSourceData("currentStation", currentUnit);
 
         CurrentUserContext context = new CurrentUserContext(userInfo, currentUnit);
-        dpf.addSourceData("primaryUnit", (Supplier<IUnitInfo>)context::getPrimaryUnit);
-        dpf.addSourceData("userUnits", (Supplier<List<? extends IUserUnit>>)context::listUserUnits);
-        dpf.addSourceData("rankUnits", (Supplier<Map<String, List<IUserUnit>>>)context::getRankUnitsMap);
-        dpf.addSourceData("stationUnits", (Supplier<Map<String, List<IUserUnit>>>)context::getStationUnitsMap);
-        dpf.addSourceData("userRoles", (Supplier<List<? extends IUserRole>>)context::listUserRoles);
-        dpf.addSourceData("allSubUnits", (Supplier<List<IUnitInfo>>)context::listAllSubUnits);
-        dpf.addSourceData("subUnits", (Supplier<List<IUnitInfo>>)context::listSubUnits);
+        dpf.addSourceData("primaryUnit", context::getPrimaryUnit);
+        dpf.addSourceData("userUnits", context::listUserUnits);
+        dpf.addSourceData("rankUnits", context::getRankUnitsMap);
+        dpf.addSourceData("stationUnits", context::getStationUnitsMap);
+        dpf.addSourceData("userRoles", context::listUserRoles);
+        dpf.addSourceData("allSubUnits", context::listAllSubUnits);
+        dpf.addSourceData("subUnits", context::listSubUnits);
         return dpf;
     }
 

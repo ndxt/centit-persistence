@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public class DataPowerFilter implements UserUnitVariableTranslate {
@@ -34,7 +35,15 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
         return this.sourceData;
     }
 
-    public void addSourceData(String name,Object data) {
+    public void addSourceData(String name, Supplier<?> supplier) {
+        if(supplier==null)
+            return;
+        if(sourceData == null)
+            sourceData = new HashMap<>();
+        sourceData.put(name, supplier);
+    }
+
+    public void addSourceData(String name, Object data) {
         if(data==null)
             return;
         if(sourceData == null)
@@ -47,46 +56,14 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
             return;
         if(sourceData == null)
             sourceData = new HashMap<>();
-        sourceData.put(data.getClass().getSimpleName(),data);
-    }
-
-    public void addSourceDatas(Collection<Object> sourceData) {
-        if(this.sourceData == null)
-            this.sourceData = new HashMap<>();
-        for(Object obj:sourceData){
-            if(obj!=null)
-                this.sourceData.put(obj.getClass().getSimpleName(), obj);
+        if(data instanceof Map){
+            @SuppressWarnings("unchecked")
+            Map<String, Object> objMap = (Map<String, Object>) data;
+            sourceData.putAll(objMap);
+        } else {
+            sourceData.put(data.getClass().getSimpleName(), data);
         }
     }
-
-    public void addSourceDatas(Map<String,Object> paramMap) {
-        if(this.sourceData == null)
-            this.sourceData = new HashMap<>();
-        this.sourceData.putAll(paramMap);
-    }
-
-    public void addSourceDatas(Object[] sourceData) {
-        if(this.sourceData == null)
-            this.sourceData = new HashMap<>();
-        for(Object obj:sourceData){
-            if(obj!=null)
-                this.sourceData.put(obj.getClass().getSimpleName(), obj);
-        }
-    }
-
-    public void setSourceDatas(Collection<Object> sourceData) {
-        this.sourceData = new HashMap<>();
-        for(Object obj:sourceData)
-            this.sourceData.put(obj.getClass().getSimpleName(), obj);
-    }
-
-    public void setSourceDatas(Object[] sourceData) {
-        this.sourceData = new HashMap<>();
-        for(Object obj:sourceData)
-            this.sourceData.put(obj.getClass().getSimpleName(), obj);
-    }
-
-
 
     @Override
     public Set<String> getUsersVariable(String s) {
