@@ -208,92 +208,83 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * 每个dao都需要重载这个函数已获得自定义的查询条件，否则listObjects、pageQuery就等价与listObjectsByProperties
      * 根据 getFilterField 中的内容初始化
      * @param alias            数据库表别名
-     * @param useDefaultFilter 使用默认过滤器
      * @return FilterQuery
      */
-    public String buildFieldFilterSql(String alias, boolean useDefaultFilter) {
+    public String buildFieldFilterSql(String alias) {
+        Map<String, Pair<String, String>> fieldFilter =
+                getFilterFieldWithPretreatment(getFilterField());
+        if (fieldFilter == null || fieldFilter.size() == 0){
+            return null;
+        }
+
         StringBuilder sBuilder = new StringBuilder();
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         boolean addAlias = StringUtils.isNotBlank(alias);
 
-        Map<String, Pair<String, String>> fieldFilter =
-                getFilterFieldWithPretreatment(getFilterField());
+        for (Map.Entry<String, Pair<String, String>> ent : fieldFilter.entrySet()) {
+            String skey = ent.getKey();
+            String sSqlFormat = ent.getValue().getLeft();
 
-        if (useDefaultFilter || fieldFilter == null || fieldFilter.size() == 0) {//添加默认的过滤条件
-            mapInfo.getColumns().stream()
-                    .filter(col -> fieldFilter == null || !fieldFilter.containsKey(col.getPropertyName()))
-                    .forEach(col ->
-                            sBuilder.append(" [:").append(col.getPropertyName()).append("| and ")
-                                    .append(col.getColumnName()).append(" = :").append(col.getPropertyName())
-                                    .append(" ]"));
-        }
-
-        if (fieldFilter != null) {
-            for (Map.Entry<String, Pair<String, String>> ent : fieldFilter.entrySet()) {
-                String skey = ent.getKey();
-                String sSqlFormat = ent.getValue().getLeft();
-
-                if (StringUtils.equalsAnyIgnoreCase(
-                    skey, CodeBook.SELF_ORDER_BY, CodeBook.TABLE_SORT_FIELD,
-                        CodeBook.TABLE_SORT_ORDER, CodeBook.ORDER_BY_HQL_ID)) {
-                    continue;
-                }
-                if (skey.startsWith(CodeBook.NO_PARAM_FIX)) {
-                    sBuilder.append(" [").append(skey).append("| and ")
-                            .append(JpaMetadata.translateSqlPropertyToColumn(mapInfo, sSqlFormat, alias))
-                            .append(" ]");
-                } else {
-                    String pretreatment = ent.getValue().getRight();
-                    if (sSqlFormat.equalsIgnoreCase(CodeBook.EQUAL_HQL_ID)) {
-                        SimpleTableField col = mapInfo.findFieldByName(skey);
-                        if (col != null) {
-                            sBuilder.append(" [:");
-                            if (StringUtils.isNotBlank(pretreatment)) {
-                                sBuilder.append("(").append(pretreatment).append(")");
-                            }
-                            sBuilder.append(skey).append("| and ")
-                                    .append(addAlias ? (alias + ".") : "")
-                                    .append(col.getColumnName()).append(" = :").append(col.getPropertyName())
-                                    .append(" ]");
+            if (StringUtils.equalsAnyIgnoreCase(
+                skey, CodeBook.SELF_ORDER_BY, CodeBook.TABLE_SORT_FIELD,
+                    CodeBook.TABLE_SORT_ORDER, CodeBook.ORDER_BY_HQL_ID)) {
+                continue;
+            }
+            if (skey.startsWith(CodeBook.NO_PARAM_FIX)) {
+                sBuilder.append(" [").append(skey).append("| and ")
+                        .append(JpaMetadata.translateSqlPropertyToColumn(mapInfo, sSqlFormat, alias))
+                        .append(" ]");
+            } else {
+                String pretreatment = ent.getValue().getRight();
+                if (sSqlFormat.equalsIgnoreCase(CodeBook.EQUAL_HQL_ID)) {
+                    SimpleTableField col = mapInfo.findFieldByName(skey);
+                    if (col != null) {
+                        sBuilder.append(" [:");
+                        if (StringUtils.isNotBlank(pretreatment)) {
+                            sBuilder.append("(").append(pretreatment).append(")");
                         }
-                    } else if (sSqlFormat.equalsIgnoreCase(CodeBook.LIKE_HQL_ID)) {
-                        SimpleTableField col = mapInfo.findFieldByName(skey);
-                        if (col != null) {
-                            sBuilder.append(" [:(")
-                                    .append(StringUtils.isBlank(pretreatment) ? "like" : pretreatment)
-                                    .append(")").append(skey).append("| and ")
-                                    .append(addAlias ? (alias + ".") : "")
-                                    .append(col.getColumnName()).append(" like :").append(col.getPropertyName())
-                                    .append(" ]");
-                        }
-                    } else if (sSqlFormat.equalsIgnoreCase(CodeBook.IN_HQL_ID)) {
-                        SimpleTableField col = mapInfo.findFieldByName(skey);
-                        if (col != null) {
-                            sBuilder.append(" [:");
-                            if (StringUtils.isNotBlank(pretreatment)) {
-                                sBuilder.append("(").append(pretreatment).append(")");
-                            }
-                            sBuilder.append(skey).append("| and ")
-                                    .append(addAlias ? (alias + ".") : "")
-                                    .append(col.getColumnName()).append(" in (:").append(col.getPropertyName())
-                                    .append(") ]");
-                        }
-                    } else {
-                        if ("[".equals(Lexer.getFirstWord(sSqlFormat))) {
-                            sBuilder.append(JpaMetadata.translateSqlPropertyToColumn(mapInfo, sSqlFormat, alias));
-                        } else {
-                            sBuilder.append(" [:");
-                            if (StringUtils.isNotBlank(pretreatment)) {
-                                sBuilder.append("(").append(pretreatment).append(")");
-                            }
-                            sBuilder.append(skey).append("| and ")
-                                    .append(JpaMetadata.translateSqlPropertyToColumn(mapInfo, sSqlFormat, alias))
-                                    .append(" ]");
-                        }
+                        sBuilder.append(skey).append("| and ")
+                                .append(addAlias ? (alias + ".") : "")
+                                .append(col.getColumnName()).append(" = :").append(col.getPropertyName())
+                                .append(" ]");
                     }
-                }// else
-            }// for
-        }//if(fieldFilter!=null)
+                } else if (sSqlFormat.equalsIgnoreCase(CodeBook.LIKE_HQL_ID)) {
+                    SimpleTableField col = mapInfo.findFieldByName(skey);
+                    if (col != null) {
+                        sBuilder.append(" [:(")
+                                .append(StringUtils.isBlank(pretreatment) ? "like" : pretreatment)
+                                .append(")").append(skey).append("| and ")
+                                .append(addAlias ? (alias + ".") : "")
+                                .append(col.getColumnName()).append(" like :").append(col.getPropertyName())
+                                .append(" ]");
+                    }
+                } else if (sSqlFormat.equalsIgnoreCase(CodeBook.IN_HQL_ID)) {
+                    SimpleTableField col = mapInfo.findFieldByName(skey);
+                    if (col != null) {
+                        sBuilder.append(" [:");
+                        if (StringUtils.isNotBlank(pretreatment)) {
+                            sBuilder.append("(").append(pretreatment).append(")");
+                        }
+                        sBuilder.append(skey).append("| and ")
+                                .append(addAlias ? (alias + ".") : "")
+                                .append(col.getColumnName()).append(" in (:").append(col.getPropertyName())
+                                .append(") ]");
+                    }
+                } else {
+                    if ("[".equals(Lexer.getFirstWord(sSqlFormat))) {
+                        sBuilder.append(JpaMetadata.translateSqlPropertyToColumn(mapInfo, sSqlFormat, alias));
+                    } else {
+                        sBuilder.append(" [:");
+                        if (StringUtils.isNotBlank(pretreatment)) {
+                            sBuilder.append("(").append(pretreatment).append(")");
+                        }
+                        sBuilder.append(skey).append("| and ")
+                                .append(JpaMetadata.translateSqlPropertyToColumn(mapInfo, sSqlFormat, alias))
+                                .append(" ]");
+                    }
+                }
+            }// else
+        }// for
         return sBuilder.toString();
     }
 
@@ -303,16 +294,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回 getFilterField 属性
      */
     public abstract Map<String, String> getFilterField();
-    /**
-     * 是否为每一个没有配置 filterField 配置过滤条件的属性自动配置一个 equal 类型的过滤条件
-     * @return 默认值为false
-     */
-    public boolean enableDefaultFilter(){
-        return false;
-    }
+
     public String buildDefaultFieldFilterSql() {
         if (daoEmbeddedFilter == null) {
-            daoEmbeddedFilter = buildFieldFilterSql(null, enableDefaultFilter());
+            daoEmbeddedFilter = buildFieldFilterSql(null);
         }
         return daoEmbeddedFilter;
     }
@@ -321,6 +306,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         String querySql = getExtendFilterQuerySql();
         if (StringUtils.isBlank(querySql)) {
             querySql = buildDefaultFieldFilterSql();
+            if(StringUtils.isBlank(querySql)){
+                return null;
+            }
             return encapsulateFilterToFields(null, querySql, null);
         } else {
             if ("[".equals(Lexer.getFirstWord(querySql))) {
@@ -952,7 +940,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             );
         }
     }
-
 
 
     public List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc) {
