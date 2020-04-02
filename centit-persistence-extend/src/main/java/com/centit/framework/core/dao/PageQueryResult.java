@@ -34,7 +34,7 @@ public class PageQueryResult<T> implements ToResponseData {
     private PageQueryResult(){
     }
 
-    private static  <D>  PageQueryResult<D>
+    private static <D> PageQueryResult<D>
     innerCreateResult(Collection<D> objList, PageDesc pageDesc, boolean mapDict, String[] filterFields){
         PageQueryResult result = new PageQueryResult();
         result.objList = objList;
