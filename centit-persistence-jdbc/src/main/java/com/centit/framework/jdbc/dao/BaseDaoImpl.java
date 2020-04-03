@@ -55,8 +55,12 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     private Class<?> poClass = null;
     private Class<?> pkClass = null;
 
+    /**
+     * 保留和以前版本的兼容，下一个版本将删除
+     */
     @Deprecated
     protected Map<String, String> filterField = null;
+
     protected JdbcTemplate jdbcTemplate;
     private static final int DEFAULT_CASCADE_DEPTH = 3;
     /**
@@ -159,15 +163,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     ? GeneralJsonObjectDao.buildPartFieldSql(mapInfo, fields, tableAlias, true)
                     : GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias, 1));
         return encapsulateFilterToSql(fieldsSql, filterQuery, tableAlias, mapInfo.getOrderBy());
-    }
-
-    /**
-     * 可以在外部注入查询语句来屏蔽内部标量getFilterField中定义的查询语句
-     * @return 外部语句
-     */
-    public String getExtendFilterQuerySql() {
-        return ExtendedQueryPool.getExtendedSql(
-                FileType.getFileExtName(getPoClass().getName()) + "_QUERY_0");
     }
 
     /**
@@ -294,7 +289,17 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * 每个dao都要初始化filterField这个对象，在 getFilterField 初始化，并且返回
      * @return 返回 getFilterField 属性
      */
-    public abstract Map<String, String> getFilterField();
+    public Map<String, String> getFilterField(){
+        return null;
+    }
+
+    /**
+     * 内置一个动态sql查询语句来屏蔽内部标量getFilterField中定义的查询语句
+     * @return 内置语句
+     */
+    public String getInsideFilterQuerySql() {
+        return null;
+    }
 
     public String buildDefaultFieldFilterSql() {
         if (daoEmbeddedFilter == null) {
@@ -304,7 +309,14 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public String getFilterQuerySql() {
-        String querySql = getExtendFilterQuerySql();
+        // 第一 优先级是外部的xml文件中的参数驱动sql语句
+        String querySql = ExtendedQueryPool.getExtendedSql(
+            FileType.getFileExtName(getPoClass().getName()) + "_QUERY_0");
+        // 第二优先级是 内置的参数驱动sql语句
+        if (StringUtils.isBlank(querySql)) {
+            querySql = getInsideFilterQuerySql();
+        }
+        //第三 优先级是 用FilterField编译的参数驱动拾起来语句
         if (StringUtils.isBlank(querySql)) {
             querySql = buildDefaultFieldFilterSql();
             if(StringUtils.isBlank(querySql)){
@@ -317,6 +329,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             }
             return querySql;
         }
+        //还有调用的地方，第四优先级 by Properties
     }
 
     private void innerSaveNewObject(Object o) {
