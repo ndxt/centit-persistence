@@ -5,6 +5,7 @@ import com.centit.framework.flyway.plugin.FlywayExt;
 import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.QueryLogUtils;
+import com.centit.support.security.AESSecurityUtils;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.dom4j.DocumentException;
 import org.flywaydb.core.Flyway;
@@ -65,8 +66,10 @@ public class DataSourceConfig implements EnvironmentAware {
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName(env.getProperty("jdbc.driver"));
         dataSource.setUrl(env.getProperty("jdbc.url"));
-        dataSource.setUsername(env.getProperty("jdbc.user"));
-        dataSource.setPassword(env.getProperty("jdbc.password"));
+        dataSource.setUsername(
+            AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.user")));
+        dataSource.setPassword(
+            AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.password")));
         dataSource.setMaxTotal(env.getProperty("jdbc.maxActive", Integer.class));
         dataSource.setMaxIdle(env.getProperty("jdbc.maxIdle", Integer.class));
         dataSource.setMaxWaitMillis(env.getProperty("jdbc.maxWait", Integer.class));
