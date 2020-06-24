@@ -563,9 +563,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         OrmDaoUtils.getObjectExcludeLazyById(conn, id, (Class<T>) getPoClass()));
     }
 
-
     public T getObjectWithReferences(Object id) {
         T obj = getObjectById(id);
+        if(obj==null){
+            return null;
+        }
         return fetchObjectReferences(obj);
     }
 
@@ -582,7 +584,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     private List<?> innerFetchObjectReference(T object, SimpleTableReference ref ){
-        if(ref==null || ref.getReferenceColumns().size()<1)
+        if(object==null || ref==null || ref.getReferenceColumns().size()<1)
             return null;
 
         Class<?> refType = ref.getTargetEntityType();
