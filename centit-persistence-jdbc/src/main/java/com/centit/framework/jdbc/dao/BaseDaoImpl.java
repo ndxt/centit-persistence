@@ -154,7 +154,12 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             sqlBuilder.append(" }");
         }
         if(StringUtils.isNotBlank(filterQuery)){
-            sqlBuilder.append(filterQuery);
+            if(StringUtils.equalsAnyIgnoreCase(
+                Lexer.getFirstWord(filterQuery),"and", "or")) {
+                sqlBuilder.append(filterQuery);
+            }else{
+                sqlBuilder.append(" and ").append(filterQuery);
+            }
         }
         if(StringUtils.isNotBlank(orderBySql)){
             sqlBuilder.append(" order by " ).append(orderBySql);
