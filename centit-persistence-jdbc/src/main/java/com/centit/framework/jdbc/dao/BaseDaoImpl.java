@@ -155,7 +155,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
         if(StringUtils.isNotBlank(filterQuery)){
             if(StringUtils.equalsAnyIgnoreCase(
-                Lexer.getFirstWord(filterQuery),"and", "or")) {
+                Lexer.getFirstWord(filterQuery),"[", "and", "or")) {
                 sqlBuilder.append(filterQuery);
             }else{
                 sqlBuilder.append(" and ").append(filterQuery);
