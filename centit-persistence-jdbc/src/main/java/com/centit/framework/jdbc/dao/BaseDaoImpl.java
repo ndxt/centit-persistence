@@ -618,17 +618,17 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         ref.setObjectFieldValue(object,refObject);
                         break;
                     }
-                }else {
+                } else {
                     ref.setObjectFieldValue(object, refs.get(0));
                 }
-            }else if(Set.class.isAssignableFrom(ref.getReferenceFieldType())){
+            } else if(Set.class.isAssignableFrom(ref.getReferenceFieldType())){
                 Set<Object> validRefDate = new HashSet<>(refs.size()+1);
                 if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
                     for(Object refObject : refs)
                         if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
                             validRefDate.add(refObject);
                         }
-                }else {
+                } else {
                     validRefDate.addAll(refs);
                 }
                 ref.setObjectFieldValue(object,validRefDate);
@@ -641,7 +641,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         }
                     }
                     ref.setObjectFieldValue(object, validRefDate);
-                }else {
+                } else {
                     ref.setObjectFieldValue(object, refs);
                 }
             }
