@@ -16,8 +16,9 @@ public class DataScopePowerManagerImpl implements DataScopePowerManager {
      * @return 过滤条件列表，null或者空位不过来
      */
     @Override
-    public List<String> listUserDataFiltersByOptIdAndMethod(String sUserCode, String sOptId, String sOptMethod) {
-        return CodeRepositoryUtil.listUserDataFiltersByOptIdAndMethod(sUserCode,sOptId,sOptMethod);
+    public List<String> listUserDataFiltersByOptIdAndMethod(String topUnit, String sUserCode, String sOptId, String sOptMethod) {
+        return CodeRepositoryUtil.listUserDataFiltersByOptIdAndMethod(
+            topUnit, sUserCode, sOptId, sOptMethod);
     }
 
     @Override

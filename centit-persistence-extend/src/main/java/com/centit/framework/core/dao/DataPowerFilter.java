@@ -107,8 +107,7 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
         private boolean jointSql;
         private DataPowerFilter dataPowerFilter;
 
-        public DataPowerFilterTranslater(boolean jointSql, DataPowerFilter dataPowerFilter)
-        {
+        public DataPowerFilterTranslater(boolean jointSql, DataPowerFilter dataPowerFilter) {
             this.tableAlias = null;
             this.jointSql = jointSql;
             this.dataPowerFilter = dataPowerFilter;

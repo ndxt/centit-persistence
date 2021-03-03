@@ -1,6 +1,7 @@
 package com.centit.framework.core.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.centit.framework.common.GlobalConstValue;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.model.basedata.IUnitInfo;
 import com.centit.framework.model.basedata.IUserRole;
@@ -16,20 +17,29 @@ public class CurrentUserContext {
     public JSONObject userInfo;
     public String currentUnit;
 
+    public String topUnit;
+
     public CurrentUserContext(JSONObject userInfo, String currentUnit){
         this.userInfo = userInfo;
         this.currentUnit = StringUtils.isBlank(currentUnit)?
             userInfo.getString("primaryUnit"):currentUnit;
+        this.topUnit = GlobalConstValue.NO_TENANT_TOP_UNIT;
     }
+
+
+    public void setTopUnit(String topUnit) {
+        this.topUnit = topUnit;
+    }
+
 
     public IUnitInfo getPrimaryUnit(){
         return CodeRepositoryUtil
-            .getUnitInfoByCode(userInfo.getString("primaryUnit"));
+            .getUnitInfoByCode(this.topUnit, userInfo.getString("primaryUnit"));
     }
 
     public List<? extends IUserUnit> listUserUnits(){
         return CodeRepositoryUtil
-            .listUserUnits(userInfo.getString("userCode"));
+            .listUserUnits(this.topUnit, userInfo.getString("userCode"));
     }
 
     public Map<String, List<IUserUnit>> getRankUnitsMap(){
@@ -61,17 +71,29 @@ public class CurrentUserContext {
     }
 
     public List<? extends IUserRole> listUserRoles() {
-        return CodeRepositoryUtil.listUserRoles(userInfo.getString("userCode"));
+        return CodeRepositoryUtil.listUserRoles(this.topUnit, userInfo.getString("userCode"));
     }
 
     public List<IUnitInfo> listSubUnits(){
-        return CodeRepositoryUtil.getSubUnits(currentUnit);
+        return CodeRepositoryUtil.getSubUnits(this.topUnit, currentUnit);
     }
 
     public List<IUnitInfo> listAllSubUnits(){
-        List<IUnitInfo> allSubUnits=CodeRepositoryUtil.getAllSubUnits(currentUnit);
+        List<IUnitInfo> allSubUnits=CodeRepositoryUtil.getAllSubUnits(this.topUnit, currentUnit);
         allSubUnits.add(CodeRepositoryUtil
-            .getUnitInfoByCode(currentUnit));
+            .getUnitInfoByCode(this.topUnit, currentUnit));
         return allSubUnits;
+    }
+
+    public JSONObject getUserInfo() {
+        return userInfo;
+    }
+
+    public String getCurrentUnit() {
+        return currentUnit;
+    }
+
+    public String getTopUnit() {
+        return topUnit;
     }
 }

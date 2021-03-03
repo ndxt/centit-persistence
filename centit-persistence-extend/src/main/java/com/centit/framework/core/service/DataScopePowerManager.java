@@ -1,6 +1,7 @@
 package com.centit.framework.core.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.centit.framework.common.GlobalConstValue;
 import com.centit.framework.core.dao.DataPowerFilter;
 import com.centit.framework.security.model.CentitUserDetails;
 
@@ -17,14 +18,21 @@ public interface DataScopePowerManager {
 
     /**
      * 获得用户摸个功能方法的数据范围权限，返回null或者size==0表示拥有所有权限
+     * @param topUnit 租户
      * @param sUserCode sUserCode
      * @param sOptid sOptid
      * @param sOptMethod sOptMethod
      * @return 用户摸个功能方法的数据范围权限
      */
     List<String> listUserDataFiltersByOptIdAndMethod
-            (String sUserCode, String sOptid, String sOptMethod);
+            (String topUnit, String sUserCode, String sOptid, String sOptMethod);
 
+    default List<String> listUserDataFiltersByOptIdAndMethod
+        (String sUserCode, String sOptid, String sOptMethod){
+        return listUserDataFiltersByOptIdAndMethod(
+            GlobalConstValue.NO_TENANT_TOP_UNIT,
+            sUserCode, sOptid, sOptMethod);
+    }
     /**
      * 创建用户数据范围过滤器，和上面的方法结合使用
      * @param userInfo JSONObject 用户信息
