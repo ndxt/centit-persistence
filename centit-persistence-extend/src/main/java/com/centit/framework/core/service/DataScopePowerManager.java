@@ -1,8 +1,9 @@
 package com.centit.framework.core.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.centit.framework.common.GlobalConstValue;
+import com.centit.framework.common.WebOptUtils;
 import com.centit.framework.core.dao.DataPowerFilter;
+import com.centit.framework.filter.RequestThreadLocal;
 import com.centit.framework.security.model.CentitUserDetails;
 
 import java.util.List;
@@ -30,9 +31,10 @@ public interface DataScopePowerManager {
     default List<String> listUserDataFiltersByOptIdAndMethod
         (String sUserCode, String sOptid, String sOptMethod){
         return listUserDataFiltersByOptIdAndMethod(
-            GlobalConstValue.NO_TENANT_TOP_UNIT,
+            WebOptUtils.getCurrentTopUnit(RequestThreadLocal.getLocalThreadWrapperRequest()),
             sUserCode, sOptid, sOptMethod);
     }
+
     /**
      * 创建用户数据范围过滤器，和上面的方法结合使用
      * @param userInfo JSONObject 用户信息
