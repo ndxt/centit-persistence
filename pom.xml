@@ -12,7 +12,7 @@
     <groupId>com.centit.framework</groupId>
     <artifactId>centit-persistence</artifactId>
     <packaging>pom</packaging>
-    <version>1.3-SNAPSHOT</version>
+    <version>5.1-SNAPSHOT</version>
 
     <name>com.centit.framework:centit-persistence</name>
     <description>框架持久化包， 有三个子模块分别对应 hibernate、mybatis和spring jdbc template 三个实现方式。
