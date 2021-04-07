@@ -23,7 +23,7 @@ public interface DataScopePowerManager {
      * @return 用户摸个功能方法的数据范围权限
      */
     List<String> listUserDataFiltersByOptIdAndMethod
-            (String sUserCode, String sOptid, String sOptMethod);
+            (String topUnit, String sUserCode, String sOptid, String sOptMethod);
 
     /**
      * 创建用户数据范围过滤器，和上面的方法结合使用
@@ -31,7 +31,7 @@ public interface DataScopePowerManager {
      * @param currentUnit 用户当前机构
      * @return DataPowerFilter
      */
-    DataPowerFilter createUserDataPowerFilter(JSONObject userInfo, String currentUnit);
+    DataPowerFilter createUserDataPowerFilter(JSONObject userInfo, String topUnit, String currentUnit);
 
     /**
      * 创建用户数据范围过滤器，和上面的方法结合使用
@@ -40,6 +40,7 @@ public interface DataScopePowerManager {
      */
     default DataPowerFilter createUserDataPowerFilter(CentitUserDetails userDetails){
         return createUserDataPowerFilter(userDetails.getUserInfo(),
+            userDetails.getTopUnitCode(),
             userDetails.getCurrentUnitCode());
     }
 }

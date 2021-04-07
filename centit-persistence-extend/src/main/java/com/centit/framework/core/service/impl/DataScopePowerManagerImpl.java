@@ -16,18 +16,18 @@ public class DataScopePowerManagerImpl implements DataScopePowerManager {
      * @return 过滤条件列表，null或者空位不过来
      */
     @Override
-    public List<String> listUserDataFiltersByOptIdAndMethod(String sUserCode, String sOptId, String sOptMethod) {
-        return CodeRepositoryUtil.listUserDataFiltersByOptIdAndMethod(sUserCode,sOptId,sOptMethod);
+    public List<String> listUserDataFiltersByOptIdAndMethod(String topUnit, String sUserCode, String sOptId, String sOptMethod) {
+        return CodeRepositoryUtil.listUserDataFiltersByOptIdAndMethod(topUnit, sUserCode, sOptId, sOptMethod);
     }
 
     @Override
-    public DataPowerFilter createUserDataPowerFilter(JSONObject userInfo, String currentUnit) {
+    public DataPowerFilter createUserDataPowerFilter(JSONObject userInfo, String topUnit, String currentUnit) {
         DataPowerFilter dpf = new DataPowerFilter();
         //当前用户信息
         dpf.addSourceData("currentUser", userInfo);
         dpf.addSourceData("currentStation", currentUnit);
 
-        CurrentUserContext context = new CurrentUserContext(userInfo, currentUnit);
+        CurrentUserContext context = new CurrentUserContext(userInfo, topUnit, currentUnit);
         dpf.addSourceData("primaryUnit", context::getPrimaryUnit);
         dpf.addSourceData("userUnits", context::listUserUnits);
         dpf.addSourceData("rankUnits", context::getRankUnitsMap);

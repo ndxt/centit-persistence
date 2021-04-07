@@ -15,21 +15,23 @@ import java.util.Map;
 public class CurrentUserContext {
     public JSONObject userInfo;
     public String currentUnit;
+    public String topUnit;
 
-    public CurrentUserContext(JSONObject userInfo, String currentUnit){
+    public CurrentUserContext(JSONObject userInfo, String topUnit, String currentUnit){
         this.userInfo = userInfo;
+        this.topUnit = topUnit;
         this.currentUnit = StringUtils.isBlank(currentUnit)?
             userInfo.getString("primaryUnit"):currentUnit;
     }
 
     public IUnitInfo getPrimaryUnit(){
         return CodeRepositoryUtil
-            .getUnitInfoByCode(userInfo.getString("primaryUnit"));
+            .getUnitInfoByCode(topUnit, userInfo.getString("primaryUnit"));
     }
 
     public List<? extends IUserUnit> listUserUnits(){
         return CodeRepositoryUtil
-            .listUserUnits(userInfo.getString("userCode"));
+            .listUserUnits(topUnit, userInfo.getString("userCode"));
     }
 
     public Map<String, List<IUserUnit>> getRankUnitsMap(){
@@ -61,17 +63,17 @@ public class CurrentUserContext {
     }
 
     public List<? extends IUserRole> listUserRoles() {
-        return CodeRepositoryUtil.listUserRoles(userInfo.getString("userCode"));
+        return CodeRepositoryUtil.listUserRoles(topUnit, userInfo.getString("userCode"));
     }
 
     public List<IUnitInfo> listSubUnits(){
-        return CodeRepositoryUtil.getSubUnits(currentUnit);
+        return CodeRepositoryUtil.getSubUnits(topUnit, currentUnit);
     }
 
     public List<IUnitInfo> listAllSubUnits(){
-        List<IUnitInfo> allSubUnits=CodeRepositoryUtil.getAllSubUnits(currentUnit);
+        List<IUnitInfo> allSubUnits=CodeRepositoryUtil.getAllSubUnits(topUnit, currentUnit);
         allSubUnits.add(CodeRepositoryUtil
-            .getUnitInfoByCode(currentUnit));
+            .getUnitInfoByCode(topUnit, currentUnit));
         return allSubUnits;
     }
 }
