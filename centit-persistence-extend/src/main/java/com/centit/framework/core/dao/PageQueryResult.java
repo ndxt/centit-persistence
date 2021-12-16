@@ -8,6 +8,7 @@ import com.centit.support.database.utils.PageDesc;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 /**
@@ -16,7 +17,9 @@ import java.util.Collection;
  * @param <T> 模板对象，对于JSONArray来说这个对象就是 Object
  */
 @ApiModel(description = "分页查询返回结果")
-public class PageQueryResult<T> implements ToResponseData {
+public class PageQueryResult<T> implements ToResponseData, Serializable {
+    private static final long serialVersionUID = 1L;
+
     // 同 BaseController.OBJLIST 耦合代码
     public static final String OBJECT_LIST_LABEL = "objList";
     // 同 BaseController.PAGE_DESC 耦合代码
