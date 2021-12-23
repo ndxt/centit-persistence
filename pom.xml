@@ -6,22 +6,19 @@
     <parent>
         <artifactId>centit-framework-dependencies</artifactId>
         <groupId>com.centit.framework</groupId>
-        <version>5.1-SNAPSHOT</version>
+        <version>5.2.2112</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.centit.framework</groupId>
     <artifactId>centit-persistence</artifactId>
     <packaging>pom</packaging>
-    <version>5.1-SNAPSHOT</version>
+    <version>5.2-SNAPSHOT</version>
 
     <name>com.centit.framework:centit-persistence</name>
     <description>框架持久化包， 有三个子模块分别对应 hibernate、mybatis和spring jdbc template 三个实现方式。
     </description>
     <url>https://github.com/ndxt/centit-persistence</url>
 
-    <properties>
-        <centit.commons.version>2.3-SNAPSHOT</centit.commons.version>
-    </properties>
+
 
     <organization>
         <name>江苏南大先腾信息产业股份有限公司</name>
