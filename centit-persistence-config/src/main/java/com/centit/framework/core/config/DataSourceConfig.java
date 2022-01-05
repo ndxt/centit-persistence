@@ -2,6 +2,7 @@ package com.centit.framework.core.config;
 
 import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.flyway.plugin.FlywayExt;
+import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.QueryLogUtils;
@@ -70,11 +71,15 @@ public class DataSourceConfig implements EnvironmentAware {
             AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.user")));
         dataSource.setPassword(
             AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.password")));
-        dataSource.setMaxTotal(env.getProperty("jdbc.maxActive", Integer.class));
-        dataSource.setMaxIdle(env.getProperty("jdbc.maxIdle", Integer.class));
-        dataSource.setMaxWaitMillis(env.getProperty("jdbc.maxWait", Integer.class));
+        dataSource.setMaxTotal(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxActive"),100));
+        dataSource.setMaxIdle(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxIdle"),50));
+        dataSource.setMaxWaitMillis(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxWait"), 2000));
+        dataSource.setMinIdle(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.minIdle"), 5));
+        dataSource.setInitialSize(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.minIdle"), 10));
         dataSource.setDefaultAutoCommit(env.getProperty("jdbc.defaultAutoCommit", Boolean.class));
-        dataSource.setRemoveAbandonedTimeout(env.getProperty("jdbc.removeAbandonedTimeout", Integer.class));
+        dataSource.setRemoveAbandonedOnMaintenance(true);
+        dataSource.setRemoveAbandonedOnBorrow(true);
+        dataSource.setRemoveAbandonedTimeout(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.removeAbandonedTimeout"), 60));
 
         if (StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))) {
             QueryLogUtils.setJdbcShowSql(true);
