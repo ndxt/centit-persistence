@@ -921,7 +921,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     public JSONArray listObjectsPartFieldByPropertiesAsJson(Map<String, Object> filterMap, Collection<String> fields, PageDesc pageDesc) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        String filterSql = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, filterMap.keySet());
+        String filterSql = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, filterMap);
 
         Pair<String, TableField[]> q = ((fields != null && fields.size()>0)
             ? GeneralJsonObjectDao.buildPartFieldSqlWithFields(mapInfo, fields, null, true)
@@ -1178,7 +1178,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         String filterSql = buildDefaultFieldFilterSql();
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         if(StringUtils.isBlank(filterSql)){
-            filterSql = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, filterMap.keySet());
+            filterSql = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, filterMap);
             byProperties = true;
         }
         Pair<String, TableField[]> q = ((fields != null && fields.size()>0)
