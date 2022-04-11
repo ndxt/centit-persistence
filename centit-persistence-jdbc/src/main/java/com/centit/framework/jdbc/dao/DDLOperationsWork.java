@@ -44,9 +44,18 @@ public class DDLOperationsWork implements DDLOperations {
     }
 
     @Override
+    public String makeCreateViewSql(String selectSql, String viewName) {
+        try {
+            return getDDLOperations().makeCreateViewSql(selectSql, viewName);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
     public void createTable(final TableInfo tableInfo) throws SQLException {
         getDDLOperations().createTable(tableInfo);
-
     }
 
     @Override
