@@ -63,7 +63,11 @@ public class DataSourceConfig implements EnvironmentAware {
         dataSource.setRemoveAbandonedOnMaintenance(true);
         dataSource.setRemoveAbandonedOnBorrow(true);
         dataSource.setRemoveAbandonedTimeout(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.removeAbandonedTimeout"), 60));
-
+        String validationQuery = env.getProperty("jdbc.validationQuery");
+        dataSource.setValidationQuery(validationQuery);
+        if ( StringRegularOpt.isTrue(env.getProperty("jdbc.testWhileIdle")) && StringUtils.isNotBlank(validationQuery)){
+            dataSource.setTestWhileIdle(true);
+        }
         if (StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))) {
             QueryLogUtils.setJdbcShowSql(true);
         }
