@@ -8,6 +8,7 @@ import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.QueryLogUtils;
 import com.centit.support.security.AESSecurityUtils;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.lang3.StringUtils;
 import org.dom4j.DocumentException;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
@@ -80,7 +81,11 @@ public class DataSourceConfig implements EnvironmentAware {
         dataSource.setRemoveAbandonedOnMaintenance(true);
         dataSource.setRemoveAbandonedOnBorrow(true);
         dataSource.setRemoveAbandonedTimeout(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.removeAbandonedTimeout"), 60));
-
+        String validationQuery = env.getProperty("jdbc.validationQuery");
+        dataSource.setValidationQuery(validationQuery);
+        if ( StringRegularOpt.isTrue(env.getProperty("jdbc.testWhileIdle")) && StringUtils.isNotBlank(validationQuery)){
+            dataSource.setTestWhileIdle(true);
+        }
         if (StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))) {
             QueryLogUtils.setJdbcShowSql(true);
         }
