@@ -34,16 +34,6 @@ public class DataSourceConfig implements EnvironmentAware {
         }
     }
 
-    public static String encryptProperty(String propertyValue) {
-        if (StringUtils.isNotBlank(propertyValue)) {
-            if (propertyValue.startsWith("cipher:")) {
-                return AESSecurityUtils.decryptBase64String(
-                    propertyValue.substring(7), AESSecurityUtils.AES_DEFAULT_KEY);
-            }
-        }
-        return propertyValue;
-    }
-
     @Bean(destroyMethod = "close")
     public BasicDataSource dataSource() {
 
@@ -51,9 +41,9 @@ public class DataSourceConfig implements EnvironmentAware {
         dataSource.setDriverClassName(env.getProperty("jdbc.driver"));
         dataSource.setUrl(env.getProperty("jdbc.url"));
         dataSource.setUsername(
-            AESSecurityUtils.decryptParameterString(encryptProperty(env.getProperty("jdbc.user"))));
+            AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.user")));
         dataSource.setPassword(
-            AESSecurityUtils.decryptParameterString(encryptProperty(env.getProperty("jdbc.password"))));
+            AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.password")));
         dataSource.setMaxTotal(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxActive"),100));
         dataSource.setMaxIdle(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxIdle"),50));
         dataSource.setMaxWaitMillis(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxWait"), 2000));
