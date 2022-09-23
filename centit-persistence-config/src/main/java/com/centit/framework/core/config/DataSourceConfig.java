@@ -1,8 +1,11 @@
 package com.centit.framework.core.config;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.flyway.plugin.FlywayExt;
+import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.QueryLogUtils;
@@ -34,36 +37,61 @@ public class DataSourceConfig implements EnvironmentAware {
         }
     }
 
-    @Bean(destroyMethod = "close")
-    public BasicDataSource dataSource() {
 
-        BasicDataSource dataSource = new BasicDataSource();
-        dataSource.setDriverClassName(env.getProperty("jdbc.driver"));
-        logger.info("正在连接数据库：" + env.getProperty("jdbc.url")+"......");
-        dataSource.setUrl(env.getProperty("jdbc.url"));
-        dataSource.setUsername(
-            AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.user")));
-        dataSource.setPassword(
-            AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.password")));
-        dataSource.setMaxTotal(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxActive"),100));
-        dataSource.setMaxIdle(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxIdle"),50));
-        dataSource.setMaxWaitMillis(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxWait"), 2000));
-        dataSource.setMinIdle(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.minIdle"), 5));
-        dataSource.setInitialSize(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.minIdle"), 10));
-        dataSource.setDefaultAutoCommit(env.getProperty("jdbc.defaultAutoCommit", Boolean.class));
-        dataSource.setRemoveAbandonedOnMaintenance(true);
-        dataSource.setRemoveAbandonedOnBorrow(true);
-        dataSource.setRemoveAbandonedTimeout(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.removeAbandonedTimeout"), 60));
+
+    @Bean(destroyMethod = "close")
+    public DataSource dataSource() {
+        DruidDataSource ds = new DruidDataSource();
+        //失败时是否进行重试连接    true:不进行重试   false：进行重试    设置为false时达蒙数据库会出现问题（会导致达蒙连接撑爆挂掉）
+        ds.setDriverClassName(env.getProperty("jdbc.driver")); //DBType.getDbDriver(dbType)
+        ds.setUsername(AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.user")));
+        ds.setPassword(AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.password")));
+        ds.setUrl(env.getProperty("jdbc.url"));
+        ds.setInitialSize(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.initSize"), 5));
+        ds.setMaxActive(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxActive"),100));
+        ds.setMaxWait(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxWait"), 10000));
+        ds.setMinIdle(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.minIdle"), 5));
+
         String validationQuery = env.getProperty("jdbc.validationQuery");
-        dataSource.setValidationQuery(validationQuery);
         if ( StringRegularOpt.isTrue(env.getProperty("jdbc.testWhileIdle")) && StringUtils.isNotBlank(validationQuery)){
-            dataSource.setTestWhileIdle(true);
+            ds.setValidationQuery(validationQuery);
+            ds.setTestWhileIdle(true);
         }
         if (StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))) {
             QueryLogUtils.setJdbcShowSql(true);
         }
-
         DBType dbType = DBType.mapDBType(env.getProperty("jdbc.url"));
+        if(dbType.equals(DBType.Oracle) || dbType.equals(DBType.DM)){
+            ds.setValidationQuery("select 1 from dual");
+            ds.setBreakAfterAcquireFailure(true);
+        }
+
+        ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(
+            env.getProperty("jdbc.breakAfterAcquireFailure"),false));
+        ds.setTimeBetweenConnectErrorMillis(NumberBaseOpt.castObjectToInteger(
+            env.getProperty("jdbc.timeBetweenConnectErrorMillis"), 6000));
+        ds.setConnectionErrorRetryAttempts(NumberBaseOpt.castObjectToInteger(
+            env.getProperty("jdbc.connectionErrorRetryAttempts"), 1));
+        ds.setTestWhileIdle(BooleanBaseOpt.castObjectToBoolean(
+            env.getProperty("jdbc.testWhileIdle"), true));
+        ds.setValidationQueryTimeout(NumberBaseOpt.castObjectToInteger(
+            env.getProperty("jdbc.validationQueryTimeout"), 1000 * 10));
+        ds.setKeepAlive(BooleanBaseOpt.castObjectToBoolean(
+            env.getProperty("jdbc.keepAlive"), true));
+        ds.setTimeBetweenEvictionRunsMillis(NumberBaseOpt.castObjectToInteger(
+            env.getProperty("jdbc.timeBetweenEvictionRunsMillis"), 60000));
+        ds.setMinEvictableIdleTimeMillis(NumberBaseOpt.castObjectToInteger(
+            env.getProperty("jdbc.minEvictableIdleTimeMillis"), 300000));
+        ds.setRemoveAbandoned(BooleanBaseOpt.castObjectToBoolean(
+            env.getProperty("jdbc.removeAbandoned"), true));
+        ds.setRemoveAbandonedTimeout(NumberBaseOpt.castObjectToInteger(
+            env.getProperty("jdbc.removeAbandonedTimeout"), 80));
+        ds.setLogAbandoned(BooleanBaseOpt.castObjectToBoolean(
+            env.getProperty("jdbc.logAbandoned"), true));
+        ds.setTestOnBorrow(BooleanBaseOpt.castObjectToBoolean(
+            env.getProperty("jdbc.testOnBorrow"), true));
+        ds.setTestOnReturn(BooleanBaseOpt.castObjectToBoolean(
+            env.getProperty("jdbc.testOnReturn"), false));
         try {
             ExtendedQueryPool.loadResourceExtendedSqlMap(dbType);
         } catch (DocumentException e) {
@@ -75,8 +103,7 @@ public class DataSourceConfig implements EnvironmentAware {
         } catch (DocumentException | IOException e) {
             logger.error(e.getMessage());
         }
-
-        return dataSource;
+        return ds;
     }
 
     @Bean
