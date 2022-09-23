@@ -5,12 +5,10 @@ import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.flyway.plugin.FlywayExt;
 import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
-import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.QueryLogUtils;
 import com.centit.support.security.AESSecurityUtils;
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.DocumentException;
 import org.flywaydb.core.Flyway;
@@ -52,18 +50,21 @@ public class DataSourceConfig implements EnvironmentAware {
         ds.setMaxWait(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxWait"), 10000));
         ds.setMinIdle(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.minIdle"), 5));
 
+        DBType dbType = DBType.mapDBType(env.getProperty("jdbc.url"));
         String validationQuery = env.getProperty("jdbc.validationQuery");
-        if ( StringRegularOpt.isTrue(env.getProperty("jdbc.testWhileIdle")) && StringUtils.isNotBlank(validationQuery)){
+
+        boolean testWhileIdle = BooleanBaseOpt.castObjectToBoolean(
+            env.getProperty("jdbc.testWhileIdle"),true);
+        if(StringUtils.isBlank(validationQuery)){
+            validationQuery = DBType.getDBValidationQuery(dbType);
+        }
+
+        if (testWhileIdle && StringUtils.isNotBlank(validationQuery)){
             ds.setValidationQuery(validationQuery);
             ds.setTestWhileIdle(true);
         }
         if (StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))) {
             QueryLogUtils.setJdbcShowSql(true);
-        }
-        DBType dbType = DBType.mapDBType(env.getProperty("jdbc.url"));
-        if(dbType.equals(DBType.Oracle) || dbType.equals(DBType.DM)){
-            ds.setValidationQuery("select 1 from dual");
-            ds.setBreakAfterAcquireFailure(true);
         }
 
         ds.setBreakAfterAcquireFailure(BooleanBaseOpt.castObjectToBoolean(
