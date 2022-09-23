@@ -35,8 +35,6 @@ public class DataSourceConfig implements EnvironmentAware {
         }
     }
 
-
-
     @Bean(destroyMethod = "close")
     public DataSource dataSource() {
         DruidDataSource ds = new DruidDataSource();
