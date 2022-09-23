@@ -39,6 +39,7 @@ public class DataSourceConfig implements EnvironmentAware {
 
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName(env.getProperty("jdbc.driver"));
+        logger.info("政治联系数据库：" + env.getProperty("jdbc.url"));
         dataSource.setUrl(env.getProperty("jdbc.url"));
         dataSource.setUsername(
             AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.user")));
