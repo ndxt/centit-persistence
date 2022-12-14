@@ -33,6 +33,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.annotation.Resource;
+import javax.management.ObjectName;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.Serializable;
@@ -353,19 +354,35 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     private void innerSaveNewObject(Object o) {
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
+
         if (o instanceof EntityWithVersionTag) {
             EntityWithVersionTag ewvto = (EntityWithVersionTag) o;
-            TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
             SimpleTableField field = mapInfo.findFieldByColumn(ewvto.obtainVersionProperty());
             Object obj = mapInfo.getObjectFieldValue(o, field);
             if(obj == null){
                 mapInfo.setObjectFieldValue(o, field, ewvto.calcNextVersion());
             }
         }
-        /* Integer execute = */
-        jdbcTemplate.execute(
+        // 检测是否有自动增长主键
+        if(mapInfo.hasGeneratedKeys()){
+            Map<String, Object> ids = jdbcTemplate.execute(
+                (ConnectionCallback<Map<String, Object>>) conn ->
+                    OrmDaoUtils.saveNewObjectAndFetchGeneratedKeys(conn, o));
+            //写回主键值
+            if(ids !=null && !ids.isEmpty()) {
+                for (Map.Entry<String, Object> ent : ids.entrySet()) {
+                    SimpleTableField filed = mapInfo.findFieldByColumn(ent.getKey());
+                    if (filed != null) {
+                        mapInfo.setObjectFieldValue(o, filed, ent.getValue());
+                    }
+                }
+            }
+        } else {
+            jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
-                        OrmDaoUtils.saveNewObject(conn, o));
+                    OrmDaoUtils.saveNewObject(conn, o));
+        }
     }
 
     public void saveNewObject(T o) {

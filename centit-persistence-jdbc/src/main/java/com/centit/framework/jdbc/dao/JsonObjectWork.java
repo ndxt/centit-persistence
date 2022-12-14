@@ -116,6 +116,11 @@ public class JsonObjectWork implements JsonObjectDao {
         }
     }
 
+    @Override
+    public Map<String, Object> saveNewObjectAndFetchGeneratedKeys(Map<String, Object> object) throws SQLException, IOException {
+         return executeRealWork(dao -> dao.saveNewObjectAndFetchGeneratedKeys(object));
+    }
+
     /**
      * 更改部分属性
      *
