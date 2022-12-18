@@ -33,7 +33,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.annotation.Resource;
-import javax.management.ObjectName;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.Serializable;
@@ -369,13 +368,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             Map<String, Object> ids = jdbcTemplate.execute(
                 (ConnectionCallback<Map<String, Object>>) conn ->
                     OrmDaoUtils.saveNewObjectAndFetchGeneratedKeys(conn, o));
-            //写回主键值
+            //写回主键值 一个表中只能有一个自增ID
             if(ids !=null && !ids.isEmpty()) {
-                for (Map.Entry<String, Object> ent : ids.entrySet()) {
-                    SimpleTableField filed = mapInfo.findFieldByColumn(ent.getKey());
-                    if (filed != null) {
-                        mapInfo.setObjectFieldValue(o, filed, ent.getValue());
-                    }
+                SimpleTableField filed = mapInfo.fetchGeneratedKey();
+                if (filed != null){
+                    mapInfo.setObjectFieldValue(o, filed, ids.values().iterator().next());
                 }
             }
         } else {
