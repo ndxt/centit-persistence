@@ -24,6 +24,12 @@ public class CurrentUserContext {
             userInfo.getString("primaryUnit"):currentUnit;
     }
 
+
+    public IUnitInfo getCurrentUnit(){
+        return CodeRepositoryUtil
+            .getUnitInfoByCode(topUnit, currentUnit);
+    }
+
     public IUnitInfo getPrimaryUnit(){
         return CodeRepositoryUtil
             .getUnitInfoByCode(topUnit, userInfo.getString("primaryUnit"));
