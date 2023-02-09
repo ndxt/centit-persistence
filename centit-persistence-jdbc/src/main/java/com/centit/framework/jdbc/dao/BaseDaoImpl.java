@@ -3,11 +3,11 @@ package com.centit.framework.jdbc.dao;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.centit.framework.core.dao.CodeBook;
-import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.framework.core.po.EntityWithDeleteTag;
 import com.centit.framework.core.po.EntityWithVersionTag;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.common.LeftRightPair;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
@@ -19,7 +19,6 @@ import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.orm.OrmUtils;
 import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.database.utils.*;
-import com.centit.support.file.FileType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -175,7 +174,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return sqlBuilder.toString();
     }
 
-    public String encapsulateFilterToFields(Collection<String> fields, String filterQuery, String tableAlias, boolean withExtFilter) {
+    public String encapsulateFilterToFields(Collection<String> fields, String filterQuery,
+                                            String tableAlias, boolean withExtFilter) {
         //QueryUtils.hasOrderBy(filterQuery)
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         String fieldsSql =
@@ -185,126 +185,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return encapsulateFilterToSql(fieldsSql, filterQuery, tableAlias, mapInfo.getOrderBy(), withExtFilter);
     }
 
-    /**
-     * 分析参数，这个主要用于解释，分析参数前面括号中的预处理标识
-     * @param sParameter 传入的参数
-     * @return ImmutablePair &lt; String, String &gt;
-     */
-    protected static ImmutablePair<String, String> parseParameter(String sParameter) {
-        int e = sParameter.indexOf(')');
-        if (e > 0) {
-            int b = sParameter.indexOf('(') + 1;
-            /* b =  b<0 ? 0 :  b+1;*/
-            String paramPretreatment = sParameter.substring(b, e).trim();
-            String paramAlias = sParameter.substring(e + 1).trim();
-            return new ImmutablePair<>(paramAlias, paramPretreatment);
-        } else
-            return new ImmutablePair<>(sParameter, null);
-    }
-
-    public static Map<String, Pair<String, String>>
-            getFilterFieldWithPretreatment(Map<String, String> fieldMap) {
-        if (fieldMap == null)
-            return null;
-        Map<String, Pair<String, String>> filterFieldWithPretreatment =
-                new HashMap<>(fieldMap.size() * 2);
-
-        for (Map.Entry<String, String> ent : fieldMap.entrySet()) {
-            if (StringUtils.isNotBlank(ent.getKey())) {
-                ImmutablePair<String, String> paramMeta =
-                        parseParameter(ent.getKey());
-                filterFieldWithPretreatment.put(paramMeta.left,
-                        new ImmutablePair<>(ent.getValue(), paramMeta.getRight()));
-            }
-        }
-        return filterFieldWithPretreatment;
-    }
-
-    /**
-     * 每个dao都需要重载这个函数已获得自定义的查询条件，否则listObjects、pageQuery就等价与listObjectsByProperties
-     * 根据 getFilterField 中的内容初始化
-     * @param alias            数据库表别名
-     * @return FilterQuery
-     */
-    protected String buildFieldFilterSql(String alias) {
-        Map<String, Pair<String, String>> fieldFilter =
-                getFilterFieldWithPretreatment(getFilterField());
-        if (fieldFilter == null || fieldFilter.size() == 0){
-            return null;
-        }
-
-        StringBuilder sBuilder = new StringBuilder();
-        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        boolean addAlias = StringUtils.isNotBlank(alias);
-
-        for (Map.Entry<String, Pair<String, String>> ent : fieldFilter.entrySet()) {
-            String skey = ent.getKey();
-            String sSqlFormat = ent.getValue().getLeft();
-
-            if (StringUtils.equalsAnyIgnoreCase(
-                skey, CodeBook.SELF_ORDER_BY, CodeBook.TABLE_SORT_FIELD,
-                    CodeBook.TABLE_SORT_ORDER, CodeBook.ORDER_BY_HQL_ID)) {
-                continue;
-            }
-            if (skey.startsWith(CodeBook.NO_PARAM_FIX)) {
-                sBuilder.append(" [").append(skey).append("| and ")
-                        .append(JpaMetadata.translateSqlPropertyToColumn(mapInfo, sSqlFormat, alias))
-                        .append(" ]");
-            } else {
-                String pretreatment = ent.getValue().getRight();
-                if (sSqlFormat.equalsIgnoreCase(CodeBook.EQUAL_HQL_ID)) {
-                    SimpleTableField col = mapInfo.findFieldByName(skey);
-                    if (col != null) {
-                        sBuilder.append(" [:");
-                        if (StringUtils.isNotBlank(pretreatment)) {
-                            sBuilder.append("(").append(pretreatment).append(")");
-                        }
-                        sBuilder.append(skey).append("| and ")
-                                .append(addAlias ? (alias + ".") : "")
-                                .append(col.getColumnName()).append(" = :").append(col.getPropertyName())
-                                .append(" ]");
-                    }
-                } else if (sSqlFormat.equalsIgnoreCase(CodeBook.LIKE_HQL_ID)) {
-                    SimpleTableField col = mapInfo.findFieldByName(skey);
-                    if (col != null) {
-                        sBuilder.append(" [:(")
-                                .append(StringUtils.isBlank(pretreatment) ? "like" : pretreatment)
-                                .append(")").append(skey).append("| and ")
-                                .append(addAlias ? (alias + ".") : "")
-                                .append(col.getColumnName()).append(" like :").append(col.getPropertyName())
-                                .append(" ]");
-                    }
-                } else if (sSqlFormat.equalsIgnoreCase(CodeBook.IN_HQL_ID)) {
-                    SimpleTableField col = mapInfo.findFieldByName(skey);
-                    if (col != null) {
-                        sBuilder.append(" [:");
-                        if (StringUtils.isNotBlank(pretreatment)) {
-                            sBuilder.append("(").append(pretreatment).append(")");
-                        }
-                        sBuilder.append(skey).append("| and ")
-                                .append(addAlias ? (alias + ".") : "")
-                                .append(col.getColumnName()).append(" in (:").append(col.getPropertyName())
-                                .append(") ]");
-                    }
-                } else {
-                    if ("[".equals(Lexer.getFirstWord(sSqlFormat))) {
-                        sBuilder.append(JpaMetadata.translateSqlPropertyToColumn(mapInfo, sSqlFormat, alias));
-                    } else {
-                        sBuilder.append(" [:");
-                        if (StringUtils.isNotBlank(pretreatment)) {
-                            sBuilder.append("(").append(pretreatment).append(")");
-                        }
-                        sBuilder.append(skey).append("| and ")
-                                .append(JpaMetadata.translateSqlPropertyToColumn(mapInfo, sSqlFormat, alias))
-                                .append(" ]");
-                    }
-                }
-            }// else
-        }// for
-        return sBuilder.toString();
-    }
-
-    private String daoEmbeddedFilter;
+    private Map<String, DataFilter> insideFieldFilter = null;
     /**
      * 每个dao都要初始化filterField这个对象，在 getFilterField 初始化，并且返回
      * @return 返回 getFilterField 属性
@@ -314,42 +195,105 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     /**
-     * 内置一个动态sql查询语句来屏蔽内部标量getFilterField中定义的查询语句
-     * @return 内置语句
+     * 每个dao都需要重载这个函数已获得自定义的查询条件，否则listObjects、pageQuery就等价与listObjectsByProperties
+     * 根据 getFilterField 中的内容初始化
+     * @return FilterQuery
      */
-    public String getInsideFilterQuerySql() {
-        return null;
-    }
+    public Map<String, DataFilter> obtainInsideFilters(TableMapInfo mapInfo){
+        if(insideFieldFilter==null) {
+            insideFieldFilter = new HashMap<>();
+            Map<String, String> filters = getFilterField();
+            if(filters!=null && filters.size()>0){
+                for(Map.Entry<String, String> ent : filters.entrySet()) {
+                    DataFilter dataFilter = new DataFilter(ent.getKey(), ent.getValue());
 
-    protected String buildDefaultFieldFilterSql() {
-        if (daoEmbeddedFilter == null) {
-            daoEmbeddedFilter = buildFieldFilterSql(null);
-        }
-        return daoEmbeddedFilter;
-    }
-
-    protected String obtainQuerySql() {
-        // 第一 优先级是外部的xml文件中的参数驱动sql语句
-        String querySql = ExtendedQueryPool.getExtendedSql(
-            FileType.getFileExtName(getPoClass().getName()) + "_QUERY_0");
-        // 第二优先级是 内置的参数驱动sql语句
-        if (StringUtils.isBlank(querySql)) {
-            querySql = getInsideFilterQuerySql();
-        }
-        //第三 优先级是 用FilterField编译的参数驱动拾起来语句
-        if (StringUtils.isBlank(querySql)) {
-            querySql = buildDefaultFieldFilterSql();
-            if(StringUtils.isBlank(querySql)){
-                return null;
+                    if (dataFilter.getFilterSql().equalsIgnoreCase(CodeBook.EQUAL_HQL_ID)) {
+                        SimpleTableField col = mapInfo.findFieldByName(dataFilter.getFormule());
+                        if (col != null) {
+                            dataFilter.setFilterSql(col.getColumnName() + " = :" + dataFilter.getValueName());
+                            insideFieldFilter.put(dataFilter.getFormule() ,dataFilter);
+                        }
+                    } else if (dataFilter.getFilterSql().equalsIgnoreCase(CodeBook.LIKE_HQL_ID)) {
+                        SimpleTableField col = mapInfo.findFieldByName(dataFilter.getFormule());
+                        if (col != null) {
+                            dataFilter.setFilterSql(col.getColumnName() + " like :" + dataFilter.getValueName() );
+                            insideFieldFilter.put(dataFilter.getFormule() ,dataFilter);
+                        }
+                    } else if (dataFilter.getFilterSql().equalsIgnoreCase(CodeBook.IN_HQL_ID)) {
+                        SimpleTableField col = mapInfo.findFieldByName(dataFilter.getFormule());
+                        if (col != null) {
+                            dataFilter.setFilterSql(col.getColumnName() + " in (:" + dataFilter.getValueName() +")" );
+                            insideFieldFilter.put(dataFilter.getFormule() ,dataFilter);
+                        }
+                    } else {
+                        dataFilter.setFilterSql(
+                            JpaMetadata.translateSqlPropertyToColumn(mapInfo, dataFilter.getFilterSql(), null));
+                        insideFieldFilter.put(dataFilter.getFormule() ,dataFilter);
+                    }
+                }// for
             }
-            return encapsulateFilterToFields(null, querySql, null, true);
+        }
+        return insideFieldFilter;
+    }
+
+    /**
+     *   public static QueryAndNamedParams translateQueryFilter(Collection<String> filters,
+     *                     IFilterTranslater translater, boolean isUnion) {
+     */
+    protected LeftRightPair<QueryAndNamedParams, TableField[]>  buildQueryByParamsWithFields(Map<String, Object> filterMap, Collection<String> fields,
+                                                                             Collection<String> extentFilters, QueryUtils.SimpleFilterTranslater powerTranslater){
+
+        String selfOrderBy = fetchSelfOrderSql(filterMap);
+
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
+
+        Pair<String, TableField[]> q = ((fields != null && fields.size()>0)
+            ? GeneralJsonObjectDao.buildPartFieldSqlWithFields(mapInfo, fields, null, true)
+            : GeneralJsonObjectDao.buildFieldSqlWithFields(mapInfo, null, true));
+
+        Map<String, Object> queryParams = new HashMap<>(filterMap.size()+4);
+        Map<String, DataFilter> filterList = obtainInsideFilters(mapInfo);
+        StringBuilder filterQuery = new StringBuilder();
+        Map<String, Object> leftFilterMap ;
+        if(filterList.size()>0){
+            leftFilterMap = new HashMap<>(filterMap.size()+4);
+            for(Map.Entry<String, Object> ent : filterMap.entrySet()) {
+                DataFilter df = filterList.get(ent.getKey());
+                if(df != null){
+                    queryParams.put(df.getValueName(), QueryUtils.pretreatParameter(df.getPretreatment(),ent.getValue() ));
+                    filterQuery.append(" and ").append(df.getFilterSql());
+                } else {
+                    leftFilterMap.put(ent.getKey(), ent.getValue());
+                }
+            }
         } else {
-            if ("[".equals(Lexer.getFirstWord(querySql))) {
-                return encapsulateFilterToFields(null, querySql, null, true);
-            }
-            return querySql;
+            leftFilterMap = filterMap;
         }
-        //还有调用的地方，第四优先级 by Properties
+        if(leftFilterMap.size()>0) {
+            String propFilterSql = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, leftFilterMap);
+            filterQuery.append(" and ").append(propFilterSql);
+            queryParams.putAll(leftFilterMap);
+        }
+
+        //外部条件，一般是权限引擎的表达式
+        if(extentFilters!=null && extentFilters.size()>0) {
+            QueryUtils.SimpleFilterTranslater translater = powerTranslater !=null ?
+                powerTranslater : new QueryUtils.SimpleFilterTranslater(filterMap);
+            Map<String, String> tableAlias = new HashMap<>(2);
+            tableAlias.put(mapInfo.getTableName(), "");
+            translater.setTableAlias(tableAlias );
+            QueryAndNamedParams powerFilter = QueryUtils.translateQueryFilter(extentFilters, translater, true);
+            filterQuery.append(powerFilter.getQuery());
+            queryParams.putAll(powerFilter.getParams());
+        }
+
+        String query = encapsulateFilterToSql(q.getLeft(), filterQuery.toString(), null, selfOrderBy, false);
+        return new LeftRightPair<>(new QueryAndNamedParams(query, queryParams), q.getRight());
+    }
+
+    protected QueryAndNamedParams  buildQueryByParams(Map<String, Object> filterMap, Collection<String> fields,
+                                         Collection<String> extentFilters, QueryUtils.SimpleFilterTranslater powerTranslater) {
+        return buildQueryByParamsWithFields(filterMap, fields, extentFilters, powerTranslater).getLeft();
     }
 
     private void innerSaveNewObject(Object o) {
@@ -988,53 +932,34 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回符合条件的对象
      */
     public List<T> listObjects(Map<String, Object> filterMap) {
-        String querySql = obtainQuerySql();
-        if (StringUtils.isBlank(querySql)) {
-            return listObjectsByProperties(filterMap);
-        } else {
-            String selfOrderBy = fetchSelfOrderSql(filterMap);
-            if (StringUtils.isNotBlank(selfOrderBy)) {
-                querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
-            }
-            QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, filterMap);
-            return jdbcTemplate.execute(
-                    (ConnectionCallback<List<T>>) conn ->
-                            OrmDaoUtils.queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass())
-            );
-        }
+        QueryAndNamedParams query = buildQueryByParams( filterMap, null, null, null);
+
+        return jdbcTemplate.execute(
+                (ConnectionCallback<List<T>>) conn ->
+                        OrmDaoUtils.queryObjectsByNamedParamsSql(conn, query.getQuery(), query.getParams(), (Class<T>) getPoClass())
+        );
     }
 
-
     public List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc) {
-        String querySql = obtainQuerySql();
-        if (StringUtils.isBlank(querySql)) {
-            return listObjectsByProperties(filterMap, pageDesc);
-        } else {
-            String selfOrderBy = fetchSelfOrderSql(filterMap);
-            if (StringUtils.isNotBlank(selfOrderBy)) {
-                querySql = QueryUtils.removeOrderBy(querySql) + " order by " + selfOrderBy;
-            }
-            QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, filterMap);
+        QueryAndNamedParams qap = buildQueryByParams( filterMap, null, null, null);
 
-            return jdbcTemplate.execute(
-                (ConnectionCallback<List<T>>) conn -> {
-                    if(pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
-                        pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn,
-                            QueryUtils.buildGetCountSQLByReplaceFields(qap.getSql()), qap.getParams()));
-                        return OrmDaoUtils
-                            .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass(),
-                                pageDesc.getRowStart(), pageDesc.getPageSize());
-                    } else {
-                        List<T> objects = OrmDaoUtils
-                            .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass());
-                        if(pageDesc != null && objects != null){
-                            pageDesc.setTotalRows(objects.size());
-                        }
-                        return objects;
+        return jdbcTemplate.execute(
+            (ConnectionCallback<List<T>>) conn -> {
+                if(pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
+                    pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn,
+                        QueryUtils.buildGetCountSQLByReplaceFields(qap.getSql()), qap.getParams()));
+                    return OrmDaoUtils
+                        .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass(),
+                            pageDesc.getRowStart(), pageDesc.getPageSize());
+                } else {
+                    List<T> objects = OrmDaoUtils
+                        .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass());
+                    if(pageDesc != null && objects != null){
+                        pageDesc.setTotalRows(objects.size());
                     }
-                });
-        }
-
+                    return objects;
+                }
+            });
     }
 
     public List<T> listObjectsBySql(String querySql, Map<String, Object> namedParams) {
@@ -1113,7 +1038,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     public String fetchSelfOrderSql(Map<String, Object> filterMap) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        return GeneralJsonObjectDao.fetchSelfOrderSql(mapInfo,filterMap);
+        String selfOrderBy = GeneralJsonObjectDao.fetchSelfOrderSql(mapInfo, filterMap);
+        if(StringUtils.equals(selfOrderBy,  mapInfo.getOrderBy())) {
+            Map<String, DataFilter> filterList = obtainInsideFilters(mapInfo);
+            DataFilter df = filterList.get(CodeBook.SELF_ORDER_BY);
+            if (df != null) {
+                return df.getFilterSql();
+            }
+        }
+        return selfOrderBy;
     }
 
     /**
@@ -1122,7 +1055,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回的对象列表
      */
     public int countObject(Map<String, Object> filterMap) {
-        return countObject(filterMap,null);
+        return countObject(filterMap,null, null);
     }
 
     /**
@@ -1131,12 +1064,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param filters 数据权限顾虑语句
      * @return 返回的对象列表
      */
-    public int countObject(Map<String, Object> filterMap, Collection<String> filters) {
-        String querySql = obtainQuerySql();
-        if(StringUtils.isBlank(querySql)){
-            return countObjectByProperties(filterMap);
-        }
-        QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, filters, filterMap, false);
+    public int countObject(Map<String, Object> filterMap, Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater) {
+        QueryAndNamedParams qap = buildQueryByParams( filterMap, null, filters, powerTranslater);
         String countSql = QueryUtils.buildGetCountSQLByReplaceFields(qap.getQuery());
         return NumberBaseOpt.castObjectToInteger(
             DatabaseOptUtils.getScalarObjectQuery(this, countSql, qap.getParams()), 0);
@@ -1188,24 +1117,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      */
     public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, Collection<String> fields,
                                        Collection<String> filters, PageDesc pageDesc) {
-        boolean byProperties = false;
-        String filterSql = buildDefaultFieldFilterSql();
-        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
-        if(StringUtils.isBlank(filterSql)){
-            filterSql = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, filterMap);
-            byProperties = true;
-        }
-        Pair<String, TableField[]> q = ((fields != null && fields.size()>0)
-            ? GeneralJsonObjectDao.buildPartFieldSqlWithFields(mapInfo, fields, null, true)
-            : GeneralJsonObjectDao.buildFieldSqlWithFields(mapInfo, null, true));
+        LeftRightPair<QueryAndNamedParams, TableField[]> qap =
+            buildQueryByParamsWithFields(filterMap, fields, filters, null);
 
-        String selfOrderBy = GeneralJsonObjectDao.fetchSelfOrderSql(mapInfo, filterMap);
-        String querySql = encapsulateFilterToSql(q.getLeft(), filterSql, null, selfOrderBy, true);
-        QueryAndNamedParams qap = QueryUtils.translateQuery(querySql, filters, filterMap, false);
-        Map<String, Object> paramsMap = byProperties?
-            CollectionsOpt.unionTwoMap(qap.getParams(), filterMap) : qap.getParams();
-
-        return listObjectsByNamedSqlAsJson(qap.getQuery(), paramsMap, q.getRight(), pageDesc);
+        return listObjectsByNamedSqlAsJson(qap.getLeft().getQuery(), qap.getLeft().getParams(), qap.getRight(), pageDesc);
     }
 
 
