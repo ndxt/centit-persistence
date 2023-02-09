@@ -12,8 +12,10 @@ public class OfficeWorkerDao extends BaseDaoImpl<OfficeWorker, String> {
     public Map<String, String> getFilterField() {
         Map<String, String> filterField = new HashMap<>();
         filterField.put("(like)workerName", "WORKER_NAME like :workerName");
-        filterField.put("(date)birthdayBegin", "WORKER_BIRTHDAY>= :createDateBeg");
+        filterField.put("birthdayBegin(date)", "WORKER_BIRTHDAY>= :createDateBeg");
         filterField.put("(nextday)birthdayEnd", "WORKER_BIRTHDAY< :birthdayEnd");
         return filterField;
     }
+
+
 }

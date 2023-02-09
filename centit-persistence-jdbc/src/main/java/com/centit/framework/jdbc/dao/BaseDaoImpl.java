@@ -240,7 +240,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      *   public static QueryAndNamedParams translateQueryFilter(Collection<String> filters,
      *                     IFilterTranslater translater, boolean isUnion) {
      */
-    protected LeftRightPair<QueryAndNamedParams, TableField[]>  buildQueryByParamsWithFields(Map<String, Object> filterMap, Collection<String> fields,
+    public LeftRightPair<QueryAndNamedParams, TableField[]> buildQueryByParamsWithFields(Map<String, Object> filterMap, Collection<String> fields,
                                                                              Collection<String> extentFilters, QueryUtils.SimpleFilterTranslater powerTranslater){
 
         String selfOrderBy = fetchSelfOrderSql(filterMap);
@@ -283,7 +283,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             tableAlias.put(mapInfo.getTableName(), "");
             translater.setTableAlias(tableAlias );
             QueryAndNamedParams powerFilter = QueryUtils.translateQueryFilter(extentFilters, translater, true);
-            filterQuery.append(powerFilter.getQuery());
+            filterQuery.append(" and ").append(powerFilter.getQuery());
             queryParams.putAll(powerFilter.getParams());
         }
 
@@ -1116,9 +1116,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回的对象列表
      */
     public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, Collection<String> fields,
-                                       Collection<String> filters, PageDesc pageDesc) {
+                                       Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
         LeftRightPair<QueryAndNamedParams, TableField[]> qap =
-            buildQueryByParamsWithFields(filterMap, fields, filters, null);
+            buildQueryByParamsWithFields(filterMap, fields, filters, powerTranslater);
 
         return listObjectsByNamedSqlAsJson(qap.getLeft().getQuery(), qap.getLeft().getParams(), qap.getRight(), pageDesc);
     }
@@ -1133,8 +1133,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回的对象列表
      */
     public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, String [] fields,
-                                       Collection<String> filters, PageDesc pageDesc) {
-        return listObjectsPartFieldAsJson(filterMap, CollectionsOpt.createList(fields), filters , pageDesc);
+                                       Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
+        return listObjectsPartFieldAsJson(filterMap, CollectionsOpt.createList(fields), filters, powerTranslater, pageDesc);
     }
 
     /**
@@ -1145,7 +1145,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回的对象列表
      */
     public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, String [] fields, PageDesc pageDesc) {
-        return listObjectsPartFieldAsJson(filterMap, CollectionsOpt.createList(fields), null , pageDesc);
+        return listObjectsPartFieldAsJson(filterMap, CollectionsOpt.createList(fields), null, null, pageDesc);
     }
     /**
      * 根据 前端传入的参数 驱动查询
@@ -1154,15 +1154,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param pageDesc 分页信息
      * @return 返回的对象列表
      */
-    public JSONArray listObjectsAsJson(Map<String, Object> filterMap, Collection<String> filters, PageDesc pageDesc) {
-        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, filters, pageDesc);
+    public JSONArray listObjectsAsJson(Map<String, Object> filterMap, Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
+        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, filters, powerTranslater, pageDesc);
     }
 
     public JSONArray listObjectsAsJson(Map<String, Object> filterMap, PageDesc pageDesc){
-        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, null, pageDesc);
+        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, null, null, pageDesc);
     }
 
-    private Pair<String, TableField[]> buildQuerySqlWithFieldsandWhere(String whereSql, String tableAlias){
+    private Pair<String, TableField[]> buildQuerySqlWithFieldsAndWhere(String whereSql, String tableAlias){
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Pair<String, TableField[]>  fieldsDesc =
             GeneralJsonObjectDao.buildFieldSqlWithFields(mapInfo, tableAlias, true);
@@ -1182,7 +1182,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回JSONArray
      */
     public JSONArray listObjectsByFilterAsJson(String whereSql, Map<String, Object> namedParams, String tableAlias, PageDesc pageDesc){
-        Pair<String, TableField[]> fieldsDesc = buildQuerySqlWithFieldsandWhere(whereSql, tableAlias);
+        Pair<String, TableField[]> fieldsDesc = buildQuerySqlWithFieldsAndWhere(whereSql, tableAlias);
         return listObjectsByNamedSqlAsJson(fieldsDesc.getLeft(), namedParams, fieldsDesc.getRight(), pageDesc);
     }
 
@@ -1199,7 +1199,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回JSONArray
      */
     public JSONArray listObjectsByFilterAsJson(String whereSql, Object[] params, String tableAlias, PageDesc pageDesc){
-        Pair<String, TableField[]> fieldsDesc = buildQuerySqlWithFieldsandWhere(whereSql, tableAlias);
+        Pair<String, TableField[]> fieldsDesc = buildQuerySqlWithFieldsAndWhere(whereSql, tableAlias);
         return listObjectsBySqlAsJson(fieldsDesc.getLeft(), params, fieldsDesc.getRight(), pageDesc);
     }
 
