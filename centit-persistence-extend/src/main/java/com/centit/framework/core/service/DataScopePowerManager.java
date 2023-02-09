@@ -38,9 +38,5 @@ public interface DataScopePowerManager {
      * @param userDetails CentitUserDetails
      * @return DataPowerFilter
      */
-    default DataPowerFilter createUserDataPowerFilter(CentitUserDetails userDetails){
-        return createUserDataPowerFilter(userDetails.getUserInfo(),
-            userDetails.getTopUnitCode(),
-            userDetails.getCurrentUnitCode());
-    }
+    DataPowerFilter createUserDataPowerFilter(CentitUserDetails userDetails);
 }
