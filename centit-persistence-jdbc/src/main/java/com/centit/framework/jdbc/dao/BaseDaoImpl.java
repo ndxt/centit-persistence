@@ -197,6 +197,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     /**
      * 每个dao都需要重载这个函数已获得自定义的查询条件，否则listObjects、pageQuery就等价与listObjectsByProperties
      * 根据 getFilterField 中的内容初始化
+     * @param mapInfo 表机构元数据
      * @return FilterQuery
      */
     public Map<String, DataFilter> obtainInsideFilters(TableMapInfo mapInfo){
@@ -236,10 +237,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return insideFieldFilter;
     }
 
-    /**
-     *   public static QueryAndNamedParams translateQueryFilter(Collection<String> filters,
-     *                     IFilterTranslater translater, boolean isUnion) {
-     */
     public LeftRightPair<QueryAndNamedParams, TableField[]> buildQueryByParamsWithFields(Map<String, Object> filterMap, Collection<String> fields,
                                                                              Collection<String> extentFilters, QueryUtils.SimpleFilterTranslater powerTranslater){
 
@@ -1062,6 +1059,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * 根据 前端传入的参数 对数据库中的数据进行计数
      * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
      * @param filters 数据权限顾虑语句
+     * @param powerTranslater 权限过滤引擎
      * @return 返回的对象列表
      */
     public int countObject(Map<String, Object> filterMap, Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater) {
@@ -1112,6 +1110,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
      * @param fields 返回字段
      * @param filters 数据权限顾虑语句
+     * @param powerTranslater 权限过滤引擎
      * @param pageDesc 分页信息
      * @return 返回的对象列表
      */
@@ -1129,6 +1128,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
      * @param fields 返回字段
      * @param filters 数据权限顾虑语句
+     * @param powerTranslater 权限过滤引擎
      * @param pageDesc 分页信息
      * @return 返回的对象列表
      */
@@ -1151,6 +1151,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * 根据 前端传入的参数 驱动查询
      * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
      * @param filters 数据权限顾虑语句
+     * @param powerTranslater 权限过滤引擎
      * @param pageDesc 分页信息
      * @return 返回的对象列表
      */
