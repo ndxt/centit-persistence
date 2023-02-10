@@ -306,7 +306,7 @@ public abstract class OrmUtils {
         return makeObjectValueByGenerator(object, mapInfo, null, GeneratorTime.READ);
     }
 
-    static <T> T fetchObjectFormResultSet(ResultSet rs, Class<T> clazz, TableField[] fields)
+    public static <T> T  fetchObjectFormResultSet(ResultSet rs, Class<T> clazz, TableField[] fields)
         throws SQLException, IllegalAccessException, InstantiationException, IOException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(clazz);
         if (mapInfo == null)

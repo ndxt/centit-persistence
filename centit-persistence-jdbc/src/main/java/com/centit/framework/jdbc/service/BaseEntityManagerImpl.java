@@ -50,21 +50,15 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
 
     @Override
     @Transactional
-    public List<T> listObjects(Map<String, Object> filterMap) {
-        return baseDao.listObjects(filterMap);
-    }
-
-    @Override
-    @Transactional
     @Deprecated
-    public List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc){
+    public List<T> listObjectsByProperties(Map<String, Object> filterMap, PageDesc pageDesc){
         return baseDao.listObjectsByProperties(filterMap, pageDesc);
     }
 
     @Override
     @Transactional
     public List<T> listObjectsByProperty(String propertyName, Object propertyValue) {
-        return baseDao.listObjectsByProperty(propertyName,propertyValue );
+        return baseDao.listObjectsByProperties(CollectionsOpt.createHashMap(propertyName,propertyValue));
     }
 
     @Override
@@ -171,7 +165,7 @@ public abstract class BaseEntityManagerImpl<T extends Serializable,
     @Override
     @Transactional
     public JSONArray listObjectsAsJson(Map<String, Object> filterMap, PageDesc pageDesc  ){
-        return baseDao.listObjectsAsJson(filterMap, pageDesc );
+        return baseDao.listObjectsByPropertiesAsJson(filterMap, pageDesc );
     }
 
     @Override

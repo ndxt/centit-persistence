@@ -18,19 +18,12 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
 
     /**
      * 根据过滤条件筛选
-     * @param filterMap 过滤条件
-     * @return 过滤后的对象
-     */
-    List<T> listObjects(Map<String, Object> filterMap);
-
-    /**
-     * 根据过滤条件筛选
-     * @param filterMap 过滤条件
+     * @param properties 过滤条件
      * @param pageDesc 分页信息
      * @return 过滤后的对象
      */
     @Deprecated
-    List<T> listObjects(Map<String, Object> filterMap, PageDesc pageDesc);
+    List<T> listObjectsByProperties(Map<String, Object> properties, PageDesc pageDesc);
     /**
      * 根据属性筛选 严格等于
      * @param propertyName 属性名
@@ -112,11 +105,11 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
 
     /**
      * 查询数据库，只能查询Po对应的表
-     * @param filterMap 过滤条件
+     * @param properties 过滤条件
      * @param pageDesc 分页信息
      * @return JSONArray
      */
-    JSONArray listObjectsAsJson(Map<String, Object> filterMap, PageDesc pageDesc);
+    JSONArray listObjectsAsJson(Map<String, Object> properties, PageDesc pageDesc);
 
     /**
      * 查询数据库，可以查询任意表

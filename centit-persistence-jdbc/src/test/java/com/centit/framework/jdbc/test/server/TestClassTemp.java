@@ -10,11 +10,9 @@ import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.OrmUtils;
 import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.database.utils.QueryAndNamedParams;
-import com.centit.support.database.utils.QueryUtils;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;

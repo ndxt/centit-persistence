@@ -234,8 +234,8 @@ public abstract class OrmDaoUtils {
      * @return 返回结果
      * @throws PersistenceException 异常
      */
-    private static <T> T queryNamedParamsSql(Connection conn, QueryAndNamedParams sqlAndParams,
-                                             FetchDataWork<T> fetchDataWork)
+    public static <T> T queryNamedParamsSql(Connection conn, QueryAndNamedParams sqlAndParams,
+                                            FetchDataWork<T> fetchDataWork)
         throws PersistenceException {
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(sqlAndParams);
         return queryParamsSql(conn, qap, fetchDataWork);
