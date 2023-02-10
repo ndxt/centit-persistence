@@ -24,9 +24,12 @@
     </organization>
 
     <modules>
+        <module>centit-database</module>
+        <module>centit-database-datasource</module>
+        <module>centit-database-transaction</module>
         <module>centit-persistence-jdbc</module>
-        <module>centit-persistence-jdbc-config</module>
         <module>centit-persistence-extend</module>
+        <module>centit-persistence-jdbc-config</module>
         <module>centit-persistence-dynamic-datasource</module>
         <module>centit-persistence-flyway-plugin</module>
     </modules>
