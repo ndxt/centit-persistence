@@ -823,6 +823,40 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             (ConnectionCallback<Integer>) conn ->
                 OrmDaoUtils.saveNewObjectCascade(conn, object, DEFAULT_CASCADE_DEPTH));
     }
+    /*==============================下面的代码是查询数据================================================*/
+    /**
+     * 根据 前端传入的参数 对数据库中的数据进行计数
+     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @return 返回的对象列表
+     */
+    public int countObject(Map<String, Object> filterMap) {
+        return countObject(filterMap,null, null);
+    }
+
+    /**
+     * 根据 前端传入的参数 对数据库中的数据进行计数
+     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @param filters 数据权限顾虑语句
+     * @param powerTranslater 权限过滤引擎
+     * @return 返回的对象列表
+     */
+    public int countObject(Map<String, Object> filterMap, Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater) {
+        QueryAndNamedParams qap = buildQueryByParams( filterMap, null, filters, powerTranslater);
+        String countSql = QueryUtils.buildGetCountSQLByReplaceFields(qap.getQuery());
+        return NumberBaseOpt.castObjectToInteger(
+            DatabaseOptUtils.getScalarObjectQuery(this, countSql, qap.getParams()), 0);
+    }
+
+    /**
+     * 查询所有数据
+     *
+     * @return 返回所有数据 listAllObjects
+     */
+    public List<T> listObjects() {
+        return jdbcTemplate.execute(
+            (ConnectionCallback<List<T>>) conn ->
+                OrmDaoUtils.listAllObjects(conn, (Class<T>) getPoClass()));
+    }
 
     public T getObjectByProperty(final String propertyName,final Object propertyValue) {
         return getObjectByProperties(CollectionsOpt.createHashMap(propertyName, propertyValue));
@@ -905,22 +939,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         }
     }
 
-    public int countObjectByProperties(Map<String, Object> filterMap) {
-        return jdbcTemplate.execute(
-            (ConnectionCallback<Integer>) conn ->
-                OrmDaoUtils.countObjectByProperties(conn, filterMap, getPoClass())
-        );
-    }
-    /**
-     * 查询所有数据
-     *
-     * @return 返回所有数据 listAllObjects
-     */
-    public List<T> listObjects() {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<List<T>>) conn ->
-                        OrmDaoUtils.listAllObjects(conn, (Class<T>) getPoClass()));
-    }
 
     /**
      * 根据设定的条件查询数据对象
@@ -944,7 +962,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             (ConnectionCallback<List<T>>) conn -> {
                 if(pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
                     pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn,
-                        QueryUtils.buildGetCountSQLByReplaceFields(qap.getSql()), qap.getParams()));
+                        QueryUtils.buildGetCountSQLByReplaceFields(qap.getQuery()), qap.getParams()));
                     return OrmDaoUtils
                         .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass(),
                             pageDesc.getRowStart(), pageDesc.getPageSize());
@@ -959,6 +977,66 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             });
     }
 
+
+    /**
+     * 根据 前端传入的参数 驱动查询
+     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @param fields 返回字段
+     * @param filters 数据权限顾虑语句
+     * @param powerTranslater 权限过滤引擎
+     * @param pageDesc 分页信息
+     * @return 返回的对象列表
+     */
+    public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, Collection<String> fields,
+                                                Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
+        LeftRightPair<QueryAndNamedParams, TableField[]> qap =
+            buildQueryByParamsWithFields(filterMap, fields, filters, powerTranslater);
+
+        return listObjectsByNamedSqlAsJson(qap.getLeft().getQuery(), qap.getLeft().getParams(), qap.getRight(), pageDesc);
+    }
+
+
+    /**
+     * 根据 前端传入的参数 驱动查询
+     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @param fields 返回字段
+     * @param filters 数据权限顾虑语句
+     * @param powerTranslater 权限过滤引擎
+     * @param pageDesc 分页信息
+     * @return 返回的对象列表
+     */
+    public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, String [] fields,
+                                                Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
+        return listObjectsPartFieldAsJson(filterMap, CollectionsOpt.createList(fields), filters, powerTranslater, pageDesc);
+    }
+
+    /**
+     * 根据 前端传入的参数 驱动查询
+     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @param fields 返回字段
+     * @param pageDesc 分页信息
+     * @return 返回的对象列表
+     */
+    public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, String [] fields, PageDesc pageDesc) {
+        return listObjectsPartFieldAsJson(filterMap, CollectionsOpt.createList(fields), null, null, pageDesc);
+    }
+    /**
+     * 根据 前端传入的参数 驱动查询
+     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
+     * @param filters 数据权限顾虑语句
+     * @param powerTranslater 权限过滤引擎
+     * @param pageDesc 分页信息
+     * @return 返回的对象列表
+     */
+    public JSONArray listObjectsAsJson(Map<String, Object> filterMap, Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
+        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, filters, powerTranslater, pageDesc);
+    }
+
+    public JSONArray listObjectsAsJson(Map<String, Object> filterMap, PageDesc pageDesc){
+        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, null, null, pageDesc);
+    }
+
+    /*==============================下面的代码通过sql语句来查询数据的================================================*/
     public List<T> listObjectsBySql(String querySql, Map<String, Object> namedParams) {
         return jdbcTemplate.execute(
             (ConnectionCallback<List<T>>) conn ->
@@ -1046,30 +1124,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return selfOrderBy;
     }
 
-    /**
-     * 根据 前端传入的参数 对数据库中的数据进行计数
-     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
-     * @return 返回的对象列表
-     */
-    public int countObject(Map<String, Object> filterMap) {
-        return countObject(filterMap,null, null);
-    }
-
-    /**
-     * 根据 前端传入的参数 对数据库中的数据进行计数
-     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
-     * @param filters 数据权限顾虑语句
-     * @param powerTranslater 权限过滤引擎
-     * @return 返回的对象列表
-     */
-    public int countObject(Map<String, Object> filterMap, Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater) {
-        QueryAndNamedParams qap = buildQueryByParams( filterMap, null, filters, powerTranslater);
-        String countSql = QueryUtils.buildGetCountSQLByReplaceFields(qap.getQuery());
-        return NumberBaseOpt.castObjectToInteger(
-            DatabaseOptUtils.getScalarObjectQuery(this, countSql, qap.getParams()), 0);
-    }
-
-
     private JSONArray listObjectsBySqlAsJson(String querySql, Object [] params,
                                                   TableField[] fields, PageDesc pageDesc) {
         return jdbcTemplate.execute(
@@ -1103,64 +1157,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             new QueryAndNamedParams(querySql, paramsMap));
         return listObjectsBySqlAsJson(sqlQuery.getQuery(), sqlQuery.getParams(),
               fields, pageDesc);
-    }
-
-    /**
-     * 根据 前端传入的参数 驱动查询
-     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
-     * @param fields 返回字段
-     * @param filters 数据权限顾虑语句
-     * @param powerTranslater 权限过滤引擎
-     * @param pageDesc 分页信息
-     * @return 返回的对象列表
-     */
-    public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, Collection<String> fields,
-                                       Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
-        LeftRightPair<QueryAndNamedParams, TableField[]> qap =
-            buildQueryByParamsWithFields(filterMap, fields, filters, powerTranslater);
-
-        return listObjectsByNamedSqlAsJson(qap.getLeft().getQuery(), qap.getLeft().getParams(), qap.getRight(), pageDesc);
-    }
-
-
-    /**
-     * 根据 前端传入的参数 驱动查询
-     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
-     * @param fields 返回字段
-     * @param filters 数据权限顾虑语句
-     * @param powerTranslater 权限过滤引擎
-     * @param pageDesc 分页信息
-     * @return 返回的对象列表
-     */
-    public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, String [] fields,
-                                       Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
-        return listObjectsPartFieldAsJson(filterMap, CollectionsOpt.createList(fields), filters, powerTranslater, pageDesc);
-    }
-
-    /**
-     * 根据 前端传入的参数 驱动查询
-     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
-     * @param fields 返回字段
-     * @param pageDesc 分页信息
-     * @return 返回的对象列表
-     */
-    public JSONArray listObjectsPartFieldAsJson(Map<String, Object> filterMap, String [] fields, PageDesc pageDesc) {
-        return listObjectsPartFieldAsJson(filterMap, CollectionsOpt.createList(fields), null, null, pageDesc);
-    }
-    /**
-     * 根据 前端传入的参数 驱动查询
-     * @param filterMap 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
-     * @param filters 数据权限顾虑语句
-     * @param powerTranslater 权限过滤引擎
-     * @param pageDesc 分页信息
-     * @return 返回的对象列表
-     */
-    public JSONArray listObjectsAsJson(Map<String, Object> filterMap, Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
-        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, filters, powerTranslater, pageDesc);
-    }
-
-    public JSONArray listObjectsAsJson(Map<String, Object> filterMap, PageDesc pageDesc){
-        return listObjectsPartFieldAsJson(filterMap, (Collection<String>) null, null, null, pageDesc);
     }
 
     private Pair<String, TableField[]> buildQuerySqlWithFieldsAndWhere(String whereSql, String tableAlias){
