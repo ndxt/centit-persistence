@@ -5,7 +5,7 @@
     <parent>
         <artifactId>centit-persistence</artifactId>
         <groupId>com.centit.framework</groupId>
-        <version>5.2-SNAPSHOT</version>
+        <version>5.3-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,15 +16,23 @@
     <description>持久化框架配置</description>
 
     <dependencies>
+
         <dependency>
-            <groupId>com.centit.framework</groupId>
-            <artifactId>centit-persistence-config</artifactId>
+            <groupId>com.centit.support</groupId>
+            <artifactId>centit-database-datasource</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jdbc</artifactId>
+            <groupId>com.centit.framework</groupId>
+            <artifactId>centit-persistence-jdbc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.centit.framework</groupId>
+            <artifactId>centit-persistence-flyway-plugin</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
