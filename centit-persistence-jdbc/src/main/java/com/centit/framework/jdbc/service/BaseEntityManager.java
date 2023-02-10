@@ -22,7 +22,6 @@ public interface BaseEntityManager<T extends Serializable, PK extends Serializab
      * @param pageDesc 分页信息
      * @return 过滤后的对象
      */
-    @Deprecated
     List<T> listObjectsByProperties(Map<String, Object> properties, PageDesc pageDesc);
     /**
      * 根据属性筛选 严格等于
