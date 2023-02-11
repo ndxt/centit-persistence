@@ -1461,6 +1461,36 @@ public abstract class QueryUtils {
     }
 
     /**
+     * 查询参数预处理
+     * @param parameterMap 预处理的参数 request.getParameterMap();
+     * @return 预处后的参数
+     */
+    public static Map<String, Object> pretreatRequestParams(Map<String, String[]> parameterMap) {
+        Map<String, Object> map = new HashMap<>();
+        //map.put("isValid", "T");
+        for (Map.Entry<String, String[]> ent : parameterMap.entrySet()) {
+            String key = ent.getKey();
+            if(key.startsWith("_"))
+                continue;
+            String[] values = CollectionsOpt.removeBlankString(ent.getValue());
+            if(values==null)
+                continue;
+            Object paramValue = values.length==1 ? values[0] : values;
+            String pretreatmentSql = key;
+
+            ImmutableTriple<String, String, String> paramDesc = QueryUtils.parseParameter(pretreatmentSql);
+            String pretreatment = paramDesc.getRight();
+            String valueName = StringUtils.isBlank(paramDesc.getMiddle()) ? paramDesc.getLeft() : paramDesc.getMiddle();
+
+            if(StringUtils.isNotBlank(pretreatment)){
+                paramValue = QueryUtils.pretreatParameter(pretreatment, paramValue);
+            }
+            map.put(valueName, paramValue);
+        }
+        return map;
+    }
+
+    /**
      * 通过参数数组 编译in语句
      *
      * @param paramAlias 参数别名
