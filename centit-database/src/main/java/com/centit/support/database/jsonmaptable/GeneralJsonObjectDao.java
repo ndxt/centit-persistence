@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.support.algorithm.*;
+import com.centit.support.common.LeftRightPair;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
@@ -444,10 +445,9 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         return sBuilder.toString();
     }
 
-    public static String buildFilterSql(TableInfo ti, String alias, Map<String, Object> filterMap) {
-        StringBuilder sBuilder = new StringBuilder();
-        boolean needAppendAndSign = false;
-        Map<String, StringBuilder> filterGroup = null;
+    public static void buildFilterSqlPieces(TableInfo ti, String alias, Map<String, Object> filterMap,
+            Map<String, LeftRightPair<Integer , StringBuilder>> filterGroup) {
+
         for (Map.Entry<String, Object> filterEnt : filterMap.entrySet()) {
             String plCol = filterEnt.getKey();
             int plColLength = plCol.length();
@@ -456,12 +456,11 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             String optSuffix = "none";
             int pos = 3;
             if(plColLength>3) {
-                boolean haveGroupSign=(plCol.charAt(0) == 'g' || plCol.charAt(0) == 'G') &&
+                beGroup=(plCol.charAt(0) == 'g' || plCol.charAt(0) == 'G') &&
                     plCol.charAt(1) >= '0' && plCol.charAt(1) <= '9' &&
                     (plCol.charAt(2) == '_' || plCol.charAt(3) == '_');
-                if (haveGroupSign) {
+                if (beGroup) {
                     groupName = "g" + plCol.charAt(1);
-                    beGroup = true;
                     if (plCol.charAt(3) == '_') {
                         pos = 4;
                     }
@@ -480,42 +479,44 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 }
             }
             if(propName != null){
+                LeftRightPair<Integer , StringBuilder> groupFilter = filterGroup.get(groupName);
                 StringBuilder currentBuild = null;
-                if(beGroup){
-                    if(filterGroup == null){
-                        filterGroup = new HashMap<>(4);
-                    } else {
-                        currentBuild = filterGroup.get(groupName);
-                    }
-
-                    if(currentBuild==null){
-                        currentBuild = new StringBuilder();
-                        filterGroup.put(groupName, currentBuild);
-                    } else {
-                        currentBuild.append(" or ");
-                    }
+                if(groupFilter == null){
+                    currentBuild = new StringBuilder();
+                    groupFilter = new LeftRightPair<>(1, currentBuild);
+                    filterGroup.put(groupName, groupFilter);
                 } else {
-                    currentBuild = sBuilder;
-                    if (needAppendAndSign) {
-                        sBuilder.append(" and ");
-                    }
-                    needAppendAndSign=true;
+                    groupFilter.setLeft( groupFilter.getLeft() +1);
+                    currentBuild = groupFilter.getRight();
+                    currentBuild.append(beGroup? " or " : " and ");
                 }
                 // opt ==  0:eq 1:gt 2:ge 3:lt 4:le 5: lk 6:in 7:ne 8:ni
                 dealSuffixSql(filterEnt, StringUtils.isBlank(alias) ? propName : alias+"."+propName,
                     optSuffix, currentBuild);
             }
         }
-        if(filterGroup != null){
-            for(Map.Entry<String, StringBuilder> ent : filterGroup.entrySet()){
-                if (needAppendAndSign) {
-                    sBuilder.append(" and ");
-                }
-                needAppendAndSign = true;
-                sBuilder.append(" ( ").append(ent.getValue()).append(" )");
-            }
 
+    }
+
+    public static String buildFilterSql(TableInfo ti, String alias, Map<String, Object> filterMap) {
+        Map<String, LeftRightPair<Integer , StringBuilder>> filterGroup =
+            new HashMap<>();
+        buildFilterSqlPieces(ti, alias,  filterMap, filterGroup);
+        boolean needAppendAndSign = false;
+
+        StringBuilder sBuilder = new StringBuilder();
+
+        for(Map.Entry<String, LeftRightPair<Integer , StringBuilder>> ent : filterGroup.entrySet()){
+            if (needAppendAndSign) {
+                sBuilder.append(" and ");
+            }
+            needAppendAndSign = true;
+            if(ent.getValue().getLeft() > 1 && !"nog".equals(ent.getKey()))
+                sBuilder.append("(").append(ent.getValue().getRight().toString()).append(")");
+            else
+                sBuilder.append(ent.getValue().getRight().toString());
         }
+
         return sBuilder.toString();
     }
 
@@ -554,7 +555,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 currentBuild.append(fieldName).append(" in (:").append(plCol).append(")");
                 break;
             case "_ft": //full_text 只有mysql可以用
-                currentBuild.append(" match(").append(fieldName).append(") against(:").append(plCol).append(")");
+                currentBuild.append("match(").append(fieldName).append(") against(:").append(plCol).append(")");
                 break;
             //case "_eq":
             default:

@@ -1445,11 +1445,11 @@ public abstract class QueryUtils {
         } else {
             int e = paramString.indexOf(')');
             if (e > 0) {
-                int b = paramString.indexOf('(') + 1;
-                paramPretreatment = paramString.substring(b, e).trim();
-                if(paramString.length() > e)
+                int b = paramString.indexOf('(');
+                paramPretreatment = paramString.substring(b + 1, e).trim();
+                if(paramString.length() > e + 1)
                     paramName = paramString.substring(e + 1).trim();
-                else if(b>1){
+                else if(b>0){
                     paramName = paramString.substring(0, b).trim();
                 } else {
                     paramName = null;

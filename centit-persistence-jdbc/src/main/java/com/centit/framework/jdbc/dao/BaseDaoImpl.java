@@ -285,15 +285,38 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Map<String, Object> queryParams = new HashMap<>(filterMap.size()+4);
         Map<String, DataFilter> filterList = obtainInsideFilters(mapInfo);
-        StringBuilder filterQuery = new StringBuilder();
         Map<String, Object> leftFilterMap ;
+        Map<String, LeftRightPair<Integer , StringBuilder>> filterGroup =
+            new HashMap<>();
+        //buildFilterSqlPieces(ti, alias,  filterMap, filterGroup);
+
         if(filterList.size()>0){
             leftFilterMap = new HashMap<>(filterMap.size()+4);
             for(Map.Entry<String, Object> ent : filterMap.entrySet()) {
                 DataFilter df = filterList.get(ent.getKey());
                 if(df != null){
+                    String plCol = df.getValueName();
+                    String groupName="nog";
+                    boolean haveGroupSign= plCol.length()>3 && (plCol.charAt(0) == 'g' || plCol.charAt(0) == 'G') &&
+                        plCol.charAt(1) >= '0' && plCol.charAt(1) <= '9' &&
+                        (plCol.charAt(2) == '_' || plCol.charAt(3) == '_');
+                    if(haveGroupSign){
+                        groupName = "g" + plCol.charAt(1);
+                    }
+                    LeftRightPair<Integer , StringBuilder> groupFilter = filterGroup.get(groupName);
+                    StringBuilder currentBuild;
+                    if(groupFilter == null){
+                        currentBuild = new StringBuilder();
+                        groupFilter = new LeftRightPair<>(1, currentBuild);
+                        filterGroup.put(groupName, groupFilter);
+                    } else {
+                        groupFilter.setLeft( groupFilter.getLeft() +1);
+                        currentBuild = groupFilter.getRight();
+                        currentBuild.append(haveGroupSign? " or " : " and ");
+                    }
+
                     queryParams.put(df.getValueName(), QueryUtils.pretreatParameter(df.getPretreatment(),ent.getValue() ));
-                    filterQuery.append(" and ").append(df.getFilterSql());
+                    currentBuild.append(df.getFilterSql());
                 } else {
                     leftFilterMap.put(ent.getKey(), ent.getValue());
                 }
@@ -301,12 +324,12 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         } else {
             leftFilterMap = filterMap;
         }
+
         if(leftFilterMap.size()>0) {
-            String propFilterSql = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, leftFilterMap);
-            filterQuery.append(" and ").append(propFilterSql);
+            GeneralJsonObjectDao.buildFilterSqlPieces(mapInfo, null, leftFilterMap, filterGroup);
             queryParams.putAll(leftFilterMap);
         }
-
+        StringBuilder filterQuery = new StringBuilder();
         //外部条件，一般是权限引擎的表达式
         if(extentFilters!=null && extentFilters.size()>0) {
             QueryUtils.SimpleFilterTranslater translater = powerTranslater !=null ?
@@ -318,6 +341,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             filterQuery.append(" and ").append(powerFilter.getQuery());
             queryParams.putAll(powerFilter.getParams());
         }
+
+        for(Map.Entry<String, LeftRightPair<Integer , StringBuilder>> ent : filterGroup.entrySet()){
+            filterQuery.append(" and ");
+            if(ent.getValue().getLeft() > 1 && !"nog".equals(ent.getKey()))
+                filterQuery.append("(").append(ent.getValue().getRight().toString()).append(")");
+            else
+                filterQuery.append(ent.getValue().getRight().toString());
+        }
+
         return new QueryAndNamedParams(filterQuery.toString(), queryParams);
     }
 

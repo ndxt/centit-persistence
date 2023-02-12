@@ -38,10 +38,9 @@ public class TestClassTemp {
 
         System.out.println(JSON.toJSONString(worker));
 
-
-        Map<String, Object> filterMap = CollectionsOpt.createHashMap("workerName", "myName",
-            "workerName_ft", "search",
-            "createDate", new Date(), "birthdayBegin",  new Date(),
+        Map<String, Object> filterMap = CollectionsOpt.createHashMap("g0_workerName", "myName",
+            "g0_workerName_ft", "search",
+            "g0_createDate", new Date(), "birthdayBegin",  new Date(),
             "workerBirthday_lt", new Date(),
             "ball", "hello", "ct", "hello");
         List<String> fields = CollectionsOpt.createList("createDate","birthdayBegin","workerName", "WORKER_NAME","WORKER_NAME2");
