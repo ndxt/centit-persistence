@@ -3,6 +3,8 @@ package com.centit.framework.jdbc.dao;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.centit.support.algorithm.CollectionsOpt;
+import com.centit.support.database.orm.JpaMetadata;
+import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.database.utils.QueryUtils;
 import org.slf4j.Logger;
@@ -23,6 +25,31 @@ import java.util.Map;
 public abstract class DatabaseOptUtils {
 
     protected static Logger logger = LoggerFactory.getLogger(DatabaseOptUtils.class);
+
+    /**
+     * 获取 类的所有字段
+     * @param poClass Entity java 对象
+     * @return 字段名
+     */
+    public static List<String> extraPoAllFieldNames(Class<?> poClass){
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(poClass);
+        if(mapInfo==null)
+            return null;
+        return mapInfo.getAllFieldsName();
+    }
+
+    /**
+     * 获取 类的所有字段
+     * @param poClass Entity java 对象
+     * @return 字段名
+     */
+    public static String[] extraPoAllFieldNamesAsArray(Class<?> poClass){
+        List<String> filedNames = extraPoAllFieldNames(poClass);
+        if(filedNames==null)
+            return null;
+        return filedNames.toArray(new String[filedNames.size()]);
+    }
+
     /**
      * @param baseDao  数据库链接
      * @param procName procName

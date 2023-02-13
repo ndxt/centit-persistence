@@ -112,14 +112,14 @@ public interface TableInfo {
 
     @JSONField(serialize = false)
     default List<String> getAllFieldsName() {
-        List<String> pkCols = new ArrayList<>(4);
+        List<String> allCols = new ArrayList<>(4);
         List<? extends TableField> columns = this.getColumns();
         if (columns != null) {
             for (TableField field : columns) {
-                pkCols.add(field.getPropertyName());
+                allCols.add(field.getPropertyName());
             }
         }
-        return pkCols;
+        return allCols;
     }
 
     @JSONField(serialize = false)

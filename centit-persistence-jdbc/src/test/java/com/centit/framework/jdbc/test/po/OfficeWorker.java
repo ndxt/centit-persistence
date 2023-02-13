@@ -56,7 +56,7 @@ public class OfficeWorker implements EntityWithDeleteTag,EntityWithVersionTag,Se
      */
     @Column(name = "LAST_UPDATE_DATE")
     @ValueGenerator( strategy= GeneratorType.FUNCTION, value = "today()",
-            condition = GeneratorCondition.ALWAYS, occasion = GeneratorTime.ALWAYS )
+            condition = GeneratorCondition.ALWAYS, occasion = GeneratorTime.NEW_UPDATE )
     private Date lastUpdateTime;
 
     /**
@@ -66,6 +66,7 @@ public class OfficeWorker implements EntityWithDeleteTag,EntityWithVersionTag,Se
      * 多字段引用使用 JoinColumns 注解
      */
     @OneToMany
+    @Basic(fetch = FetchType.LAZY)
     @JoinColumn(name="WORKER_ID", referencedColumnName="WORKER_ID")
     private List<Career> workerCareers;
     /**

@@ -1138,7 +1138,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     }
 
-
     public JSONArray listObjectsPartFieldByPropertiesAsJson(final Map<String, Object> properties, Collection<String> fields) {
         return listObjectsPartFieldByPropertiesAsJson(properties, fields, null, null, null);
     }

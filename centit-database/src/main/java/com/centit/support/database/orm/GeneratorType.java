@@ -54,7 +54,7 @@ public enum GeneratorType {
      */
     TIME_SEQUENCE,
     /**
-     * 符合主键，一个表中只能有一个这个字段, 并且只能用于 整型（int、long） 类型字段
+     * 复合主键，一个表中只能有一个这个字段, 并且只能用于 整型（int、long） 类型字段
      * 一次只能保存一条记录，如果同时保存多条记录则会报主键冲突 不推荐使用
      */
     @Deprecated
