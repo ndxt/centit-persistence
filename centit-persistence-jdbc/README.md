@@ -185,6 +185,28 @@ BaseDaoImpl的**ByProperties查询方法都会有多两个(...,Collection<String
 
 可选语句可以在sql语句的任意部位select的字段中或者where条件中，它说白了可以认为是一个字符串模版。先看一个示例：
 
+    select [(a>1)| t1.CORPORATE_NAME, ] t2.WORKER_NAME
+    from [(a>1)| T_CAREER t1 join ] T_OFFICE_WORKER t2 [(a>1)| on (t1.WORKER_ID=t2.WORKER_ID) ]
+    where t2.WORKER_AGE> 25 [(a>1 && b < today()) (b : begDate)| and t1.BEGIN_DATE > :begDate]
+        [ :(like) c |and t2.WORKER_NAME like :c ]
+        [(isnotempty(d))(:(inplace)d)| order by :d desc ]
+
+执行这个参数需要传入一个查询参数Map，如果map的值为 { a:2, b : "2010-1-1" , c:"张" , d: 't2.WORKER_BIRTHDAY' 转换后的语句如下
+
+    select t1.CORPORATE_NAME, t2.WORKER_NAME
+    from T_CAREER t1 join  T_OFFICE_WORKER t2 on (t1.WORKER_ID=t2.WORKER_ID)
+    where t2.WORKER_AGE> 25 and t2.BEGIN_DATE > :begDate
+        order by t2.WORKER_BIRTHDAY desc
+
+语句中的 [ | ] 为可选部分，有两种写法：
+
+**一般写法** [(加入语句条件)(参数描述语句)|语句]
+
+[(由参数构成的逻辑表达式)(需要添加到最终查询中的参数，这个内容是可选的)|语句]
+
+**简洁写法** [参数描述语句|语句] 
+
+这个参数描述语句只能是一个参数，其插入条件为参数数值不为null，字符串不为空。
 
 ### 注入锚点
 
