@@ -187,9 +187,10 @@ BaseDaoImpl的**ByProperties查询方法都会有多两个(...,Collection<String
 
     select [(a>1)| t1.CORPORATE_NAME, ] t2.WORKER_NAME
     from [(a>1)| T_CAREER t1 join ] T_OFFICE_WORKER t2 [(a>1)| on (t1.WORKER_ID=t2.WORKER_ID) ]
-    where t2.WORKER_AGE> 25 [(a>1 && b < today()) (b : begDate)| and t1.BEGIN_DATE > :begDate]
-        [ :(like) c |and t2.WORKER_NAME like :c ]
-        [(isnotempty(d))(:(inplace)d)| order by :d desc ]
+    where t2.WORKER_AGE> 25 
+        [(a>1 && b < today()) (b : begDate)| and t1.BEGIN_DATE > :begDate] --一般写法
+        [ :(like) c |and t2.WORKER_NAME like :c ] -- 简洁写法
+        [(isnotempty(d))(:(inplace)d)| order by :d desc ] -- inplace 预处理指示变量直接注入到语句中
 
 执行这个参数需要传入一个查询参数Map，如果map的值为 { a:2, b : "2010-1-1" , c:"张" , d: 't2.WORKER_BIRTHDAY' 转换后的语句如下
 
@@ -200,16 +201,22 @@ BaseDaoImpl的**ByProperties查询方法都会有多两个(...,Collection<String
 
 语句中的 [ | ] 为可选部分，有两种写法：
 
-**一般写法** [(加入语句条件)(参数描述语句)|语句]
+**一般写法** [(加入语句条件)(参数描述语句,参数描述语句,......)|语句]
 
-[(由参数构成的逻辑表达式)(需要添加到最终查询中的参数，这个内容是可选的)|语句]
+加入语句条件: 由参数构成的逻辑表达式, 当表达式为true时后面的语句会加入到sql的对应部位，false则整个可选语句部分被移除。
+
+参数描述语句：格式为 参数表达式:(参数预处理,参数预处理,.....)对应语句中的参数名。参数预处理部分如果没有可以省略，如果参数表达式和对应语句中的参数名一致，冒号前面的参数表达式也可以省略；参数预处理和前面的参数过滤中的预处理格式一致。
 
 **简洁写法** [参数描述语句|语句] 
 
-这个参数描述语句只能是一个参数，其插入条件为参数数值不为null，字符串不为空。
+简洁写法 “|” 前面只有一个参数描述语句，其插入条件为参数数值不为null如果式字符串则不为空。
 
 ### 注入锚点
 
+锚点是指在sql语句中做一个位置标记，以便将外部的过滤条件注入到这个位置。锚点的格式为 {表名 表别名, 表名 表别名, ......} 。
+
+执行有锚点的动态sql语句需要传入一个外部的条件表达式列表，和一个对应的上下文变量解析器。表达式和上面的“数据范围权限”中的外部条件表达式一致。
+平台会根据锚点中的表名来判断这个表达式是否可以注入锚点，如果可以注入则根据表名和别名的对应关系将外部条件中的表名更换为对应的别名。
 
 上面的数据范围权限可以认为是一个固定的注入锚点，锚点只能在sql的where语句或者having语句部分。
 
