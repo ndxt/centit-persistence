@@ -29,6 +29,10 @@ public class OfficeWorker implements EntityWithDeleteTag,EntityWithVersionTag,Se
     private String workerName;
     @Column(name = "WORKER_SEX")
     private String workerSex;
+
+    @Column(name = "WORKER_AGE")
+    private int workerAge;
+
     @Column(name = "WORKER_BIRTHDAY")
     private Date workerBirthday;
 

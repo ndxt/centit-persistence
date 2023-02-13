@@ -387,8 +387,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         innerSaveNewObject(o);
     }
 
-    private void deleteObjectWithVersion(final Object o){
-        jdbcTemplate.execute(
+    private int deleteObjectWithVersion(final Object o){
+        return jdbcTemplate.execute(
             (ConnectionCallback<Integer>) conn -> {
                 TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
                 JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(conn, mapInfo);
@@ -410,47 +410,48 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             });
     }
 
-    private void innerDeleteObjectForce(Object o) {
+    private int innerDeleteObjectForce(Object o) {
         if (o instanceof EntityWithVersionTag) {
-            deleteObjectWithVersion(o);
+            return deleteObjectWithVersion(o);
         } else {
             /* Integer execute = */
-            jdbcTemplate.execute(
+            return jdbcTemplate.execute(
                     (ConnectionCallback<Integer>) conn ->
                             OrmDaoUtils.deleteObject(conn, o));
         }
     }
 
-    public void deleteObjectForce(T o) {
-        innerDeleteObjectForce(o);
+    public int deleteObjectForce(T o) {
+        return innerDeleteObjectForce(o);
     }
 
-    public void deleteObjectForceById(Object id) {
-        jdbcTemplate.execute(
+    public int deleteObjectForceById(Object id) {
+        return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.deleteObjectById(conn, id, getPoClass()));
     }
 
-    private void innerDeleteObject(Object o) {
+    private int innerDeleteObject(Object o) {
       /* Integer execute = */
         if (o instanceof EntityWithDeleteTag) {
             ((EntityWithDeleteTag) o).setDeleted(true);
-            this.innerUpdateObject(o);
+            return this.innerUpdateObject(o);
         } else {
-            this.innerDeleteObjectForce(o);
+            return this.innerDeleteObjectForce(o);
         }
     }
 
-    public void deleteObject(T o) {
-        innerDeleteObject(o);
+    public int deleteObject(T o) {
+        return innerDeleteObject(o);
     }
 
-    public void deleteObjectById(Object id) {
+    public int deleteObjectById(Object id) {
         /* Integer execute = */
         T o = getObjectById(id);
         if(o != null) {
-            innerDeleteObject(o);
+            return innerDeleteObject(o);
         }
+        return 0;
     }
 
     private int updateObjectWithVersion(final Object o, Collection<String> fields){
@@ -863,37 +864,39 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 OrmDaoUtils.saveNewObjectCascade(conn, object, DEFAULT_CASCADE_DEPTH));
     }
 
-
-    public void deleteObjectsForceByProperties(Map<String, Object> properties,
+    public int deleteObjectsForceByProperties(Map<String, Object> properties,
             Collection<String> extentFilters, QueryUtils.SimpleFilterTranslater powerTranslater){
         QueryAndNamedParams filterAndParams = buildFilterByParams(properties, extentFilters, powerTranslater);
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         String deleteSql = "delete from " + mapInfo.getTableName() + " where 1=1 " + filterAndParams.getQuery();
-        jdbcTemplate.execute(
+        return jdbcTemplate.execute(
             (ConnectionCallback<Integer>) conn ->
                 DatabaseAccess.doExecuteNamedSql(conn, deleteSql, filterAndParams.getParams()));
     }
-    public void deleteObjectsForceByProperties(Map<String, Object> properties){
-        deleteObjectsForceByProperties(properties, null, null);
+    public int deleteObjectsForceByProperties(Map<String, Object> properties){
+        return deleteObjectsForceByProperties(properties, null, null);
     }
 
-    public void deleteObjectsByProperties(Map<String, Object> properties,
+    public int deleteObjectsByProperties(Map<String, Object> properties,
                                           Collection<String> extentFilters, QueryUtils.SimpleFilterTranslater powerTranslater) {
         boolean hasDeleteTag = EntityWithDeleteTag.class.isAssignableFrom(getPoClass());
         List<T> deleteList = listObjectsByProperties(properties, extentFilters, powerTranslater);
+        int deleteSum = 0;
         if (deleteList != null) {
             for (T obj : deleteList) {
                 if (hasDeleteTag) {
                     ((EntityWithDeleteTag) obj).setDeleted(true);
-                    this.innerUpdateObject(obj);
+                    deleteSum += this.innerUpdateObject(obj);
                 } else {
-                    this.innerDeleteObjectForce(obj);
+                    deleteSum += this.innerDeleteObjectForce(obj);
                 }
             }
         }
+        return deleteSum;
     }
-    public void deleteObjectsByProperties(Map<String, Object> properties) {
-        deleteObjectsByProperties(properties, null, null);
+
+    public int deleteObjectsByProperties(Map<String, Object> properties) {
+        return deleteObjectsByProperties(properties, null, null);
     }
 
     /*==============================下面的代码是查询数据================================================*/
@@ -906,7 +909,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             (ConnectionCallback<List<T>>) conn ->
                 OrmDaoUtils.listAllObjects(conn, (Class<T>) getPoClass()));
     }
-
 
     public T getObjectByProperties(Map<String, Object> properties) {
         return jdbcTemplate.execute(
@@ -933,6 +935,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             return null;
         }
     }
+
     /**
      * 根据 前端传入的参数 对数据库中的数据进行计数
      * @param properties 前端输入的过滤条件，包括用户的基本信息（这个小service注入，主要用于数据权限的过滤）
@@ -956,8 +959,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return NumberBaseOpt.castObjectToInteger(
             DatabaseOptUtils.getScalarObjectQuery(this, countSql, qap.getParams()), 0);
     }
-
-
 
     public List<T> listObjectsByProperties(final Map<String, Object> properties,
                                            Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater) {
@@ -1225,8 +1226,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public List<T> listObjectsByFilter(String whereSql, Map<String, Object> namedParams) {
         return listObjectsByFilter(whereSql, namedParams, null);
     }
-
-
 
     private Pair<String, TableField[]> buildQuerySqlWithFieldsAndWhere(String whereSql, String tableAlias){
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
