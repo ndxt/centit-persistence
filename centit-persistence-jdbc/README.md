@@ -1,5 +1,5 @@
 # 先腾持久化平台PDSqlOrm使用手册
-## 综述
+## 概述
 
 先腾持久化平台PDSqlOrm（参数驱动的ORM平台）的目标是最大限度的减少sql语句的编写，便于代码的重构，同时保持简单易学。 PDSqlOrm是基于Spring jdbc研发的，相关的事务处理都是通过spring-tx实现的，没有什么特别之处。它通过实现jpa注解的方式来减少sql语句的编写，其仅仅实现了jpa的部分注解：
 
@@ -192,7 +192,7 @@ BaseDaoImpl的**ByProperties查询方法都会有多两个(...,Collection<String
         [ :(like) c |and t2.WORKER_NAME like :c ] -- 简洁写法
         [(isnotempty(d))(:(inplace)d)| order by :d desc ] -- inplace 预处理指示变量直接注入到语句中
 
-执行这个参数需要传入一个查询参数Map，如果map的值为 { a:2, b : "2010-1-1" , c:"张" , d: 't2.WORKER_BIRTHDAY' 转换后的语句如下
+执行这个参数需要传入一个查询参数Map，如果map的值为 { a:2, b : "2010-1-1" , c:"张" , d: 't2.WORKER_BIRTHDAY'} 转换后的语句如下
 
     select t1.CORPORATE_NAME, t2.WORKER_NAME
     from T_CAREER t1 join  T_OFFICE_WORKER t2 on (t1.WORKER_ID=t2.WORKER_ID)
