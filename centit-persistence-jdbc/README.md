@@ -67,7 +67,7 @@ Po对象如果实现 [EntityWithDeleteTag](https://github.com/ndxt/centit-persis
 为了避免这样情况发生是可以通过软件来控制的。PDSqlOrm中的Po对象如果实现 [EntityWithVersionTag](https://github.com/ndxt/centit-persistence/blob/master/centit-persistence-jdbc/src/main/java/com/centit/framework/core/po/EntityWithVersionTag.java)接口，在调用updateObject*接口时，系统会校验数据库中数据的版本信息，如果一致则更改数据同时更改版本信息如果不一致则不会更新，通过返回值0或者1来反馈是否更新成功。
 另外：deleteObject** 也会校验版本信息，同样通过返回删除条目的数量来反馈是否删除成功。
 
-## 查询条件的构造
+## 查询
 
 PDSqlOrm命名为参数驱动的ORM平台，包括两部分：参数驱动的查询和参数驱动的SQL；是这个Orm平台的核心部分，也是通过参数驱动查询来减少sql语句的编写和从而能够最大化的提高跨数据库平台的能力。
 这一节通过上面提到的具体的示例来展示PDSqlOrm的用法。
@@ -126,7 +126,46 @@ PDSqlOrm命名为参数驱动的ORM平台，包括两部分：参数驱动的查
 
 ### 参数预处理
 
+前端页面传入的参数传入后台可能需要进行一些处理，比如：传入的是字符串"2023-1-1"后台希望是Date类型的数值，又比如传入的"张"后台希望是用 like 来查询所有姓张的。
+这是我们就可以借助参数的预处理来解决了。两种过滤参数处理的时间点不一样，预处理语句放置的地方也不一样。
 
+**过滤参数**
+
+过滤参数是前端传入的，所以预处理也需要前端传入，比如查询"姓张的员工"，前端应该传入 "(like)workerName_lk=张三" 这样的url参数，其中()中的内容为预处理参数。
+前端传入的预处理建议在spring mvc中通过调用：
+
+    Map<String, Object> filterParamsMap = DatabaseOptUtils.collectRequestParameters(/**HttpServletRequest*/ request);
+
+这个静态方法从request获取对应的参数，并进行对应的预处理。
+
+**内置过滤参数**
+
+内置过滤参数直接协作 getFilterField 方法中，前端传参是不需要包括预处理。
+
+    filterField.put("(like)g0_workerName", "WORKER_NAME like :workerName");
+    filterField.put("birthdayBegin(date)", "WORKER_BIRTHDAY>= :createDateBeg");
+    filterField.put("(nextday)birthdayEnd", "WORKER_BIRTHDAY< :birthdayEnd");
+
+比如需要使用上面的查询过滤条件，前端只要传入 g0_workerName=张&birthdayBegin=2001-1-1&birthdayEnd=1990-01-01即可。
+
+**预处理类型**
+
+平台内置了多种预处理方法，在一个参数中可以使用一种或者多种预处理方法，多个预处理需要用逗号","分隔，并且要注意顺序。
+平台内置的预处理方法非常多参见类[QueryUtils](https://github.com/ndxt/centit-persistence/blob/master/centit-database/src/main/java/com/centit/support/database/utils/QueryUtils.java)的前155行的常量定义中的注释。
+
+### 分页查询
+
+listObjects**方法有两个中分页查询方式，方法的定义如下：
+
+    /* @param properties 查询过滤参数
+     * @param startPos 返回的其实行 对应 mysql 的limit中的offset
+     * @param maxSize 最大返回行 */
+    public List<T> listObjectsByProperties(final Map<String, Object> properties, int startPos, int maxSize) 
+
+    /* @param pageDesc 分页结构信息，系统会自动查询符合条件的数据记录数量，并设置到totalRows属性中 */
+    public List<T> listObjectsByProperties(final Map<String, Object> properties, PageDesc pageDesc)
+
+下面一个方法相当于调用了上面的方法的同时调用了一次 countObjectByProperties 方法，并将结果放到pageDesc中返回。
 
 ## 数据范围权限
 

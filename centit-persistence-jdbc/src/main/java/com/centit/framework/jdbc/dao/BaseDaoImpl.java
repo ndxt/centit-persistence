@@ -1004,10 +1004,21 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return listObjectsByProperties(properties, null, null);
     }
 
+    /**
+     * @param properties 查询过滤参数
+     * @param startPos 返回的其实行 对应 mysql 的limit中的offset
+     * @param maxSize 最大返回行
+     * @return 返回的结果类别
+     */
     public List<T> listObjectsByProperties(final Map<String, Object> properties, int startPos, int maxSize) {
         return listObjectsByProperties(properties, null, null, startPos, maxSize);
     }
 
+    /**
+     * @param properties 查询过滤参数
+     * @param pageDesc 分页结构信息，系统会自动查询符合条件的数据记录数量，并设置到totalRows属性中
+     * @return 返回的结果类别
+     */
     public List<T> listObjectsByProperties(final Map<String, Object> properties, PageDesc pageDesc) {
         return listObjectsByProperties(properties, null, null, pageDesc);
     }

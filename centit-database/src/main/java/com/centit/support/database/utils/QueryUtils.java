@@ -37,22 +37,46 @@ public abstract class QueryUtils {
      */
     public static final String SQL_PRETREAT_ENDWITH = "ENDWITH";
     /**
-     * 转化为日期类型,
+     * 转化为日期类型, 没有时间， 处理效果和SQL_PRETREAT_TRUNC_DAY一致
      */
     public static final String SQL_PRETREAT_DATE = "DATE";
-    /**
-     * 转化为日期类型，并且计算第二天的日期，没有时间（时间为00:00:00） 用于区间查询的结束时间
-     */
-    public static final String SQL_PRETREAT_NEXT_DAY = "NEXTDAY";
-    public static final String SQL_PRETREAT_NEXT_MONTH = "NEXTMONTH";
-    public static final String SQL_PRETREAT_NEXT_YEAR = "NEXTYEAR";
-    public static final String SQL_PRETREAT_PREV_DAY = "PREVDAY";
-    public static final String SQL_PRETREAT_PREV_MONTH = "PREVMONTH";
-    public static final String SQL_PRETREAT_PREV_YEAR = "PREVYEAR";
     /**
      * 转化为带时间的，日期的类型
      */
     public static final String SQL_PRETREAT_DATETIME = "DATETIME";
+    /**
+     * 转化为日期类型，并且计算第二天的日期，没有时间（时间为00:00:00） 用于区间查询的结束时间
+     */
+    public static final String SQL_PRETREAT_NEXT_DAY = "NEXTDAY";
+    /**
+     * 转化为日期类型，并且计算下一月的一日，没有时间（时间为00:00:00） 用于区间查询的结束时间
+     */
+    public static final String SQL_PRETREAT_NEXT_MONTH = "NEXTMONTH";
+    /**
+     * 转化为日期类型，并且计算下一年的一月一日，没有时间（时间为00:00:00） 用于区间查询的结束时间
+     */
+    public static final String SQL_PRETREAT_NEXT_YEAR = "NEXTYEAR";
+    /**
+     * 转化为日期类型，并且计算下一周周一，没有时间（时间为00:00:00） 用于区间查询的结束时间
+     */
+    public static final String SQL_PRETREAT_NEXT_WEEK = "NEXTWEEK";
+    /**
+     * 转化为日期类型，并且截断到当天，没有时间（时间为00:00:00）） 用于区间查询的开始时间
+     */
+    public static final String SQL_PRETREAT_TRUNC_DAY = "TRUNCDAY";
+    /**
+     * 转化为日期类型，并且截断到当月一日，没有时间（时间为00:00:00） 用于区间查询的开始时间
+     */
+    public static final String SQL_PRETREAT_TRUNC_MONTH = "TRUNCMONTH";
+    /**
+     * 转化为日期类型，并且截断到当年一月一日，没有时间（时间为00:00:00）用于区间查询的开始时间
+     */
+    public static final String SQL_PRETREAT_TRUNC_YEAR = "TRUNCYEAR";
+    /**
+     * 转化为日期类型，并且截断到本周周一，没有时间（时间为00:00:00）用于区间查询的开始时间
+     */
+    public static final String SQL_PRETREAT_TRUNC_WEEK = "TRUNCWEEK";
+
     /**
      * 转化为 2016-6-16这样的日期字符串
      */
@@ -1258,29 +1282,37 @@ public abstract class QueryUtils {
                 return DatetimeOpt.addDays(DatetimeOpt.truncateToDay(
                     DatetimeOpt.castObjectToDate(paramValue)), 1);
             case SQL_PRETREAT_NEXT_MONTH:
-                return DatetimeOpt.addMonths(DatetimeOpt.truncateToDay(
+                return DatetimeOpt.addMonths(DatetimeOpt.truncateToMonth(
                     DatetimeOpt.castObjectToDate(paramValue)), 1);
             case SQL_PRETREAT_NEXT_YEAR:
-                return DatetimeOpt.addYears(DatetimeOpt.truncateToDay(
+                return DatetimeOpt.addYears(DatetimeOpt.truncateToYear(
                     DatetimeOpt.castObjectToDate(paramValue)), 1);
-            case SQL_PRETREAT_PREV_DAY:
-                return DatetimeOpt.addDays(DatetimeOpt.truncateToDay(
-                    DatetimeOpt.castObjectToDate(paramValue)), -1);
-            case SQL_PRETREAT_PREV_MONTH:
-                return DatetimeOpt.addMonths(DatetimeOpt.truncateToDay(
-                    DatetimeOpt.castObjectToDate(paramValue)), -1);
-            case SQL_PRETREAT_PREV_YEAR:
-                return DatetimeOpt.addYears(DatetimeOpt.truncateToDay(
-                    DatetimeOpt.castObjectToDate(paramValue)), -1);
+            case SQL_PRETREAT_NEXT_WEEK:
+                return DatetimeOpt.addDays(DatetimeOpt.truncateToWeek(
+                    DatetimeOpt.castObjectToDate(paramValue)), 7);
 
+            case SQL_PRETREAT_TRUNC_MONTH:
+                return DatetimeOpt.truncateToMonth(
+                    DatetimeOpt.castObjectToDate(paramValue));
+            case SQL_PRETREAT_TRUNC_YEAR:
+                return DatetimeOpt.truncateToYear(
+                    DatetimeOpt.castObjectToDate(paramValue));
+            case SQL_PRETREAT_TRUNC_WEEK:
+                return DatetimeOpt.truncateToWeek(
+                    DatetimeOpt.castObjectToDate(paramValue));
+
+            case SQL_PRETREAT_TRUNC_DAY:
             case SQL_PRETREAT_DATE:
                 return DatetimeOpt.truncateToDay(
                     DatetimeOpt.castObjectToDate(paramValue));
+
             case SQL_PRETREAT_DATETIME:
                 return DatetimeOpt.castObjectToDate(paramValue);
+
             case SQL_PRETREAT_DATESTR:
                 return DatetimeOpt.convertDateToString(
                     DatetimeOpt.castObjectToDate(paramValue));
+
             case SQL_PRETREAT_DATETIMESTR:
                 return DatetimeOpt.convertDatetimeToString(
                     DatetimeOpt.castObjectToDate(paramValue));

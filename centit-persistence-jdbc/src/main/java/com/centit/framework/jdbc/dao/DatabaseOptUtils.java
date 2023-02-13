@@ -7,13 +7,17 @@ import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.database.utils.QueryUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +30,31 @@ public abstract class DatabaseOptUtils {
 
     protected static Logger logger = LoggerFactory.getLogger(DatabaseOptUtils.class);
 
+    public static Map<String, Object> collectRequestParameters(HttpServletRequest request) {
+        Map<String, String[]> parameterMap = request.getParameterMap();
+        Map<String, Object> map = new HashMap<>();
+        //map.put("isValid", "T");
+        for (Map.Entry<String, String[]> ent : parameterMap.entrySet()) {
+            String key = ent.getKey();
+            if(key.startsWith("_"))
+                continue;
+            String[] values = CollectionsOpt.removeBlankString(ent.getValue());
+            if(values==null)
+                continue;
+            Object paramValue = values.length==1 ? values[0] : values;
+            String pretreatmentSql = key;
+
+            ImmutableTriple<String, String, String> paramDesc = QueryUtils.parseParameter(pretreatmentSql);
+            String pretreatment = paramDesc.getRight();
+            String valueName = StringUtils.isBlank(paramDesc.getMiddle()) ? paramDesc.getLeft() : paramDesc.getMiddle();
+
+            if(StringUtils.isNotBlank(pretreatment)){
+                paramValue = QueryUtils.pretreatParameter(pretreatment, paramValue);
+            }
+            map.put(valueName, paramValue);
+        }
+        return map;
+    }
     /**
      * 获取 类的所有字段
      * @param poClass Entity java 对象
