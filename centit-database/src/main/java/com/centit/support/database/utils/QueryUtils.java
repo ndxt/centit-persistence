@@ -957,7 +957,6 @@ public abstract class QueryUtils {
      * @return 返回feild字句，这个用户 sql语句编辑界面，在dde，stat项目中使用，一般用不到。
      */
     public static List<Pair<String, String>> getSqlFieldNamePieceMap(String sql) {
-
         List<Pair<String, String>> fields = new ArrayList<>(20);
         List<String> sqlPieces = splitSqlByFields(sql);
         if (sqlPieces == null || sqlPieces.size() < 3)
@@ -1002,7 +1001,6 @@ public abstract class QueryUtils {
                 }
                 nPos2 = lex.getCurrPos();
                 aWord = lex.getAWord();
-
             }
 
             nFiledNo++;
@@ -1030,10 +1028,6 @@ public abstract class QueryUtils {
 
         return fields;
     }
-
-   /* public static String trimFieldPiece(String fieldPiece){
-
-    }*/
 
     /**
      * 返回sql语句中所有的 字段 语句表达式
@@ -1071,10 +1065,8 @@ public abstract class QueryUtils {
                 aWord = lex.getAWord();
             }
         }
-
         return fields;
     }
-
 
     /**
      * 返回sql语句中所有的 字段 名称
@@ -1133,7 +1125,6 @@ public abstract class QueryUtils {
                 aWord = lex.getAWord();
             }
         }
-
         return fields;
     }
 
@@ -1150,7 +1141,6 @@ public abstract class QueryUtils {
             return null;
         return splitSqlFieldNames(sqlPieces.get(1));
     }
-
 
     /**
      * 返回SqlTemplate(sql语句模板)中所有的所有的 字段 名称
@@ -1403,6 +1393,7 @@ public abstract class QueryUtils {
         }
         return map;
     }
+
     /**
      * 对参数进行预处理
      *
@@ -1437,7 +1428,6 @@ public abstract class QueryUtils {
                 params.add(paramString.substring(prePos, currPos - 1));
                 prePos = currPos;
             }
-
             aWord = lex.getAWord();
         }
         if (prePos < paramString.length())
@@ -1550,6 +1540,7 @@ public abstract class QueryUtils {
         }
         return sbNew.toString();
     }
+
     /**
      * 判断是否sql的标识符，避免sql注入， 只保留 数字，字母，下划线和 小数点
      * @param identifier 标识符
@@ -1568,6 +1559,7 @@ public abstract class QueryUtils {
         }
         return true;
     }
+
     /**
      * 去掉 分号 ； 和  单行注释   / * 注释保留 * /
      *
@@ -2157,7 +2149,6 @@ public abstract class QueryUtils {
             }
             return ReflectionOpt.attainExpressionValue(object, varName);
         }
-
     }
 
 }

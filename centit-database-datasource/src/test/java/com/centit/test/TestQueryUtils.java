@@ -16,7 +16,6 @@ public class TestQueryUtils {
 
     public static void testGetTemplateParams() {
 
-
         String queryStatement = "select  eb.estimateDatOld" +
             " [ :(like,uppercase) xmqc,:(like,uppercase)newparames, user.Info.username : (like,uppercase) xmqc3 | and eb.PRONAME like:xmqc] ";
         for (String s : QueryUtils.getSqlTemplateParameters(queryStatement)) {
@@ -26,7 +25,8 @@ public class TestQueryUtils {
     }
 
     public static void main(String[] args) {
-        testTranslateQuery2();
+        testSpiltFieldPiece();
+        //testTranslateQuery2();
         System.out.println("\nDone!");
         //分析表别名， 格式为 TableNameOrClass:alias,TableNameOrClass:alias,.....
         /*String tablesDesc =  "TableNameOrClass:alias,  TableNameOrClass alias, addasf ";

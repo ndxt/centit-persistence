@@ -299,16 +299,6 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         return true;
     }
 
-   /*
-     * 返回 sql 语句 和 包括所有属性名数组
-     * @param ti TableInfo
-     * @param alias String
-     * @return Pair String String []
-    public static String buildFieldSql(TableInfo ti, String alias){
-        return buildFieldSql(ti, alias, 3);
-    }
-   */
-
     /**
      * 在sql语句中找到属性对应的字段语句
      *
