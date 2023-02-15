@@ -956,13 +956,89 @@ public abstract class QueryUtils {
      * @param sql sql
      * @return 返回feild字句，这个用户 sql语句编辑界面，在dde，stat项目中使用，一般用不到。
      */
-    public static List<Pair<String, String>> getSqlFieldNamePieceMap(String sql) {
-        List<Pair<String, String>> fields = new ArrayList<>(20);
+    public static List<Pair<String, String>> extraSqlFieldNamePieceMap(String sql) {
+
         List<String> sqlPieces = splitSqlByFields(sql);
         if (sqlPieces == null || sqlPieces.size() < 3)
-            return fields;
+            return new ArrayList<>(0);
 
-        String sFieldSql = sqlPieces.get(1);
+        return extraFieldNamePieceMap(sqlPieces.get(1));
+    }
+
+    public static Map<String, String> extraTables(String fromSql) {
+        Lexer lex = new Lexer(fromSql, Lexer.LANG_TYPE_SQL);
+        String aWord = lex.getAWord();
+        Map<String, String> tableNameMap = new HashMap<>(4);
+        while (aWord != null && !"".equals(aWord) && !StringUtils.equalsAnyIgnoreCase(aWord,
+            "where", "group", "order")) {
+
+            if("(".equals(aWord)) {
+                int nPos2 = lex.getCurrPos();
+                lex.seekToRightBracket();
+                int nPosEnd = lex.getCurrPos();
+                ;
+                String subQuery = fromSql.substring(nPos2, nPosEnd);
+                List<String> sqlPieces = splitSqlByFields(subQuery);
+                // 子查询的别名
+                aWord = lex.getAWord();
+                if (sqlPieces != null && sqlPieces.size() > 2) {
+                    Map<String, String> subTtableNameMap = extraTables(sqlPieces.get(2));
+                    if (subTtableNameMap != null) {
+                        if (!StringUtils.equalsAnyIgnoreCase(aWord,
+                            ",", "left", "right", "inner", "outer", "join")) {
+                            for (String subTableName : subTtableNameMap.keySet()) {
+                                tableNameMap.put(subTableName, aWord);
+                            }
+                            aWord = lex.getAWord();
+                        } else {
+                            tableNameMap.putAll(subTtableNameMap);
+                        }
+                    } else {
+                        if (!StringUtils.equalsAnyIgnoreCase(aWord,
+                            ",", "left", "right", "inner", "outer", "join")) {
+                            aWord = lex.getAWord();
+                        }
+                    }
+                }
+            }else {
+                String talbeName = aWord;
+                aWord = lex.getAWord(); // 别名
+                if(!StringUtils.equalsAnyIgnoreCase(aWord,
+                    ",", "on", "left", "right", "inner", "outer", "join", "where", "group", "order")){
+                    tableNameMap.put(talbeName, aWord);
+                    aWord = lex.getAWord();
+                } else {
+                    tableNameMap.put(talbeName, talbeName);
+                }
+            }
+            if("on".equals(aWord)){
+                aWord = lex.getAWord();
+                while(!StringUtils.equalsAnyIgnoreCase(aWord,
+                    ",", "left", "right", "inner", "outer", "join")){
+                    aWord = lex.getAWord();
+                }
+            }
+            while(StringUtils.equalsAnyIgnoreCase(aWord,
+                ",", "left", "right", "inner", "outer", "join")){
+                aWord = lex.getAWord();
+            }
+        }
+        return tableNameMap;
+    }
+    public static Pair<List<Pair<String, String>>, Map<String, String>> extraFieldAndTable(String sql) {
+
+        List<String> sqlPieces = splitSqlByFields(sql);
+        if (sqlPieces == null || sqlPieces.size() < 3)
+            return null;
+
+        List<Pair<String, String>> fieldNameMap = extraFieldNamePieceMap(sqlPieces.get(1));
+        Map<String, String> tableNameMap = extraTables(sqlPieces.get(2));
+
+        return new MutablePair<>(fieldNameMap, tableNameMap);
+    }
+
+    public static List<Pair<String, String>> extraFieldNamePieceMap(String sFieldSql) {
+        List<Pair<String, String>> fields = new ArrayList<>(20);
         Lexer lex = new Lexer(sFieldSql, Lexer.LANG_TYPE_SQL);
         int nFiledNo = 0;
         int nPos = 0;

@@ -66,7 +66,8 @@ public class TestQueryUtils {
     }
 
     public static void testSpiltFieldPiece() {
-        String querySql = " select col_a, column col_b, col1+col2 ," +
+        String querySql = "with(select * from table_b as c ) " +
+            " select top 105 col_a, column col_b, col1+col2 ," +
             " col1 + col2 col_c , " +
             " col1 + col2 + col3 as col_d , " +
             " col1+(select count(1) from table_c c where c.a=b.col_a), " +
@@ -74,20 +75,18 @@ public class TestQueryUtils {
             " b.fieldf ," +
             " b.field_name as field2," +
             " f.field_name field" +
-            "  from table b";
+            "  from table b left join c on a.id = c.id, table2 abc , table3 where b.cols= 'a' order by a.col";
 
-        List<Pair<String, String>> p = QueryUtils.getSqlFieldNamePieceMap(querySql);
-        for (Pair<String, String> f : p) {
+        Pair<List<Pair<String, String>>, Map<String, String>> query = QueryUtils.extraFieldAndTable(querySql);
+
+        for (Pair<String, String> f : query.getKey()) {
             System.out.println(f.getKey() + " : " + f.getValue());
         }
         System.out.println("--------------------");
-        for (String s : QueryUtils.getSqlFieldPieces(querySql)) {
-            System.out.println(s);
+        for (Map.Entry<String, String> f : query.getValue().entrySet()) {
+            System.out.println(f.getKey() + " : " + f.getValue());
         }
-        System.out.println("--------------------");
-        for (String s : QueryUtils.getSqlFiledNames(querySql)) {
-            System.out.println(s);
-        }
+
     }
 
     public static void testBuildGetCountSQL() {
