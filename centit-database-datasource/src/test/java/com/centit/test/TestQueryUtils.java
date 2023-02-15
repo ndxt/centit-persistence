@@ -67,7 +67,7 @@ public class TestQueryUtils {
 
     public static void testSpiltFieldPiece() {
         String querySql = "with(select * from table_b as c ) " +
-            " select top 105 col_a, column col_b, col1+col2 ," +
+            " select top 105 abc.*, table3.*, col_a, column col_b, col1+col2 ," +
             " col1 + col2 col_c , " +
             " col1 + col2 + col3 as col_d , " +
             " col1+(select count(1) from table_c c where c.a=b.col_a), " +
