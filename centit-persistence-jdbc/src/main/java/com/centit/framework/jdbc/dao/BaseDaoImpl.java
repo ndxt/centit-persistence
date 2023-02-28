@@ -248,7 +248,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public LeftRightPair<QueryAndNamedParams, TableField[]> buildQueryByParamsWithFields(Map<String, Object> filterMap, Collection<String> fields,
-                                                                             Collection<String> extentFilters, QueryUtils.SimpleFilterTranslater powerTranslater){
+                                                                             Collection<String> extentFilters, QueryUtils.IFilterTranslater powerTranslater){
 
         String selfOrderBy = fetchSelfOrderSql(filterMap);
 
@@ -265,7 +265,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     protected QueryAndNamedParams buildQueryByParams(Map<String, Object> filterMap, Collection<String> fields,
-                                         Collection<String> extentFilters, QueryUtils.SimpleFilterTranslater powerTranslater) {
+                                         Collection<String> extentFilters, QueryUtils.IFilterTranslater powerTranslater) {
         String selfOrderBy = fetchSelfOrderSql(filterMap);
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
@@ -281,7 +281,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     protected QueryAndNamedParams  buildFilterByParams(Map<String, Object> filterMap,
-                                                      Collection<String> extentFilters, QueryUtils.SimpleFilterTranslater powerTranslater) {
+                                                      Collection<String> extentFilters, QueryUtils.IFilterTranslater powerTranslater) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Map<String, Object> queryParams = new HashMap<>(filterMap.size()+4);
         Map<String, DataFilter> filterList = obtainInsideFilters(mapInfo);
@@ -332,7 +332,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         StringBuilder filterQuery = new StringBuilder();
         //外部条件，一般是权限引擎的表达式
         if(extentFilters!=null && extentFilters.size()>0) {
-            QueryUtils.SimpleFilterTranslater translater = powerTranslater !=null ?
+            QueryUtils.IFilterTranslater translater = powerTranslater !=null ?
                 powerTranslater : new QueryUtils.SimpleFilterTranslater(filterMap);
             Map<String, String> tableAlias = new HashMap<>(2);
             tableAlias.put(mapInfo.getTableName(), "");
@@ -865,7 +865,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public int deleteObjectsForceByProperties(Map<String, Object> properties,
-            Collection<String> extentFilters, QueryUtils.SimpleFilterTranslater powerTranslater){
+            Collection<String> extentFilters, QueryUtils.IFilterTranslater powerTranslater){
         QueryAndNamedParams filterAndParams = buildFilterByParams(properties, extentFilters, powerTranslater);
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         String deleteSql = "delete from " + mapInfo.getTableName() + " where 1=1 " + filterAndParams.getQuery();
@@ -878,7 +878,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public int deleteObjectsByProperties(Map<String, Object> properties,
-                                          Collection<String> extentFilters, QueryUtils.SimpleFilterTranslater powerTranslater) {
+                                          Collection<String> extentFilters, QueryUtils.IFilterTranslater powerTranslater) {
         boolean hasDeleteTag = EntityWithDeleteTag.class.isAssignableFrom(getPoClass());
         List<T> deleteList = listObjectsByProperties(properties, extentFilters, powerTranslater);
         int deleteSum = 0;
@@ -917,7 +917,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public T getObjectByProperties(Map<String, Object> properties ,
-                                   Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater) {
+                                   Collection<String> filters, QueryUtils.IFilterTranslater powerTranslater) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Pair<String, TableField[]> q = GeneralJsonObjectDao.buildFieldSqlWithFields(mapInfo, null, false);
         QueryAndNamedParams queryAndParams = buildFilterByParams(properties, filters, powerTranslater);
@@ -953,7 +953,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回的对象列表
      */
     public int countObjectByProperties(Map<String, Object> properties,
-                                       Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater) {
+                                       Collection<String> filters, QueryUtils.IFilterTranslater powerTranslater) {
         QueryAndNamedParams qap = buildQueryByParams( properties, null, filters, powerTranslater);
         String countSql = QueryUtils.buildGetCountSQLByReplaceFields(qap.getQuery());
         return NumberBaseOpt.castObjectToInteger(
@@ -961,7 +961,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public List<T> listObjectsByProperties(final Map<String, Object> properties,
-                                           Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater) {
+                                           Collection<String> filters, QueryUtils.IFilterTranslater powerTranslater) {
         QueryAndNamedParams qap = buildQueryByParams( properties, null, filters, powerTranslater);
 
         return jdbcTemplate.execute(
@@ -970,7 +970,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public List<T> listObjectsByProperties(final Map<String, Object> properties,  Collection<String> filters,
-                                           QueryUtils.SimpleFilterTranslater powerTranslater, int startPos, int maxSize) {
+                                           QueryUtils.IFilterTranslater powerTranslater, int startPos, int maxSize) {
         QueryAndNamedParams qap = buildQueryByParams( properties, null, filters, powerTranslater);
         return jdbcTemplate.execute(
             (ConnectionCallback<List<T>>) conn -> OrmDaoUtils
@@ -978,7 +978,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public List<T> listObjectsByProperties(final Map<String, Object> properties,  Collection<String> filters,
-                                           QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
+                                           QueryUtils.IFilterTranslater powerTranslater, PageDesc pageDesc) {
         QueryAndNamedParams qap = buildQueryByParams( properties, null, filters, powerTranslater);
 
         return jdbcTemplate.execute(
@@ -1071,7 +1071,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回的对象列表
      */
     public JSONArray listObjectsByPropertiesAsJson(final Map<String, Object> properties,
-                                           Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater) {
+                                           Collection<String> filters, QueryUtils.IFilterTranslater powerTranslater) {
         return listObjectsByPropertiesAsJson(properties, filters, powerTranslater, null);
     }
 
@@ -1089,7 +1089,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回的对象列表
      */
     public JSONArray listObjectsByPropertiesAsJson(final Map<String, Object> properties,  Collection<String> filters,
-                                           QueryUtils.SimpleFilterTranslater powerTranslater, int startPos, int maxSize) {
+                                           QueryUtils.IFilterTranslater powerTranslater, int startPos, int maxSize) {
         LeftRightPair<QueryAndNamedParams, TableField[]> queryAndFields = buildQueryByParamsWithFields( properties, null, filters, powerTranslater);
         QueryAndParams sqlQuery = QueryAndParams.createFromQueryAndNamedParams(queryAndFields.getLeft());
         return listObjectsBySqlAsJson(sqlQuery.getQuery(), sqlQuery.getParams(), queryAndFields.getRight(), startPos, maxSize);
@@ -1106,7 +1106,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回的对象列表
      */
     public JSONArray listObjectsByPropertiesAsJson(final Map<String, Object> properties,  Collection<String> filters,
-                                           QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
+                                           QueryUtils.IFilterTranslater powerTranslater, PageDesc pageDesc) {
         LeftRightPair<QueryAndNamedParams, TableField[]> queryAndFields = buildQueryByParamsWithFields( properties, null, filters, powerTranslater);
         QueryAndParams sqlQuery = QueryAndParams.createFromQueryAndNamedParams(queryAndFields.getLeft());
 
@@ -1120,12 +1120,12 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
 
     public JSONArray listObjectsPartFieldByPropertiesAsJson(final Map<String, Object> properties, Collection<String> fields,
-                                           Collection<String> filters, QueryUtils.SimpleFilterTranslater powerTranslater) {
+                                           Collection<String> filters, QueryUtils.IFilterTranslater powerTranslater) {
         return listObjectsPartFieldByPropertiesAsJson(properties, fields, filters, powerTranslater, null);
     }
 
     public JSONArray listObjectsPartFieldByPropertiesAsJson(final Map<String, Object> properties, Collection<String> fields,  Collection<String> filters,
-                                           QueryUtils.SimpleFilterTranslater powerTranslater, int startPos, int maxSize) {
+                                           QueryUtils.IFilterTranslater powerTranslater, int startPos, int maxSize) {
         LeftRightPair<QueryAndNamedParams, TableField[]> queryAndFields = buildQueryByParamsWithFields( properties, fields, filters, powerTranslater);
         QueryAndParams sqlQuery = QueryAndParams.createFromQueryAndNamedParams(queryAndFields.getLeft());
 
@@ -1142,7 +1142,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return 返回的对象列表
      */
     public JSONArray listObjectsPartFieldByPropertiesAsJson(final Map<String, Object> properties, Collection<String> fields,  Collection<String> filters,
-                                           QueryUtils.SimpleFilterTranslater powerTranslater, PageDesc pageDesc) {
+                                           QueryUtils.IFilterTranslater powerTranslater, PageDesc pageDesc) {
         LeftRightPair<QueryAndNamedParams, TableField[]> queryAndFields = buildQueryByParamsWithFields( properties, fields, filters, powerTranslater);
         QueryAndParams sqlQuery = QueryAndParams.createFromQueryAndNamedParams(queryAndFields.getLeft());
 
