@@ -1,6 +1,6 @@
 package com.centit.support.database.metadata;
 
-import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.centit.support.database.utils.DBType;
 
 import java.util.Map;

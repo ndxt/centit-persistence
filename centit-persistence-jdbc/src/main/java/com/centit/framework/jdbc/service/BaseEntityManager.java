@@ -1,6 +1,6 @@
 package com.centit.framework.jdbc.service;
 
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson2.JSONArray;
 import com.centit.support.database.utils.PageDesc;
 
 import java.io.Serializable;

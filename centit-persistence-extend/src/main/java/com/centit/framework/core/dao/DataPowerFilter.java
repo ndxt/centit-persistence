@@ -25,9 +25,9 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
     /**
      * 过滤条件中可以应用的数据，至少包括 userinfo 用户信息，unitinfo 用户主机构信息
      */
-    private Map<String,Object> sourceData;
+    private Map<String, Object> sourceData;
 
-    public void setSourceDatas(Map<String,Object> sourceData) {
+    public void setSourceDatas(Map<String, Object> sourceData) {
         this.sourceData = sourceData;
     }
 

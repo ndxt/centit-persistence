@@ -1,6 +1,6 @@
 package com.centit.test;
 
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson2.JSONArray;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.ddl.DB2DDLOperations;

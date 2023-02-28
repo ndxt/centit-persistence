@@ -1,6 +1,6 @@
 package com.centit.framework.core.service;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.centit.framework.core.dao.DataPowerFilter;
 import com.centit.framework.security.model.CentitUserDetails;
 

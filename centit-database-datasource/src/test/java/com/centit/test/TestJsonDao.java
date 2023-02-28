@@ -1,6 +1,6 @@
 package com.centit.test;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.centit.support.database.ddl.DDLOperations;
 import com.centit.support.database.ddl.OracleDDLOperations;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;

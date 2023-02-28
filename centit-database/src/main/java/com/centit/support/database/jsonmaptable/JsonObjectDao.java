@@ -1,7 +1,7 @@
 package com.centit.support.database.jsonmaptable;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.centit.support.database.metadata.TableInfo;
 
 import java.io.IOException;
