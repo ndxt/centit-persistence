@@ -53,12 +53,27 @@ public abstract class FieldType {
         return st;
     }
 
-    //单字母_ 前缀忽略
-    public static String mapToHumpName(String columnName, boolean firstUpCase) {
+
+    /**
+     * @param columnName 数据库中的名称（代码）
+     * @return 大驼峰 名称
+     */
+    public static String mapClassName(String columnName) {
+        return mapToHumpName(columnName, true, true);
+    }
+
+
+    /**
+     * @param columnName  字段名字符串，
+     * @param firstUpCase 驼峰属性名
+     * @param ignoreSingleCharPrefix  单字母_ 前缀忽略
+     * @return 返回驼峰字母
+     */
+    public static String mapToHumpName(String columnName, boolean firstUpCase, boolean ignoreSingleCharPrefix) {
         int nl = columnName.length();
         int i = 0;
         //忽略 单字母加下划线的前缀
-        if(nl>2 && columnName.charAt(1) == '_'){
+        if(ignoreSingleCharPrefix && nl>2 && columnName.charAt(1) == '_'){
             i=2;
         }
 
@@ -83,21 +98,35 @@ public abstract class FieldType {
         return sClassName.toString();
     }
 
-    /**
-     * @param columnName 数据库中的名称（代码）
-     * @return 大驼峰 名称
-     */
-    public static String mapClassName(String columnName) {
-        return mapToHumpName(columnName, true);
-    }
+    public static String humpNameToColumn(String humpName, boolean upCase) {
+        int nl = humpName.length();
+        int i = 0;
 
+        StringBuilder columnName = new StringBuilder();
+
+        while (i < nl) {
+            char currChar = humpName.charAt(i);
+            i++;
+            if (currChar>='A' && currChar<='Z') {
+                columnName.append('_');
+            }
+            if (upCase && currChar>='a' && currChar<='z') {
+                columnName.append((char) (currChar - 32));
+            } else if (!upCase && currChar>='A' && currChar<='Z' ) {
+                columnName.append((char) (currChar + 32));
+            } else {
+                columnName.append(currChar);
+            }
+        }
+        return columnName.toString();
+    }
 
     /**
      * @param columnName 数据库中的名称（代码）
      * @return 小驼峰 名称
      */
     public static String mapPropName(String columnName) {
-        return mapToHumpName(columnName, false);
+        return mapToHumpName(columnName, false, false);
     }
 
     /**

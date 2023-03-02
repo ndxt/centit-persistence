@@ -98,6 +98,10 @@ public abstract class QueryUtils {
      */
     public static final String SQL_PRETREAT_LOWERCASE = "LOWERCASE";
     /**
+     * 将属性名转换为字段名
+     */
+    public static final String SQL_PRETREAT_MAP_NAME_COLUMN = "NAMETOCOLUMN";
+    /**
      * 转化为符合数字的字符串，
      */
     public static final String SQL_PRETREAT_NUMBER = "NUMBER";
@@ -1388,6 +1392,8 @@ public abstract class QueryUtils {
                 return StringUtils.upperCase(StringBaseOpt.objectToString(paramValue));
             case SQL_PRETREAT_LOWERCASE:
                 return StringUtils.lowerCase(StringBaseOpt.objectToString(paramValue));
+            case SQL_PRETREAT_MAP_NAME_COLUMN:
+                return FieldType.humpNameToColumn(StringBaseOpt.objectToString(paramValue), true);
             case SQL_PRETREAT_NUMBER:
                 return StringRegularOpt.trimNumber(StringBaseOpt.objectToString(paramValue));
             case SQL_PRETREAT_INTEGER:

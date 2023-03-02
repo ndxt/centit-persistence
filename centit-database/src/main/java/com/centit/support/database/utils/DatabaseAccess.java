@@ -246,7 +246,7 @@ public abstract class DatabaseAccess {
                 }*/
             }
             for (int i = asFn; i < cc; i++) {
-                fieldNames[i] = mapColumnNameToField(
+                fieldNames[i] = FieldType.mapPropName(
                     rs.getMetaData().getColumnLabel(i + 1));
             }
             return innerFetchResultSetRowToJSONObject(rs, cc, fieldNames);
@@ -269,12 +269,12 @@ public abstract class DatabaseAccess {
             asFn = fieldnames.length;
             for (int i = 0; i < asFn; i++) {
                 fieldNames[i] = StringUtils.isBlank(fieldnames[i]) ?
-                    mapColumnNameToField(rs.getMetaData().getColumnLabel(i + 1)) :
+                    FieldType.mapPropName(rs.getMetaData().getColumnLabel(i + 1)) :
                     fieldnames[i];
             }
         }
         for (int i = asFn; i < cc; i++) {
-            fieldNames[i] = mapColumnNameToField(
+            fieldNames[i] = FieldType.mapPropName(
                 rs.getMetaData().getColumnLabel(i + 1));
         }
         while (rs.next()) {
@@ -283,49 +283,12 @@ public abstract class DatabaseAccess {
         return ja;
     }
 
-    @Deprecated
-    public static String mapColumnNameToField(String colName) {
-        return FieldType.mapToHumpName(colName, false);
-        /*if(StringUtils.isBlank(colName)){
-            return colName;
-        }
-        if(colName.indexOf('_')>=0){
-            int nl = colName.length();
-            char [] ch = colName.toCharArray();
-            int i=0 , j=0;
-            while(i<nl){
-                if(ch[i]=='_'){
-                    i++;
-                    while(i<nl && ch[i]=='_'){
-                        ch[j] = '_';
-                        i++;
-                        j++;
-                    }
-                    if(i<nl){
-                        ch[j] = Character.toUpperCase(ch[i]);
-                        i++;
-                        j++;
-                    }
-                }else{
-                    ch[j] = Character.toLowerCase(ch[i]);
-                    i++;
-                    j++;
-                }
-            }
-            return String.valueOf(ch,0,j);
-        }else if(colName.charAt(0)>='A' && colName.charAt(0)<='Z'){
-            return colName.toLowerCase();
-        }else {
-            return colName;
-        }*/
-    }
-
     public static String[] mapColumnsNameToFields(List<String> colNames) {
         if (colNames == null || colNames.size() == 0)
             return null;
         String[] fns = new String[colNames.size()];
         for (int i = 0; i < colNames.size(); i++)
-            fns[i] = FieldType.mapToHumpName(colNames.get(i), false);
+            fns[i] = FieldType.mapPropName(colNames.get(i));
         return fns;
     }
 

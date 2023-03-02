@@ -310,7 +310,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         List<Pair<String, String>> fields = QueryUtils.extraSqlFieldNamePieceMap(querySql);
         for (Pair<String, String> field : fields) {
             if (fieldName.equalsIgnoreCase(field.getLeft()) ||
-                fieldName.equals(DatabaseAccess.mapColumnNameToField(field.getLeft())) ||
+                fieldName.equals(FieldType.mapPropName(field.getLeft())) ||
                 fieldName.equalsIgnoreCase(field.getRight())) {
                 return field.getRight();
             }
