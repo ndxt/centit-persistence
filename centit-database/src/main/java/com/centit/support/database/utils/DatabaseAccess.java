@@ -47,7 +47,8 @@ public abstract class DatabaseAccess {
             return BooleanBaseOpt.castObjectToBoolean(param, false) ?
                 BooleanBaseOpt.ONE_CHAR_TRUE : BooleanBaseOpt.ONE_CHAR_FALSE;
         } else if (paramClass.isEnum()) {
-            return EnumBaseOpt.enumToOrdinal(param);
+            //枚举行用名称
+            return EnumBaseOpt.enumToString(param);
         } else if (ReflectionOpt.isScalarType(paramClass) || param instanceof byte[]) {
             return param;
         } else {
