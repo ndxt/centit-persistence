@@ -22,8 +22,8 @@ public class TestStringMap {
         System.out.println(FieldType.mapToFieldType(a.getClass()));*/
 
         System.out.println(DBType.valueOf("Oracle"));
-        System.out.println(FieldType.humpNameToColumn("fOptInfo", false));
-        System.out.println(FieldType.humpNameToColumn("abcAdafCde", true));
+        System.out.println(FieldType.humpNameToColumn("fOptCCCInfo", false));
+        System.out.println(FieldType.humpNameToColumn("abcAdaf$.Cde", true));
         System.out.println(FieldType.mapPropName("F_OPT_INFO"));
         System.out.println(FieldType.mapPropName("abcAdafCde"));
 

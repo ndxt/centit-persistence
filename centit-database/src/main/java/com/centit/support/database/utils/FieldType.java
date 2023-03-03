@@ -109,13 +109,17 @@ public abstract class FieldType {
             i++;
             if (currChar>='A' && currChar<='Z') {
                 columnName.append('_');
-            }
-            if (upCase && currChar>='a' && currChar<='z') {
-                columnName.append((char) (currChar - 32));
-            } else if (!upCase && currChar>='A' && currChar<='Z' ) {
-                columnName.append((char) (currChar + 32));
+                if(!upCase){
+                    columnName.append((char) (currChar + 32));
+                }  else {
+                    columnName.append(currChar);
+                }
             } else {
-                columnName.append(currChar);
+                if (upCase && currChar>='a' && currChar<='z') {
+                    columnName.append((char) (currChar - 32));
+                }  else {
+                    columnName.append(currChar);
+                }
             }
         }
         return columnName.toString();
