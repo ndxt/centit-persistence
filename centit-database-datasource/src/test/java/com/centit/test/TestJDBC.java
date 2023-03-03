@@ -5,6 +5,8 @@ import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.DatabaseAccess;
 import com.centit.support.database.utils.DbcpConnectPools;
+import com.centit.support.json.JSONOpt;
+import com.centit.support.security.SecurityOptUtils;
 
 import java.sql.Connection;
 
@@ -12,7 +14,7 @@ public class TestJDBC {
 
     public static void main(String[] args) {
         //System.out.println(DBType.valueOf("Oracle"));
-        testJDBCMetadata();
+        testDataSource();
     }
 
     public static void testJDBCMetadata() {
@@ -41,15 +43,16 @@ public class TestJDBC {
     }
 
     public static void testDataSource() {
+        //oracle.sql.TIMESTAMP
+        JSONOpt.fastjsonGlobalConfig();
         DataSourceDescription dbc = new DataSourceDescription();
-        dbc.setConnUrl("jdbc:oracle:thin:@192.168.131.81:1521:orcl");
-        dbc.setUsername("fdemo2");
-        dbc.setPassword("fdemo2");
+        dbc.setConnUrl("jdbc:oracle:thin:@192.168.137.57:1521:orcl");
+        dbc.setUsername("*************");
+        dbc.setPassword("*************");
         /* String sql = "select loginName,userName from f_userinfo " +
                 "where [:(creepforin)userCodes| usercode in (:userCodes)]";*/
 
-        String sql = "select loginName,userName from f_userinfo " +
-            "where usercode in (:userCodes)";
+        String sql = "select * from TEST";
         /*QueryAndParams qp = QueryAndParams.createFromQueryAndNamedParams(sql,
              CollectionsOpt.createHashMap("userCodes",new Object[]{"U0000041","U0001013"}));*/
         try {
