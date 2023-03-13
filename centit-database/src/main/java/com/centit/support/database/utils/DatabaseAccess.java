@@ -510,12 +510,14 @@ public abstract class DatabaseAccess {
             } else if (obj instanceof Blob) {
                 objs[i - 1] = DatabaseAccess.fetchBlobBytes((Blob) obj);
                 //fetchBlobAsBase64((Blob) obj);
+            } else  if (obj instanceof java.time.LocalDateTime || obj instanceof java.time.LocalDate) {
+                // 适配mysql 最新版本驱动 日期返回格式
+                objs[i - 1] =  DatetimeOpt.castObjectToDate(obj);
+            } else if (obj.getClass().getName().startsWith("oracle.sql.TIMESTAMP")) {
+                // 适配 oracle的TIMESTAMP数据类型
+                objs[i - 1] = rs.getTimestamp(i);
             } else {
-                if(obj instanceof java.time.LocalDateTime || obj instanceof java.time.LocalDate){
-                    objs[i - 1] = DatetimeOpt.castObjectToDate(obj);
-                } else {
-                    objs[i - 1] = obj;
-                }
+                objs[i - 1] = obj;
             }
         }
         return objs;
