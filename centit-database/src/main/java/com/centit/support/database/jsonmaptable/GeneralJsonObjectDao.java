@@ -601,7 +601,12 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                                         BooleanBaseOpt.castObjectToBoolean(obj, false));
                                 } // 修复bug，适配mysql最新驱动返回的日期类型
                                 else if (FieldType.DATETIME.equals(fields[i].getFieldType())) {
-                                    jo.put(fields[i].getPropertyName(), DatetimeOpt.castObjectToDate(obj));
+                                    if (obj.getClass().getName().startsWith("oracle.sql.TIMESTAMP")) {
+                                        // 适配 oracle的TIMESTAMP数据类型
+                                        jo.put(fields[i].getPropertyName(), rs.getTimestamp(i + 1));
+                                    } else {
+                                        jo.put(fields[i].getPropertyName(), DatetimeOpt.castObjectToDate(obj));
+                                    }
                                 } else if (FieldType.JSON_OBJECT.equals(fields[i].getFieldType())) {
                                         jo.put(fields[i].getPropertyName(), JSON.parse(
                                             StringBaseOpt.castObjectToString(obj)));
