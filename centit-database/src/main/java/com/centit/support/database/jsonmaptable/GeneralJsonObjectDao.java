@@ -596,22 +596,34 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                             } else if (obj instanceof Blob) {
                                 jo.put(fields[i].getPropertyName(), DatabaseAccess.fetchBlobBytes((Blob) obj));
                             } else {
-                                if (FieldType.BOOLEAN.equals(fields[i].getFieldType())) {
-                                    jo.put(fields[i].getPropertyName(),
-                                        BooleanBaseOpt.castObjectToBoolean(obj, false));
-                                } // 修复bug，适配mysql最新驱动返回的日期类型
-                                else if (FieldType.DATETIME.equals(fields[i].getFieldType())) {
-                                    if (obj.getClass().getName().startsWith("oracle.sql.TIMESTAMP")) {
-                                        // 适配 oracle的TIMESTAMP数据类型
-                                        jo.put(fields[i].getPropertyName(), rs.getTimestamp(i + 1));
-                                    } else {
-                                        jo.put(fields[i].getPropertyName(), DatetimeOpt.castObjectToDate(obj));
-                                    }
-                                } else if (FieldType.JSON_OBJECT.equals(fields[i].getFieldType())) {
+                                switch(fields[i].getFieldType()){
+                                    case FieldType.BOOLEAN:
+                                        jo.put(fields[i].getPropertyName(),
+                                            BooleanBaseOpt.castObjectToBoolean(obj, false));
+                                        break;
+                                    case FieldType.DATETIME:
+                                        if (obj.getClass().getName().startsWith("oracle.sql.TIMESTAMP")) {
+                                            // 适配 oracle的TIMESTAMP数据类型
+                                            jo.put(fields[i].getPropertyName(), rs.getTimestamp(i + 1));
+                                        } else {
+                                            jo.put(fields[i].getPropertyName(), DatetimeOpt.castObjectToDate(obj));
+                                        }
+                                        break;
+                                    case FieldType.TIMESTAMP:
+                                        if (obj.getClass().getName().startsWith("oracle.sql.TIMESTAMP")) {
+                                            // 适配 oracle的TIMESTAMP数据类型
+                                            jo.put(fields[i].getPropertyName(), rs.getTimestamp(i + 1));
+                                        } else {
+                                            jo.put(fields[i].getPropertyName(), DatetimeOpt.castObjectToSqlTimestamp(obj));
+                                        }
+                                        break;
+                                    case FieldType.JSON_OBJECT:
                                         jo.put(fields[i].getPropertyName(), JSON.parse(
                                             StringBaseOpt.castObjectToString(obj)));
-                                } else {
-                                    jo.put(fields[i].getPropertyName(), obj);
+                                        break;
+                                    default:
+                                        jo.put(fields[i].getPropertyName(), obj);
+                                        break;
                                 }
                             }
                         }
