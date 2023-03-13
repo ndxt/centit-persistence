@@ -37,9 +37,14 @@ public abstract class OrmUtils {
     }
 
     private static void putResultSetObjectToField(Object object, TableMapInfo mapInfo, SimpleTableField field,
-                                                  Object newValue)
-        throws IOException {
+                                                  ResultSet rs, int colInd)
+        throws IOException, SQLException {
         if(field==null) return;
+        Object newValue = rs.getObject(colInd);
+        if(newValue==null){
+            mapInfo.setObjectFieldValue(object, field, null);
+            return;
+        }
         if (newValue instanceof Clob) {
             String sValue = DatabaseAccess.fetchClobString((Clob) newValue);
             if (FieldType.JSON_OBJECT.equals(field.getFieldType())) {
@@ -57,18 +62,31 @@ public abstract class OrmUtils {
             mapInfo.setObjectFieldValue(object, field,
                 DatabaseAccess.fetchBlobBytes((Blob) newValue));
         } else {
-            if (FieldType.JSON_OBJECT.equals(field.getFieldType())) {
-                Class<?> clazz = field.getJavaType();
-                if (JSON.class.isAssignableFrom(clazz) || Map.class.isAssignableFrom(clazz)) {
-                    newValue = JSON.parse(StringBaseOpt.castObjectToString(newValue));
-                } else {
-                    newValue = JSON.parseObject(
-                        StringBaseOpt.castObjectToString(newValue), clazz);
-                }
-                mapInfo.setObjectFieldValue(object, field, newValue);
-            } else {
-                mapInfo.setObjectFieldValue(object, field, newValue);
+            switch(field.getFieldType()){
+                case FieldType.DATETIME:
+                case FieldType.TIMESTAMP:
+                    if (newValue.getClass().getName().startsWith("oracle.sql.TIMESTAMP")) {
+                        // 适配 oracle的TIMESTAMP数据类型
+                        mapInfo.setObjectFieldValue(object, field, rs.getTimestamp(colInd));
+                    } else {
+                        mapInfo.setObjectFieldValue(object, field, newValue);
+                    }
+                    break;
+                case FieldType.JSON_OBJECT:
+                    Class<?> clazz = field.getJavaType();
+                    if (JSON.class.isAssignableFrom(clazz) || Map.class.isAssignableFrom(clazz)) {
+                        newValue = JSON.parse(StringBaseOpt.castObjectToString(newValue));
+                    } else {
+                        newValue = JSON.parseObject(
+                            StringBaseOpt.castObjectToString(newValue), clazz);
+                    }
+                    mapInfo.setObjectFieldValue(object, field, newValue);
+                    break;
+                default:
+                    mapInfo.setObjectFieldValue(object, field, newValue);
+                    break;
             }
+
         }
     }
 
@@ -287,7 +305,7 @@ public abstract class OrmUtils {
             String columnName = resMeta.getColumnName(i);
             SimpleTableField filed = mapInfo.findFieldByColumn(columnName);
             if (filed != null) {
-                putResultSetObjectToField(object, mapInfo, filed, rs.getObject(i));
+                putResultSetObjectToField(object, mapInfo, filed, rs, i);
             }
         }
         return makeObjectValueByGenerator(object, mapInfo, null, GeneratorTime.READ);
@@ -301,7 +319,8 @@ public abstract class OrmUtils {
             fieldCount = fields.length;
         }
         for (int i = 0; i < fieldCount; i++) {
-            putResultSetObjectToField(object, mapInfo, (SimpleTableField) fields[i], rs.getObject(i + 1));
+            putResultSetObjectToField(object, mapInfo, (SimpleTableField) fields[i],
+                rs, i + 1);
         }
         return makeObjectValueByGenerator(object, mapInfo, null, GeneratorTime.READ);
     }
@@ -360,7 +379,7 @@ public abstract class OrmUtils {
         while (rs.next()) {
             T object = clazz.newInstance();
             for (int i = 0; i < fieldCount; i++) {
-                putResultSetObjectToField(object, mapInfo, (SimpleTableField) fields[i], rs.getObject(i + 1));
+                putResultSetObjectToField(object, mapInfo, (SimpleTableField) fields[i], rs,i + 1);
             }
             listObj.add(makeObjectValueByGenerator(object, mapInfo, null, GeneratorTime.READ));
         }
@@ -386,7 +405,7 @@ public abstract class OrmUtils {
             T object = clazz.newInstance();
             for (int i = 1; i <= fieldCount; i++) {
                 if (fields[i] != null) {
-                    putResultSetObjectToField(object, mapInfo, fields[i], rs.getObject(i));
+                    putResultSetObjectToField(object, mapInfo, fields[i], rs, i);
                 }
             }
             listObj.add(makeObjectValueByGenerator(object, mapInfo, null, GeneratorTime.READ));

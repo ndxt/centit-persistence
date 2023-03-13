@@ -30,7 +30,7 @@ public abstract class FieldType {
     public static final String DATETIME = "datetime";
     public static final String TIMESTAMP = "timestamp";
     public static final String FILE_ID = "fileId";
-    public static final String ENUM_ORDINAL = "enum";
+    public static final String ENUM_NAME = "enum";
 
     public static final String TEXT = "text"; // CLOB
     public static final String BYTE_ARRAY = "bytes"; // BLOB
@@ -166,8 +166,8 @@ public abstract class FieldType {
                 return "blob";//大字段
             case FILE_ID:
                 return "varchar2(64)";//默认记录文件的ID号
-            case ENUM_ORDINAL:
-                return "number(4,0)";//
+            case ENUM_NAME:
+                return "varchar2(64)";//
             default:
                 return ft;
         }
@@ -200,8 +200,8 @@ public abstract class FieldType {
                 return "blob";//大字段
             case FILE_ID:
                 return "varchar(64)";//默认记录文件的ID号
-            case ENUM_ORDINAL:
-                return "decimal(4,0)";//
+            case ENUM_NAME:
+                return "varchar(64)";//
             default:
                 return ft;
         }
@@ -240,8 +240,8 @@ public abstract class FieldType {
                 return "VarBinary(MAX)";
             case FILE_ID:
                 return "varchar(64)";//默认记录文件的ID号
-            case ENUM_ORDINAL:
-                return "decimal(4,0)";//
+            case ENUM_NAME:
+                return "varchar(64)";//
             default:
                 return ft;
         }
@@ -280,8 +280,8 @@ public abstract class FieldType {
                 return "BLOB";
             case FILE_ID:
                 return "varchar(64)";//默认记录文件的ID号
-            case ENUM_ORDINAL:
-                return "decimal(4,0)";//
+            case ENUM_NAME:
+                return "varchar(64)";//
             default:
                 return ft;
         }
@@ -323,8 +323,8 @@ public abstract class FieldType {
             case BYTE_ARRAY:
             case FILE:
                 return "VARBINARY";
-            case ENUM_ORDINAL:
-                return "smallint";//
+            case ENUM_NAME:
+                return "varchar(64)";//
             default:
                 return ft;
         }
@@ -362,8 +362,8 @@ public abstract class FieldType {
             case BYTE_ARRAY:
             case FILE:
                 return "character";
-            case ENUM_ORDINAL:
-                return "smallint";//
+            case ENUM_NAME:
+                return "varchar(64)";//
             default:
                 return ft;
         }
@@ -646,7 +646,7 @@ public abstract class FieldType {
         }
 
         if (javaType.isEnum()) {
-            return FieldType.ENUM_ORDINAL;
+            return FieldType.ENUM_NAME;
         }
 
         if (Timestamp.class.isAssignableFrom(javaType)) {
