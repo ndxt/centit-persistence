@@ -220,19 +220,14 @@ public abstract class DatabaseAccess {
                 } else if (obj instanceof Blob) {
                     jo.put(fieldNames[i], DatabaseAccess.fetchBlobBytes((Blob) obj));
                     //fetchBlobAsBase64((Blob) obj));
-                } else {
+                } else if (obj instanceof java.time.LocalDateTime || obj instanceof java.time.LocalDate) {
                     // 适配mysql 最新版本驱动 日期返回格式
-                    if(obj instanceof java.time.LocalDateTime || obj instanceof java.time.LocalDate){
-                        jo.put(fieldNames[i], DatetimeOpt.castObjectToDate(obj));
-                    } else // 适配 oracle的TIMESTAMP数据类型
-                        /*if(obj.getClass().getName().equals("oracle.sql.TIMESTAMP")) {
-                            jo.put(fieldNames[i],
-                                ReflectionOpt.invokeNoParamFunc(obj, "dateValue"));
-                    } else */ if(obj.getClass().getName().startsWith("oracle.sql.TIMESTAMP")) {
-                        jo.put(fieldNames[i], rs.getTimestamp(i+1));
-                    } else {
-                        jo.put(fieldNames[i], obj);
-                    }
+                    jo.put(fieldNames[i], DatetimeOpt.castObjectToDate(obj));
+                } else if (obj.getClass().getName().startsWith("oracle.sql.TIMESTAMP")) {
+                    // 适配 oracle的TIMESTAMP数据类型
+                    jo.put(fieldNames[i], rs.getTimestamp(i + 1));
+                } else {
+                    jo.put(fieldNames[i], obj);
                 }
             }
         }
