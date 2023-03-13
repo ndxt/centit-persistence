@@ -47,8 +47,8 @@ public class TestJDBC {
         JSONOpt.fastjsonGlobalConfig();
         DataSourceDescription dbc = new DataSourceDescription();
         dbc.setConnUrl("jdbc:oracle:thin:@192.168.137.57:1521:orcl");
-        dbc.setUsername("*************");
-        dbc.setPassword("*************");
+        dbc.setUsername("njwater");
+        dbc.setPassword("njwater");
         /* String sql = "select loginName,userName from f_userinfo " +
                 "where [:(creepforin)userCodes| usercode in (:userCodes)]";*/
 

@@ -221,12 +221,15 @@ public abstract class DatabaseAccess {
                     jo.put(fieldNames[i], DatabaseAccess.fetchBlobBytes((Blob) obj));
                     //fetchBlobAsBase64((Blob) obj));
                 } else {
-
                     // 适配mysql 最新版本驱动 日期返回格式
                     if(obj instanceof java.time.LocalDateTime || obj instanceof java.time.LocalDate){
                         jo.put(fieldNames[i], DatetimeOpt.castObjectToDate(obj));
-                    } else  if(obj.getClass().getName().equals("oracle.sql.TIMESTAMP")) {
-                        jo.put(fieldNames[i], DatetimeOpt.smartPraseDate(obj.toString()));
+                    } else // 适配 oracle的TIMESTAMP数据类型
+                        /*if(obj.getClass().getName().equals("oracle.sql.TIMESTAMP")) {
+                            jo.put(fieldNames[i],
+                                ReflectionOpt.invokeNoParamFunc(obj, "dateValue"));
+                    } else */ if(obj.getClass().getName().startsWith("oracle.sql.TIMESTAMP")) {
+                        jo.put(fieldNames[i], rs.getTimestamp(i+1));
                     } else {
                         jo.put(fieldNames[i], obj);
                     }
