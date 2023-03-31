@@ -143,6 +143,7 @@ public abstract class FieldType {
         switch (ft) {
             case STRING:
                 return "varchar2";
+            case IDENTITY:
             case INTEGER:
             case LONG:
                 return "number(12,0)";
@@ -178,8 +179,10 @@ public abstract class FieldType {
             case STRING:
                 return "lvarchar";
             case INTEGER:
-            case LONG:
                 return "int";
+            case IDENTITY:
+            case LONG:
+                return "bigint";
             case FLOAT:
             case DOUBLE:
                 return "decimal";
@@ -218,8 +221,11 @@ public abstract class FieldType {
             case STRING:
                 return "varchar";
             case INTEGER:
+                return "int";
+            case IDENTITY:
+                return "bigint identity(1,1)";
             case LONG:
-                return "decimal";
+                return "bigint";
             case DOUBLE:
             case FLOAT:
                 return "decimal";
@@ -257,6 +263,8 @@ public abstract class FieldType {
         switch (ft) {
             case STRING:
                 return "varchar";
+            case IDENTITY:
+                return "INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1 )";
             case INTEGER:
             case LONG:
                 return "INTEGER";
@@ -299,6 +307,8 @@ public abstract class FieldType {
                 return "varchar";
             case INTEGER:
                 return "INT";
+            case IDENTITY:
+                return "bigint AUTO_INCREMENT";
             case LONG:
                 return "BIGINT";
             case MONEY:
@@ -340,6 +350,8 @@ public abstract class FieldType {
                 return "varchar";
             case INTEGER:
                 return "integer";
+            case IDENTITY:
+                return "SERIAL";
             case LONG:
                 return "bigint";
             case MONEY:
@@ -418,6 +430,7 @@ public abstract class FieldType {
         fts.put(FieldType.BYTE_ARRAY, "大字段");
         fts.put(FieldType.FILE, "文件");
         fts.put(FieldType.JSON_OBJECT, "JSON对象");
+        fts.put(FieldType.IDENTITY, "自增主键");
         //fts.put(FieldType.OBJECT_LIST, "数据列表");
         return fts;
     }
@@ -596,14 +609,16 @@ public abstract class FieldType {
         } else if ("DOUBLE".equalsIgnoreCase(columnType)) {
             return FieldType.DOUBLE;
         }
-        if ("BIGINT".equalsIgnoreCase(columnType)) {
+
+        if ("BIGINT".equalsIgnoreCase(columnType) || "SERIAL".equalsIgnoreCase(columnType)) {
             return FieldType.LONG;
         }
+
         if ("INT".equalsIgnoreCase(columnType)) {
             return FieldType.INTEGER;
-        } else {
-            return columnType;
         }
+
+        return columnType;
     }
 
     public static String mapToFieldType(String columnType) {
