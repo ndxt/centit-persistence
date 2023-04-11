@@ -24,6 +24,11 @@ public enum GeneratorType {
      * uuid 22bit base64 编码
      */
     UUID22,
+
+    /**
+     * 雪花算法
+     */
+    SNOWFLAKE,
     /**
      * 常量 , 保存在value中
      */
