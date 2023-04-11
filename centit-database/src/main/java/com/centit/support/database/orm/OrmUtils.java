@@ -33,7 +33,13 @@ import java.util.Map;
 public abstract class OrmUtils {
     private static final String DNS1123 = "0123456789qwertyuiopasdfghjklzxcvbnm";
 
-    public static Snowflake SNOW_FLAKE_INSTANCE = new Snowflake();
+    private static Snowflake SNOW_FLAKE_INSTANCE = null;
+    public static Snowflake getDefaultSnowFlakeInstance(){
+        if(SNOW_FLAKE_INSTANCE==null){
+            SNOW_FLAKE_INSTANCE = new Snowflake();
+        }
+        return SNOW_FLAKE_INSTANCE;
+    }
 
     private OrmUtils() {
         throw new IllegalAccessError("Utility class");
@@ -113,7 +119,7 @@ public abstract class OrmUtils {
                             mapInfo.setObjectFieldValue(object, field, UuidOpt.getUuidAsString22());
                             break;
                         case SNOWFLAKE:
-                            mapInfo.setObjectFieldValue(object, field, SNOW_FLAKE_INSTANCE.nextId());
+                            mapInfo.setObjectFieldValue(object, field, getDefaultSnowFlakeInstance().nextId());
                             break;
                         case SEQUENCE: //序列名称 + 前缀 + 长度 + 中间补空字符串
                             //GeneratorTime.READ 读取数据时不能用 SEQUENCE 生成值
