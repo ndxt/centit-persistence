@@ -95,7 +95,7 @@ public class JdbcConfig implements EnvironmentAware {
         ds.setRemoveAbandoned(BooleanBaseOpt.castObjectToBoolean(
             env.getProperty("jdbc.removeAbandoned"), true));
         ds.setRemoveAbandonedTimeout(NumberBaseOpt.castObjectToInteger(
-            env.getProperty("jdbc.removeAbandonedTimeout"), 80));
+            env.getProperty("jdbc.removeAbandonedTimeout"), 900));
         ds.setLogAbandoned(BooleanBaseOpt.castObjectToBoolean(
             env.getProperty("jdbc.logAbandoned"), true));
         ds.setTestOnBorrow(BooleanBaseOpt.castObjectToBoolean(
