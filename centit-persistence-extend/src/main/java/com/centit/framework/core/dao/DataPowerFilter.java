@@ -184,8 +184,8 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
         public String getVarValue(String varName) {
             Object res = mapParamFormula(varName);
             if(res==null)
-                return "\"\"";
-            return StringRegularOpt.quotedString(StringBaseOpt.objectToString(res));
+                return null;
+            return StringBaseOpt.objectToString(res);
         }
     }
 
