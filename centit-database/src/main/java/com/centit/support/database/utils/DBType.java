@@ -139,12 +139,17 @@ public enum DBType {
             || "kingbase".equalsIgnoreCase(connurl))
             return KingBase;
         if (connurl.startsWith("jdbc:gbasedbt-sqli")
-            || "gbasedbt-sqli".equalsIgnoreCase(connurl))
+            || "gbase".equalsIgnoreCase(connurl))
             return GBase;
         if (connurl.startsWith("jdbc:oscar")
             || "oscar".equalsIgnoreCase(connurl))
             return Oscar;
         return Unknown;
+    }
+
+    public static DBType mapDBType(String connurl, DBType defaultType) {
+        DBType dbType =  mapDBType(connurl);
+        return dbType == Unknown ? defaultType : dbType;
     }
 
     public static DBType mapDBType(Connection conn) {
