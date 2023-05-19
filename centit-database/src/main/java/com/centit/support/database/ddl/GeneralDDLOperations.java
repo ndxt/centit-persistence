@@ -118,14 +118,18 @@ public abstract class GeneralDDLOperations implements DDLOperations {
     }
 
     @Override
-    public String makeCreateTableSql(final TableInfo tableInfo) {
+    public String makeCreateTableSql(final TableInfo tableInfo, boolean fieldStartNewLine) {
         StringBuilder sbCreate = new StringBuilder("create table ");
         sbCreate.append(tableInfo.getTableName()).append(" (");
-        appendColumnsSQL(tableInfo, sbCreate);
+        if(fieldStartNewLine){
+            sbCreate.append("\r\n");
+        }
+        appendColumnsSQL(tableInfo, sbCreate, fieldStartNewLine);
         appendPkSql(tableInfo, sbCreate);
         sbCreate.append(")");
         return sbCreate.toString();
     }
+
 
     protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
         if (tableInfo.hasParmaryKey()) {
@@ -153,13 +157,16 @@ public abstract class GeneralDDLOperations implements DDLOperations {
         sbCreate.append(")");
     }
 
-    protected void appendColumnsSQL(final TableInfo tableInfo, StringBuilder sbCreate) {
+    protected void appendColumnsSQL(final TableInfo tableInfo, StringBuilder sbCreate, boolean fieldStartNewLine) {
         for (TableField field : tableInfo.getColumns()) {
             appendColumnSQL(field, sbCreate);
             if (StringUtils.isNotBlank(field.getDefaultValue())) {
                 sbCreate.append(" default ").append(field.getDefaultValue());
             }
             sbCreate.append(",");
+            if(fieldStartNewLine){
+                sbCreate.append("\r\n");
+            }
         }
     }
 

@@ -19,9 +19,19 @@ public interface DDLOperations {
      * 创建表
      *
      * @param tableInfo 表
+     * @param fieldStartNewLine 是否每个字段单独一行
      * @return sql语句
      */
-    String makeCreateTableSql(final TableInfo tableInfo);
+    String makeCreateTableSql(final TableInfo tableInfo, boolean fieldStartNewLine);
+    /**
+     * 创建表
+     *
+     * @param tableInfo 表
+     * @return sql语句
+     */
+    default String makeCreateTableSql(final TableInfo tableInfo){
+        return makeCreateTableSql(tableInfo, false);
+    }
 
     /**
      * 删除表

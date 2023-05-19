@@ -102,9 +102,9 @@ public class DDLOperationsWork implements DDLOperations {
     }
 
     @Override
-    public String makeCreateTableSql(TableInfo tableInfo) {
+    public String makeCreateTableSql(TableInfo tableInfo, boolean fieldStartNewLine) {
         try {
-            return getDDLOperations().makeCreateTableSql(tableInfo);
+            return getDDLOperations().makeCreateTableSql(tableInfo, fieldStartNewLine);
         } catch (SQLException e) {
             logger.error(e.getMessage());
             return null;
