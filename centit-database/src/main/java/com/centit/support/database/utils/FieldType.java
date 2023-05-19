@@ -1,6 +1,7 @@
 package com.centit.support.database.utils;
 
 import com.alibaba.fastjson2.JSON;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -140,6 +141,8 @@ public abstract class FieldType {
      * @return String
      */
     public static String mapToOracleColumnType(String ft) {
+        if (StringUtils.isBlank(ft))
+            return ft;
         switch (ft) {
             case STRING:
                 return "varchar2";
@@ -175,6 +178,8 @@ public abstract class FieldType {
     }
 
     public static String mapToGBaseColumnType(String ft) {
+        if (StringUtils.isBlank(ft))
+            return ft;
         switch (ft) {
             case STRING:
                 return "lvarchar";
@@ -217,6 +222,8 @@ public abstract class FieldType {
      * @return String
      */
     public static String mapToSqlServerColumnType(String ft) {
+        if (StringUtils.isBlank(ft))
+            return ft;
         switch (ft) {
             case STRING:
                 return "varchar";
@@ -260,6 +267,8 @@ public abstract class FieldType {
      * @return String
      */
     public static String mapToDB2ColumnType(String ft) {
+        if (StringUtils.isBlank(ft))
+            return ft;
         switch (ft) {
             case STRING:
                 return "varchar";
@@ -302,6 +311,8 @@ public abstract class FieldType {
      * @return String
      */
     public static String mapToMySqlColumnType(String ft) {
+        if (StringUtils.isBlank(ft))
+            return ft;
         switch (ft) {
             case STRING:
                 return "varchar";
@@ -345,6 +356,8 @@ public abstract class FieldType {
     }
 
     public static String mapToPostgreSqlColumnType(String ft) {
+        if (StringUtils.isBlank(ft))
+            return ft;
         switch (ft) {
             case STRING:
                 return "varchar";
@@ -387,7 +400,7 @@ public abstract class FieldType {
      * @return String
      */
     public static String mapToDatabaseType(String ft, DBType dt) {
-        if (dt == null)
+        if (dt == null || StringUtils.isBlank(ft))
             return ft;
         switch (dt) {
             case SqlServer:
