@@ -133,7 +133,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
 
     protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
         if (tableInfo.hasParmaryKey()) {
-            sbCreate.append(" constraint ");
+            sbCreate.append("  constraint ");
             if (StringUtils.isBlank(tableInfo.getPkName())) {
                 sbCreate.append("pk_" + tableInfo.getTableName());
             } else {
@@ -199,7 +199,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
     }
 
     protected void appendColumnSQL(final TableField field, StringBuilder sbCreate) {
-        sbCreate.append(field.getColumnName())
+        sbCreate.append("  ").append(field.getColumnName())
             .append(" ");
         appendColumnTypeSQL(field, sbCreate);
         if (field.isMandatory()) {
