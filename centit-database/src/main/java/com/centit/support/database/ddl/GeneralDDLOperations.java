@@ -18,7 +18,6 @@ import java.util.List;
 
 public abstract class GeneralDDLOperations implements DDLOperations {
 
-
     protected Connection conn;
 
     public GeneralDDLOperations() {
@@ -129,7 +128,6 @@ public abstract class GeneralDDLOperations implements DDLOperations {
         sbCreate.append(")");
         return sbCreate.toString();
     }
-
 
     protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
         if (tableInfo.hasParmaryKey()) {
