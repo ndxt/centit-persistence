@@ -24,14 +24,14 @@ public class MySqlDDLOperations extends GeneralDDLOperations {
     @Override
     protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
         if (tableInfo.hasParmaryKey()) {
-            sbCreate.append(" primary key ");
+            sbCreate.append("  primary key ");
             appendPkColumnSql(tableInfo, sbCreate);
         }
     }
 
     @Override
     protected void appendColumnSQL(final TableField field, StringBuilder sbCreate) {
-        sbCreate.append(field.getColumnName())
+        sbCreate.append("  ").append(field.getColumnName())
             .append(" ");
         appendColumnTypeSQL(field, sbCreate);
         if (field.isMandatory()) {
