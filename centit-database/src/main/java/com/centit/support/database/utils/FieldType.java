@@ -592,6 +592,7 @@ public abstract class FieldType {
     public static String mapToFieldType(String columnType, int scale) {
         if ("NUMBER".equalsIgnoreCase(columnType) ||
             "INTEGER".equalsIgnoreCase(columnType) ||
+            "NUMERIC".equalsIgnoreCase(columnType) ||
             "DECIMAL".equalsIgnoreCase(columnType)) {
             if (scale > 0) {
                 return FieldType.DOUBLE;
