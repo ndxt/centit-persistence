@@ -97,10 +97,7 @@ public abstract class QueryUtils {
      * 小写
      */
     public static final String SQL_PRETREAT_LOWERCASE = "LOWERCASE";
-    /**
-     * 将属性名转换为字段名
-     */
-    public static final String SQL_PRETREAT_MAP_NAME_COLUMN = "NAMETOCOLUMN";
+
     /**
      * 转化为符合数字的字符串，
      */
@@ -125,6 +122,16 @@ public abstract class QueryUtils {
      * 将对象转换为 String， 如果是数组用 ','连接。
      */
     public static final String SQL_PRETREAT_STRING = "STRING";
+
+    /**
+     * 转化为驼峰结构， map_to_field
+     */
+    public static final String SQL_PRETREAT_MAPTOFIELD = "COLUMNTONAME";
+    /**
+     * 转化为下划线形式 ;
+     * 将属性名转换为字段名
+     */
+    public static final String SQL_PRETREAT_MAP_NAME_COLUMN = "NAMETOCOLUMN";
     /**
      * 将字符串 用,分割返回 String[];对于支持数组变量的spring jdbcTemplate
      * 或者hibernate中的hql用这个处理就可以了，先腾实现的jpa也支持数组参数
@@ -1392,8 +1399,7 @@ public abstract class QueryUtils {
                 return StringUtils.upperCase(StringBaseOpt.objectToString(paramValue));
             case SQL_PRETREAT_LOWERCASE:
                 return StringUtils.lowerCase(StringBaseOpt.objectToString(paramValue));
-            case SQL_PRETREAT_MAP_NAME_COLUMN:
-                return FieldType.humpNameToColumn(StringBaseOpt.objectToString(paramValue), true);
+
             case SQL_PRETREAT_NUMBER:
                 return StringRegularOpt.trimNumber(StringBaseOpt.objectToString(paramValue));
             case SQL_PRETREAT_INTEGER:
@@ -1405,7 +1411,10 @@ public abstract class QueryUtils {
                 return StringEscapeUtils.escapeHtml4(StringBaseOpt.objectToString(paramValue));
             case SQL_PRETREAT_QUOTASTR:
                 return buildStringForQuery(StringBaseOpt.objectToString(paramValue));
-
+            case SQL_PRETREAT_MAPTOFIELD:
+                return FieldType.mapPropName(StringBaseOpt.objectToString(paramValue));
+            case SQL_PRETREAT_MAP_NAME_COLUMN:
+                return FieldType.humpNameToColumn(StringBaseOpt.objectToString(paramValue), true);
             case SQL_PRETREAT_STRING:
                 return StringBaseOpt.objectToString(paramValue);
         /*case SQL_PRETREAT_SPLITFORIN:
