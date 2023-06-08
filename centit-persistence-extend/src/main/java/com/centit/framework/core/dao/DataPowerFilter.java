@@ -25,6 +25,11 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
      * 过滤条件中可以应用的数据，至少包括 userinfo 用户信息，unitinfo 用户主机构信息
      */
     private Map<String, Object> sourceData;
+    private String topUnit;
+
+    public DataPowerFilter(String topUnit){
+        this.topUnit = topUnit;
+    }
 
     public void setSourceDatas(Map<String, Object> sourceData) {
         this.sourceData = sourceData;
@@ -148,12 +153,12 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
                 String formula =  StringEscapeUtils.unescapeHtml4(paramName).trim();
                 if(formula.startsWith("*")){
                     return SysUserFilterEngine.calcSystemOperators(
-                        formula.substring(1), null, null, null, dataPowerFilter);
+                        formula.substring(1), dataPowerFilter.topUnit,null, null, null, dataPowerFilter);
                 }else {
                     return SysUnitFilterEngine.calcSystemUnitsByExp(
-                        formula, null, dataPowerFilter);
+                        formula, dataPowerFilter.topUnit, null, dataPowerFilter);
                 }
-            }else {
+            } else {
                 return dataPowerFilter.getVarValue(paramName);
             }
         }

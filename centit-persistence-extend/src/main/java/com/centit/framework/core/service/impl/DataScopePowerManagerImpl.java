@@ -23,7 +23,8 @@ public class DataScopePowerManagerImpl implements DataScopePowerManager {
 
     @Override
     public DataPowerFilter createUserDataPowerFilter(JSONObject userInfo, String topUnit, String currentUnit) {
-        DataPowerFilter dpf = new DataPowerFilter();
+
+        DataPowerFilter dpf = new DataPowerFilter(topUnit);
         //当前用户信息
         dpf.addSourceData("currentUser", userInfo);
         dpf.addSourceData("currentStation", currentUnit);
@@ -45,7 +46,7 @@ public class DataScopePowerManagerImpl implements DataScopePowerManager {
     @Override
     public DataPowerFilter createUserDataPowerFilter(CentitUserDetails userDetails) {
 
-        DataPowerFilter dpf = new DataPowerFilter();
+        DataPowerFilter dpf = new DataPowerFilter(userDetails.getTopUnitCode());
         //当前用户信息
         dpf.addSourceData("currentUser", userDetails.getUserInfo());
         dpf.addSourceData("currentUnit", userDetails.getCurrentStation());
