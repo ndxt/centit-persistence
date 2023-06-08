@@ -8,7 +8,7 @@ import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.QueryLogUtils;
-import com.centit.support.security.AESSecurityUtils;
+import com.centit.support.security.SecurityOptUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.DocumentException;
 import org.flywaydb.core.Flyway;
@@ -51,8 +51,8 @@ public class JdbcConfig implements EnvironmentAware {
         DruidDataSource ds = new DruidDataSource();
         //失败时是否进行重试连接    true:不进行重试   false：进行重试    设置为false时达蒙数据库会出现问题（会导致达蒙连接撑爆挂掉）
         ds.setDriverClassName(env.getProperty("jdbc.driver")); //DBType.getDbDriver(dbType)
-        ds.setUsername(AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.user")));
-        ds.setPassword(AESSecurityUtils.decryptParameterString(env.getProperty("jdbc.password")));
+        ds.setUsername(SecurityOptUtils.decodeSecurityString(env.getProperty("jdbc.user")));
+        ds.setPassword(SecurityOptUtils.decodeSecurityString(env.getProperty("jdbc.password")));
         ds.setUrl(env.getProperty("jdbc.url"));
         ds.setInitialSize(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.initSize"), 5));
         ds.setMaxActive(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxActive"),100));

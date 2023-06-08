@@ -6,7 +6,6 @@ import com.centit.framework.model.adapter.UserUnitVariableTranslate;
 import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.common.LeftRightPair;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.compiler.VariableFormula;

@@ -6,7 +6,6 @@ import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.DatabaseAccess;
 import com.centit.support.database.utils.DbcpConnectPools;
 import com.centit.support.json.JSONOpt;
-import com.centit.support.security.SecurityOptUtils;
 
 import java.sql.Connection;
 
