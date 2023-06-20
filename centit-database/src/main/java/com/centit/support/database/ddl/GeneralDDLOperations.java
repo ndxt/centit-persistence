@@ -1,9 +1,8 @@
 package com.centit.support.database.ddl;
 
+import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.compiler.Lexer;
-import com.centit.support.database.metadata.SimpleTableField;
-import com.centit.support.database.metadata.TableField;
-import com.centit.support.database.metadata.TableInfo;
+import com.centit.support.database.metadata.*;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.DatabaseAccess;
 import com.centit.support.database.utils.QueryUtils;
@@ -95,6 +94,87 @@ public abstract class GeneralDDLOperations implements DDLOperations {
             return new ImmutablePair<>(-1, "视图名" + tableInfo.getTableName() + "格式不正确！");
         }
         return new ImmutablePair<>(0, "ok！");
+    }
+
+    public static final SimpleTableInfo parseDDL(final String createSql) {
+        SimpleTableInfo tableInfo = new SimpleTableInfo();
+        Lexer sql = new Lexer(createSql);
+        String aWrod = sql.getAWord();
+        //获取表名
+        while(StringUtils.isNotBlank(aWrod) && !"table".equalsIgnoreCase(aWrod)){
+            aWrod = sql.getAWord();
+        }
+        aWrod = sql.getAWord();
+        tableInfo.setTableName(aWrod);
+        aWrod = sql.getAWord();
+        while(StringUtils.isNotBlank(aWrod) && !"(".equalsIgnoreCase(aWrod)){
+            aWrod = sql.getAWord();
+        }
+        aWrod = sql.getAWord();
+        //获取字段
+        while(StringUtils.isNotBlank(aWrod)){
+            if("constraint".equalsIgnoreCase(aWrod) || "primary".equalsIgnoreCase(aWrod)){
+                while(StringUtils.isNotBlank(aWrod) && !"(".equalsIgnoreCase(aWrod)){
+                    aWrod = sql.getAWord();
+                }
+                aWrod = sql.getAWord();
+                SimpleTableField column = tableInfo.findFieldByColumn(aWrod);
+                if(column !=null){
+                    column.setPrimaryKey(true);
+                }
+                aWrod = sql.getAWord();
+                while(",".equals(aWrod)){
+                    aWrod = sql.getAWord();
+                    column = tableInfo.findFieldByColumn(aWrod);
+                    if(column !=null){
+                        column.setPrimaryKey(true);
+                    }
+                    aWrod = sql.getAWord();
+                }
+            } else { // VC_ID varchar(32) not null primary key comment 'VC_ID(主键)',
+                SimpleTableField column = new SimpleTableField();
+                column.setColumnName(aWrod);
+                aWrod = sql.getAWord();
+                column.setColumnType(aWrod);
+                aWrod = sql.getAWord();
+                while(StringUtils.isNotBlank(aWrod) && !",".equals(aWrod)) {
+                    if ("(".equals(aWrod)) {
+                        aWrod = sql.getAWord();
+                        column.setMaxLength(NumberBaseOpt.castObjectToInteger(aWrod, 0));
+                        aWrod = sql.getAWord();
+                        if (",".equals(aWrod)) {
+                            aWrod = sql.getAWord();
+                            column.setScale(NumberBaseOpt.castObjectToInteger(aWrod, 0));
+                        } else if (!")".equals(aWrod)) {
+                            sql.seekToRightBracket();
+                        }
+                    } else if ("not".equalsIgnoreCase(aWrod)) {
+                        aWrod = sql.getAWord();
+                        if ("null".equals(aWrod)) {
+                            column.setMandatory(true);
+                        }
+                    } else if ("primary".equalsIgnoreCase(aWrod)) {
+                        aWrod = sql.getAWord();
+                        if ("key".equals(aWrod)) {
+                            column.setPrimaryKey(true);
+                        }
+                    } else if ("comment".equalsIgnoreCase(aWrod)) {
+                        aWrod = sql.getAWord();
+                        column.setFieldLabelName(aWrod);
+                        column.setColumnComment(aWrod);
+                    }
+                    aWrod = sql.getAWord();
+                }
+                tableInfo.addColumn(column);
+            }
+
+            while(StringUtils.isNotBlank(aWrod) && !",".equals(aWrod)){
+                aWrod = sql.getAWord();
+            }
+            aWrod = sql.getAWord();
+        }
+
+        return tableInfo;
     }
 
     public void setConnect(Connection conn) {

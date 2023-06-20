@@ -182,14 +182,18 @@ public class SimpleTableInfo implements TableInfo {
      */
     @Override
     public SimpleTableField findFieldByColumn(String name) {
+        if(columns==null) return null;
+
         for (SimpleTableField col : columns) {
             if (col.getColumnName().equalsIgnoreCase(name))
                 return col;
         }
+
         for (SimpleTableField col : columns) {
-            if (col.getPropertyName().equals(name))
+            if (StringUtils.equals(col.getPropertyName(), name))
                 return col;
         }
+
         return null;
     }
 
