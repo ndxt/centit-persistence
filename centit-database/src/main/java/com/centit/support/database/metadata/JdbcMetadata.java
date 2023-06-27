@@ -83,7 +83,6 @@ public class JdbcMetadata implements DatabaseMetadata {
                 field.setColumnName(rs.getString("COLUMN_NAME"));
                 field.setColumnType(rs.getString("TYPE_NAME"));
                 field.setMaxLength(rs.getInt("COLUMN_SIZE"));
-                field.setPrecision(rs.getInt("COLUMN_SIZE"));
                 field.setScale(rs.getInt("DECIMAL_DIGITS"));
                 field.setNullEnable(rs.getString("NULLABLE"));
                 field.setColumnComment(rs.getString("REMARKS"));

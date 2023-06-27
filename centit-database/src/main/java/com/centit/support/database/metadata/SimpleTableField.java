@@ -1,7 +1,9 @@
 package com.centit.support.database.metadata;
 
+import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.common.JavaBeanField;
+import com.centit.support.compiler.Lexer;
 import com.centit.support.database.utils.FieldType;
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,8 +23,8 @@ public class SimpleTableField implements TableField {
     //private String javaTypeFullName;
     private String fieldType;
     private boolean mandatory;
-    private Integer maxLength;//最大长度 Only used when sType=String
-    private Integer precision;//有效数据位数 Only used when sType=Long Number Float
+    private Integer maxLength;//最大长度 Only used when sType=String union
+    // precision;//有效数据位数 Only used when sType=Long Number Float
     private Integer scale;//精度 Only used when sType= Long Number Float
 
     private JavaBeanField beanField;
@@ -33,8 +35,7 @@ public class SimpleTableField implements TableField {
         mandatory = false;
         lazyFetch = false;
         primaryKey = false;
-        maxLength = 0;
-        precision = 0;//有效数据位数 Only used when sType=Long Number Float
+        maxLength = 0; //有效数据位数 Only used when sType=Long Number Float
         scale = 0;//精度 Only used when sType= Long Number Float
     }
 
@@ -202,21 +203,6 @@ public class SimpleTableField implements TableField {
     }
 
     /**
-     * 有效数据位数 Only used when sType=Long Number Float
-     * 这个和maxlength其实可以共用一个字段
-     *
-     * @return 有效数据位数
-     */
-    @Override
-    public Integer getPrecision() {
-        return precision;
-    }
-
-    public void setPrecision(Integer precision) {
-        this.precision = precision;
-    }
-
-    /**
      * 精度 Only used when sType= Long Number Float
      *
      * @return 精度
@@ -244,8 +230,21 @@ public class SimpleTableField implements TableField {
         if (type != null) {
             columnType = type.trim();
             int nPos = columnType.indexOf('(');
-            if (nPos > 0)
+            if (nPos > 0) {
+                Lexer lexer = new Lexer(columnType.substring(nPos+1));
+                String aWord = lexer.getAWord();
+                if(StringRegularOpt.isDigit(aWord)){
+                    maxLength = NumberBaseOpt.castObjectToInteger(aWord, 0);
+                }
+                aWord = lexer.getAWord();
+                if(",".equals(aWord)){
+                    aWord = lexer.getAWord();
+                    if(StringRegularOpt.isDigit(aWord)){
+                        scale = NumberBaseOpt.castObjectToInteger(aWord, 0);
+                    }
+                }
                 columnType = columnType.substring(0, nPos);
+            }
         }
     }
 

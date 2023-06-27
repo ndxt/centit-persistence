@@ -2,7 +2,10 @@ package com.centit.support.database.ddl;
 
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.compiler.Lexer;
-import com.centit.support.database.metadata.*;
+import com.centit.support.database.metadata.SimpleTableField;
+import com.centit.support.database.metadata.SimpleTableInfo;
+import com.centit.support.database.metadata.TableField;
+import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.DatabaseAccess;
 import com.centit.support.database.utils.QueryUtils;
@@ -258,8 +261,8 @@ public abstract class GeneralDDLOperations implements DDLOperations {
                 sbCreate.append("(64)");
             }
         } else if ("number".equalsIgnoreCase(field.getColumnType()) || "decimal".equalsIgnoreCase(field.getColumnType())) {
-            if (field.getPrecision() > 0) {
-                sbCreate.append("(").append(field.getPrecision());
+            if (field.getMaxLength() > 0) {
+                sbCreate.append("(").append(field.getMaxLength());
             } else {
                 sbCreate.append("(").append(24);
             }

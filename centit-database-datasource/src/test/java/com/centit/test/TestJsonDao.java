@@ -30,7 +30,7 @@ public class TestJsonDao {
             SimpleTableField field = new SimpleTableField();
             field.setColumnName("ID");
             field.setColumnType("Number(10)");
-            field.setPrecision(10);
+            field.setMaxLength(10);
             field.setScale(0);
             field.setMandatory(true);
             field.setPropertyName("id");

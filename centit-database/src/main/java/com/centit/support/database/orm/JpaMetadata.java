@@ -130,9 +130,12 @@ public abstract class JpaMetadata {
         column.setColumnName(colInfo.name());
         column.setFieldType(FieldType.mapToFieldType(field.getType()));
         column.setPropertyName(field.getName());
-        column.setMaxLength(colInfo.length());
         column.setScale(colInfo.scale());
-        column.setPrecision(colInfo.precision());
+        column.setMaxLength(colInfo.length());
+
+        if(colInfo.precision()!=0) {
+            column.setMaxLength(colInfo.precision());
+        }
         column.setObjectField(field);
     }
 

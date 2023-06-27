@@ -1,5 +1,6 @@
 package com.centit.support.database.ddl;
 
+import com.centit.support.algorithm.GeneralAlgorithm;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,8 +29,8 @@ public class DB2DDLOperations extends GeneralDDLOperations {
         sbsql.append(tableCode);
 
         if (!StringUtils.equalsIgnoreCase(oldColumn.getColumnType(), column.getColumnType())
-            || !oldColumn.getMaxLength().equals(column.getMaxLength())
-            || !oldColumn.getPrecision().equals(column.getPrecision())) {
+            || !GeneralAlgorithm.equals(oldColumn.getMaxLength(), column.getMaxLength())
+            || !GeneralAlgorithm.equals(oldColumn.getScale(), column.getScale())) {
             sbsql.append(" alter column ")
                 .append(column.getColumnName())
                 .append(" set data type ");

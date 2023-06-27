@@ -123,7 +123,6 @@ public class PdmReader implements DatabaseMetadata {
             String stemp = getElementText(col, "a", "Length");
             if (stemp != null) {
                 field.setMaxLength(Integer.valueOf(stemp));
-                field.setPrecision(Integer.valueOf(stemp));
             }
             //PDM 中的这个定义和数据库中的好像不一致
             stemp = getElementText(col, "a", "Precision");
@@ -202,57 +201,6 @@ public class PdmReader implements DatabaseMetadata {
                 ref.addReferenceColumn(pkColID, columnName);
             }
             tab.addReference(ref);
-        }
-        return tab;
-    }
-
-    public HibernateMapInfo toHibernateMetadata(SimpleTableInfo tableMeta) {
-
-        HibernateMapInfo hibernateMeta = new HibernateMapInfo();
-        hibernateMeta.setClassName(tableMeta.getPackageName() + '.' + tableMeta.getClassName());
-        hibernateMeta.setTableName(tableMeta.getTableName().toUpperCase());
-        hibernateMeta.setTableLabelName(tableMeta.getTableLabelName());
-        hibernateMeta.setTableComment(tableMeta.getTableComment());
-        hibernateMeta.setMainTable(true);
-        hibernateMeta.setComplexId(tableMeta.countPkColumn() > 1);
-        if (hibernateMeta.isComplexId()) {
-            hibernateMeta.setIdType(tableMeta.getPackageName() + '.' + tableMeta.getClassName() + "Id");
-            hibernateMeta.setIdName("cid");
-        } else if (tableMeta.countPkColumn() == 1) {
-            TableField field = tableMeta.getPkFields().get(0);
-            hibernateMeta.setIdType(field.getJavaType().getName());
-            hibernateMeta.setIdName(field.getPropertyName());
-        }
-
-        for (SimpleTableField col : tableMeta.getColumns()) {
-            if (tableMeta.isParmaryKey(col.getColumnName())) {
-                hibernateMeta.getKeyProperties().add(col);
-            } else {
-                hibernateMeta.getProperties().add(col);
-            }
-        }
-
-        hibernateMeta.setReferences(tableMeta.getReferences());
-
-        return hibernateMeta;
-    }
-
-    public HibernateMapInfo getHibernateMetadata(String tabName, String sPackageName) {
-        SimpleTableInfo tabMeta = this.getTableMetadata(tabName);
-        if (tabMeta == null)
-            return null;
-        tabMeta.setPackageName(sPackageName);
-        HibernateMapInfo tab = toHibernateMetadata(tabMeta);
-        for (SimpleTableReference ref : tab.getReferences()) {
-
-            SimpleTableInfo subTabMeta = this.getTableMetadata(ref.getTableName());
-            subTabMeta.setPackageName(sPackageName);
-
-            HibernateMapInfo subTab =
-                toHibernateMetadata(subTabMeta);
-
-            subTab.setMainTable(false);
-            tab.getOne2manys().add(subTab);
         }
         return tab;
     }

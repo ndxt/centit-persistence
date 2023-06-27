@@ -54,20 +54,14 @@ public interface TableField {
     boolean isLazyFetch();
 
     /**
+     * 有效数据位数 Only used when sType=Long Number Float
+     * 这个和maxlength其实可以共用一个字段
      * 最大长度 Only used when sType=String
      * 这个和Precision其实可以共用一个字段
      *
      * @return 最大长度
      */
     Integer getMaxLength();
-
-    /**
-     * 有效数据位数 Only used when sType=Long Number Float
-     * 这个和maxlength其实可以共用一个字段
-     *
-     * @return 有效数据位数
-     */
-    Integer getPrecision();
 
     /**
      * 精度 Only used when sType= Long Number Float

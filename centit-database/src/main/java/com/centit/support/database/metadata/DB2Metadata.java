@@ -65,7 +65,6 @@ public class DB2Metadata implements DatabaseMetadata {
                     field.setColumnName(rs.getString("name"));
                     field.setColumnType(rs.getString("coltype"));
                     field.setMaxLength(rs.getInt("length"));
-                    field.setPrecision(field.getMaxLength());
                     field.setScale(rs.getInt("scale"));
                     field.setNullEnable(rs.getString("nulls"));
                     field.mapToMetadata();

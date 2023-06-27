@@ -1,5 +1,6 @@
 package com.centit.support.database.ddl;
 
+import com.centit.support.algorithm.GeneralAlgorithm;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
@@ -46,8 +47,8 @@ public class MySqlDDLOperations extends GeneralDDLOperations {
         Boolean modify=false;
         sbsql.append(" MODIFY COLUMN  ").append(column.getColumnName()).append(" ");
         if (!StringUtils.equalsIgnoreCase(oldColumn.getColumnType(), column.getColumnType())
-            || !oldColumn.getMaxLength().equals(column.getMaxLength())
-            || !oldColumn.getPrecision().equals(column.getPrecision())) {
+            || !GeneralAlgorithm.equals(oldColumn.getMaxLength(), column.getMaxLength())
+            || !GeneralAlgorithm.equals(oldColumn.getScale(), column.getScale())) {
             appendColumnTypeSQL(column, sbsql);
             modify=true;
         }

@@ -67,7 +67,7 @@ public class TestJDBCDDL {
             SimpleTableField tablfilef = new SimpleTableField();
             tablfilef.setColumnName("f1");
             tablfilef.setColumnType("DECIMAL");
-            tablfilef.setPrecision(8);
+            tablfilef.setMaxLength(8);
             tablfilef.setScale(2);
             tf.add(tablfilef);
             tableinfo.setColumnAsPrimaryKey("c1");
@@ -79,11 +79,11 @@ public class TestJDBCDDL {
             SimpleTableField tablfilef2 = new SimpleTableField();
             tablfilef2.setColumnName("f2");
             tablfilef2.setColumnType("DECIMAL");
-            tablfilef2.setPrecision(8);
+            tablfilef2.setMaxLength(8);
             tablfilef2.setScale(2);
             ddl.addColumn("ddltemp", tablfilef2);
             ddl.dropColumn("ddltemp", "f1");
-            tablfilef2.setPrecision(10);
+            tablfilef2.setMaxLength(10);
             tablfilef2.setScale(2);
             ddl.modifyColumn("ddltemp", tablfilef2, tablfilef2);
 
@@ -147,7 +147,7 @@ public class TestJDBCDDL {
             SimpleTableField tablfilef = new SimpleTableField();
             tablfilef.setColumnName("f1");
             tablfilef.setColumnType("DECIMAL");
-            tablfilef.setPrecision(8);
+            tablfilef.setMaxLength(8);
             tablfilef.setScale(2);
             tf.add(tablfilef);
             tableinfo.setColumnAsPrimaryKey("c1");
@@ -159,13 +159,13 @@ public class TestJDBCDDL {
             SimpleTableField tablfilef2 = new SimpleTableField();
             tablfilef2.setColumnName("fest2");
             tablfilef2.setColumnType("DECIMAL");
-            tablfilef2.setPrecision(8);
+            tablfilef2.setMaxLength(8);
             tablfilef2.setScale(2);
             ddl.addColumn("ddltemp", tablfilef2);
             conn.commit();
             ddl.dropColumn("ddltemp", "f1");
             conn.commit();
-            tablfilef2.setPrecision(10);
+            tablfilef2.setMaxLength(10);
             tablfilef2.setScale(2);
             ddl.modifyColumn("ddltemp", tablfilef2, tablfilef2);
             conn.commit();
@@ -211,7 +211,7 @@ public class TestJDBCDDL {
             SimpleTableField tablfilef = new SimpleTableField();
             tablfilef.setColumnName("f1");
             tablfilef.setColumnType("DECIMAL");
-            tablfilef.setPrecision(8);
+            tablfilef.setMaxLength(8);
             tablfilef.setScale(2);
             tf.add(tablfilef);
             tableinfo.setColumnAsPrimaryKey("c1");
@@ -223,13 +223,13 @@ public class TestJDBCDDL {
             SimpleTableField tablfilef2 = new SimpleTableField();
             tablfilef2.setColumnName("fest2");
             tablfilef2.setColumnType("DECIMAL");
-            tablfilef2.setPrecision(8);
+            tablfilef2.setMaxLength(8);
             tablfilef2.setScale(2);
             ddl.addColumn("ddltemp", tablfilef2);
             conn.commit();
             ddl.dropColumn("ddltemp", "f1");
             conn.commit();
-            tablfilef2.setPrecision(10);
+            tablfilef2.setMaxLength(10);
             tablfilef2.setScale(2);
             ddl.modifyColumn("ddltemp", tablfilef2, tablfilef2);
             conn.commit();

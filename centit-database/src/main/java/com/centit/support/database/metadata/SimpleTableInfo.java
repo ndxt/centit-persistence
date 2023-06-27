@@ -1,20 +1,17 @@
 package com.centit.support.database.metadata;
 
 import com.centit.support.database.utils.FieldType;
-import com.centit.support.file.FileSystemOpt;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
 import org.dom4j.io.XMLWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 
 @SuppressWarnings("unused")
 public class SimpleTableInfo implements TableInfo {
@@ -195,149 +192,6 @@ public class SimpleTableInfo implements TableInfo {
         }
 
         return null;
-    }
-
-    private void saveProperty(SimpleTableField field, Element propElt, boolean keyProp) {
-        propElt.addAttribute("name", field.getPropertyName());
-        propElt.addAttribute("type", field.getJavaType().getName());
-        Element colElt = propElt.addElement("column");
-        saveColumn(field, colElt, keyProp);
-    }
-
-    private void saveColumn(SimpleTableField field, Element colElt, boolean keyProp) {
-        colElt.addAttribute("name", field.getColumnName().toUpperCase());
-        if (FieldType.LONG.equals(field.getFieldType()) || FieldType.DOUBLE.equals(field.getFieldType())
-            || FieldType.INTEGER.equals(field.getFieldType()) || FieldType.FLOAT.equals(field.getFieldType())) {
-            colElt.addAttribute("precision", String.valueOf(field.getPrecision()));
-            colElt.addAttribute("scale", String.valueOf(field.getScale()));
-        } else if (field.getMaxLength() > 0)
-            colElt.addAttribute("length", String.valueOf(field.getMaxLength()));
-
-        if (!keyProp && field.isMandatory())
-            colElt.addAttribute("not-null", "true");
-    }
-
-    private void setAppPropertiesValue(Properties prop, String key, String value) {
-        String sKey = /*sModuleName +'.'+ */ FieldType.mapPropName(tableName) + '.' + key;
-        if (!prop.containsKey(sKey))
-            prop.setProperty(sKey, value);
-    }
-
-    public void addResource(String filename) {
-
-        try {
-            Properties prop = new Properties();
-            if (FileSystemOpt.existFile(filename + "_zh_CN.properties")) {
-                try (FileInputStream fis = new FileInputStream(filename + "_zh_CN.properties")) {
-                    prop.load(fis);
-                }
-            }
-
-            setAppPropertiesValue(prop, "list.title", tableLabelName + "列表");
-            setAppPropertiesValue(prop, "edit.title", "编辑" + tableLabelName);
-            setAppPropertiesValue(prop, "view.title", "查看" + tableLabelName);
-            for (SimpleTableField col : columns)
-                setAppPropertiesValue(prop, FieldType.mapPropName(col.getColumnName()), col.getFieldLabelName());
-
-            try (FileOutputStream outputFile = new FileOutputStream(filename + "_zh_CN.properties")) {
-                prop.store(outputFile, "create by centit B/S framework!");
-                //outputFile.close();
-            }
-            //prop.list(System.out);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);//e.printStackTrace();
-        }
-
-        try {
-            Properties prop = new Properties();
-            if (FileSystemOpt.existFile(filename + ".properties")) {
-                try (FileInputStream fis = new FileInputStream(filename + ".properties")) {
-                    prop.load(fis);
-                }
-            }
-
-            setAppPropertiesValue(prop, "list.title", FieldType.mapPropName(tableName) + " list");
-            setAppPropertiesValue(prop, "edit.title", "new or edit " + FieldType.mapPropName(tableName) + " piece");
-            setAppPropertiesValue(prop, "view.title", "view " + FieldType.mapPropName(tableName) + " piece");
-            for (SimpleTableField col : columns)
-                setAppPropertiesValue(prop, FieldType.mapPropName(col.getColumnName()), col.getPropertyName());
-
-            try (FileOutputStream outputFile = new FileOutputStream(filename + ".properties")) {
-                prop.store(outputFile, "create by centit B/S framework!");
-                //outputFile.close();
-            }
-            //prop.list(System.out);
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);//e.printStackTrace();
-        }
-    }
-
-    public void saveHibernateMappingFile(String filename) {
-        Document doc = null;
-
-        if (FileSystemOpt.existFile(filename)) {
-            System.out.println("文件：" + filename + " 已存在！");
-            return;
-        }
-
-        doc = DocumentHelper.createDocument();
-        //doc.addProcessingInstruction("xml", "version=\"1.0\" encoding=\"utf\"");
-        doc.addDocType("hibernate-mapping", "-//Hibernate/Hibernate Mapping DTD 3.0//EN",
-            "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd");
-        doc.addComment("Mapping file autogenerated by codefan@centit.com");
-        Element root = doc.addElement("hibernate-mapping");//首先建立根元素
-        //create class
-        Element classElt = root.addElement("class");
-        classElt.addAttribute("name", packageName + '.' + getClassName());
-        classElt.addAttribute("table", tableName.toUpperCase());
-        classElt.addAttribute("schema", schema);
-        //save primary key
-        List<? extends TableField> pkColumns = getPkFields();
-        if (pkColumns.size() > 1) {
-            Element idElt = classElt.addElement("composite-id");
-            idElt.addAttribute("name", "cid");
-            idElt.addAttribute("class", packageName + '.' + getClassName() + "Id");
-            for (TableField field : pkColumns) {
-                if (field != null) {
-                    Element keyElt = idElt.addElement("key-property");
-                    saveProperty((SimpleTableField) field, keyElt, true);
-                    //colElt.addAttribute("not-null", "true");
-                }
-            }
-        } else if (pkColumns.size() == 1) {
-            Element idElt = classElt.addElement("id");
-            TableField field = pkColumns.get(0);
-            saveProperty((SimpleTableField) field, idElt, true);
-            Element genElt = idElt.addElement("generator");
-            genElt.addAttribute("class", "assigned");
-        }
-        //save property
-        if (columns != null) {
-            for (Iterator<SimpleTableField> it = columns.iterator(); it.hasNext(); ) {
-                SimpleTableField col = it.next();
-                if (isParmaryKey(col.getColumnName()))
-                    continue;
-                Element propElt = classElt.addElement("property");
-                saveProperty(col, propElt, false);
-            }
-        }
-        if (references != null) {
-            for (Iterator<SimpleTableReference> it = references.iterator(); it.hasNext(); ) {
-                SimpleTableReference ref = it.next();
-                Element setElt = classElt.addElement("set");
-                setElt.addAttribute("name", FieldType.mapPropName(ref.getTableName()) + 's');
-                setElt.addAttribute("cascade", "all-delete-orphan");//"all-delete-orphan")//save-update,delete;
-                setElt.addAttribute("inverse", "true");
-                Element keyElt = setElt.addElement("key");
-                /*for(SimpleTableField col :ref.getFkColumns()){
-                    Element colElt = keyElt.addElement("column");
-                    saveColumn(col,colElt,false);
-                }*/
-                Element maptypeElt = setElt.addElement("one-to-many");
-                maptypeElt.addAttribute("class", packageName + '.' + ref.getClassName());
-            }
-        }
-        writerXMLFile(doc, filename);
     }
 
     public List<SimpleTableField> getColumns() {
