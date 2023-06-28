@@ -84,7 +84,7 @@ public class SqlSvrMetadata implements DatabaseMetadata {
                     field.setColumnType(rs.getString("typename"));
                     int l = rs.getInt("length");
                     int p = rs.getInt("xprec");
-                    field.setMaxLength(l>p ? l : p);
+                    field.setMaxLength(p >0 ? p : l);
                     field.setScale(rs.getInt("xscale"));
                     field.setNullEnable(rs.getString("isnullable"));
                     field.mapToMetadata();

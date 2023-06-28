@@ -70,7 +70,7 @@ public class OracleMetadata implements DatabaseMetadata {
                     field.setColumnType(rs.getString("DATA_TYPE"));
                     int l = rs.getInt("DATA_LENGTH");
                     int p = rs.getInt("DATA_PRECISION");
-                    field.setMaxLength(l>p ? l : p);
+                    field.setMaxLength(p >0 ? p : l);
                     field.setScale(rs.getInt("DATA_SCALE"));
                     field.setNullEnable(rs.getString("NULLABLE"));
                     field.mapToMetadata();
