@@ -1,6 +1,7 @@
 package com.centit.support.database.ddl;
 
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.common.ObjectException;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.SimpleTableInfo;
@@ -30,8 +31,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
         this.conn = conn;
     }
 
-    public static GeneralDDLOperations createDDLOperations(final DBType dbtype)
-        throws SQLException {
+    public static GeneralDDLOperations createDDLOperations(final DBType dbtype) {
         switch (dbtype) {
             case Oracle:
             case DM:
@@ -51,7 +51,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
                 return new PostgreSqlDDLOperations();
             case Access:
             default:
-                throw new SQLException("不支持的数据库类型：" + dbtype.toString());
+                throw new ObjectException("不支持的数据库类型：" + dbtype);
         }
     }
 

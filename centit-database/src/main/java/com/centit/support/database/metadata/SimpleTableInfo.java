@@ -250,6 +250,7 @@ public class SimpleTableInfo implements TableInfo {
         return null;
     }
 
+    @Override
     public String getTableType() {
         return tableType;
     }

@@ -36,6 +36,11 @@ public interface TableInfo {
     String getSchema();
 
     /**
+     * 类别 表 T table /视图 V view / C-大字段 目前只支持json格式
+     */
+    String getTableType();
+
+    /**
      * @return 默认排序语句
      */
     String getOrderBy();
