@@ -96,6 +96,9 @@ public class SqlSvrMetadata implements DatabaseMetadata {
             logger.error(e1.getLocalizedMessage(), e1);
         }
 
+        if(tab.getColumns().size()==0){
+            return null;
+        }
         // get primary key
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlPKName)) {
             pStmt.setString(1, tabName);

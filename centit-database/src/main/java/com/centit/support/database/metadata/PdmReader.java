@@ -93,7 +93,7 @@ public class PdmReader implements DatabaseMetadata {
     }
 
     public SimpleTableInfo getTableMetadata(String tabName) {
-        pkColumnIDs = new ArrayList<String>();
+        pkColumnIDs = new ArrayList<>();
         if (doc == null)
             return null;
         SimpleTableInfo tab = new SimpleTableInfo(tabName.toUpperCase());

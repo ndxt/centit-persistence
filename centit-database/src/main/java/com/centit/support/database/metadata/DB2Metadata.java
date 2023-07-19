@@ -75,6 +75,11 @@ public class DB2Metadata implements DatabaseMetadata {
         } catch (SQLException e) {
             logger.error(e.getLocalizedMessage(), e);
         }
+
+        if(tab.getColumns().size()==0){
+            return null;
+        }
+
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlPKInfo)) {
             pStmt.setString(1, sDBSchema);
             pStmt.setString(2, tabName);

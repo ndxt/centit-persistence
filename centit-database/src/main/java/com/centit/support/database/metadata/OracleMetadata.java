@@ -81,6 +81,10 @@ public class OracleMetadata implements DatabaseMetadata {
         } catch (SQLException e) {
             logger.error(e.getLocalizedMessage(), e);
         }
+
+        if(tab.getColumns().size()==0){
+            return null;
+        }
         // get primary key
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlPKName)) {
             pStmt.setString(1, tabName);

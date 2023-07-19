@@ -133,9 +133,10 @@ public class JdbcMetadata implements DatabaseMetadata {
             String dbCatalog = this.getDBCatalog();
             DatabaseMetaData dbmd = dbc.getMetaData();
             ResultSet rs = dbmd.getTables(dbCatalog, dbSechema, tabName, null);
-            if (rs.next()) {
-                tab.setTableLabelName(rs.getString("REMARKS"));
+            if (!rs.next()) {
+                return null;
             }
+            tab.setTableLabelName(rs.getString("REMARKS"));
             String tt = rs.getString("TABLE_TYPE");
             if ("view".equalsIgnoreCase(tt) || "table".equalsIgnoreCase(tt)) {
                 tab.setTableType("view".equalsIgnoreCase(tt) ? "V" : "T");
