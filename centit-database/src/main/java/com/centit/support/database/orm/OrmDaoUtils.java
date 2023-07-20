@@ -4,6 +4,7 @@ import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.ReflectionOpt;
 import com.centit.support.algorithm.StringBaseOpt;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
 import com.centit.support.database.metadata.SimpleTableField;
@@ -47,7 +48,7 @@ public abstract class OrmDaoUtils {
             return GeneralJsonObjectDao.createJsonObjectDao(connection)
                 .getSequenceNextValue(sequenceName);
         } catch (SQLException | IOException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
@@ -55,34 +56,34 @@ public abstract class OrmDaoUtils {
         try {
             return GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
         } catch (SQLException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
-    public static <T> int saveNewObject(Connection connection, T object) throws PersistenceException {
+    public static <T> int saveNewObject(Connection connection, T object) throws ObjectException {
         try {
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
             JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
             object = OrmUtils.prepareObjectForInsert(object, mapInfo, sqlDialect);
             return sqlDialect.saveNewObject(OrmUtils.fetchObjectDatabaseField(object, mapInfo));
         } catch (IOException | SQLException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
     public static <T>  Map<String, Object> saveNewObjectAndFetchGeneratedKeys(Connection connection, T object)
-        throws PersistenceException {
+        throws ObjectException {
         try {
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
             JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
             object = OrmUtils.prepareObjectForInsert(object, mapInfo, sqlDialect);
             return sqlDialect.saveNewObjectAndFetchGeneratedKeys(OrmUtils.fetchObjectDatabaseField(object, mapInfo));
         } catch (IOException | SQLException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
-    public static <T> int updateObject(Connection connection, T object) throws PersistenceException {
+    public static <T> int updateObject(Connection connection, T object) throws ObjectException {
         try {
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
             JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
@@ -90,7 +91,7 @@ public abstract class OrmDaoUtils {
 
             return sqlDialect.updateObject(OrmUtils.fetchObjectDatabaseField(object, mapInfo));
         } catch (IOException | SQLException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
@@ -102,10 +103,10 @@ public abstract class OrmDaoUtils {
      * @param object     修改的对象，主键必须有值
      * @param <T>        对象类型
      * @return 更改的记录数
-     * @throws PersistenceException 运行时异常
+     * @throws ObjectException 运行时异常
      */
     public static <T> int updateObject(Connection connection, Collection<String> fields, T object)
-        throws PersistenceException {
+        throws ObjectException {
         try {
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
             JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
@@ -113,7 +114,7 @@ public abstract class OrmDaoUtils {
 
             return sqlDialect.updateObject(fields, OrmUtils.fetchObjectDatabaseField(object, mapInfo));
         } catch (IOException | SQLException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
@@ -126,12 +127,12 @@ public abstract class OrmDaoUtils {
      * @param propertiesFilter 过滤条件对
      * @param <T>              类型
      * @return 更改的条数
-     * @throws PersistenceException 运行时异常
+     * @throws ObjectException 运行时异常
      */
     public static <T> int batchUpdateObject(
         Connection connection, Collection<String> fields, T object,
         Map<String, Object> propertiesFilter)
-        throws PersistenceException {
+        throws ObjectException {
         try {
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
             JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
@@ -142,7 +143,7 @@ public abstract class OrmDaoUtils {
                 OrmUtils.fetchObjectDatabaseField(object, mapInfo),
                 propertiesFilter);
         } catch (IOException | SQLException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
@@ -154,13 +155,13 @@ public abstract class OrmDaoUtils {
      * @param propertiesValue  值对
      * @param propertiesFilter 过滤条件对
      * @return 更改的条数
-     * @throws PersistenceException 运行时异常
+     * @throws ObjectException 运行时异常
      */
     public static int batchUpdateObject(
         Connection connection, Class<?> type,
         Map<String, Object> propertiesValue,
         Map<String, Object> propertiesFilter)
-        throws PersistenceException {
+        throws ObjectException {
         try {
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
             JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
@@ -170,18 +171,18 @@ public abstract class OrmDaoUtils {
                 propertiesValue,
                 propertiesFilter);
         } catch (SQLException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
-    public static <T> int mergeObject(Connection connection, T object) throws PersistenceException {
+    public static <T> int mergeObject(Connection connection, T object) throws ObjectException {
         try {
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
             JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
             object = OrmUtils.prepareObjectForMerge(object, mapInfo, sqlDialect);
             return sqlDialect.mergeObject(OrmUtils.fetchObjectDatabaseField(object, mapInfo));
         } catch (IOException | SQLException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
@@ -193,12 +194,12 @@ public abstract class OrmDaoUtils {
      * @param fetchDataWork 获取数据的方法
      * @param <T>           返回类型嗯
      * @return 返回结果
-     * @throws PersistenceException 异常
+     * @throws ObjectException 异常
      */
 
     private final static <T> T queryParamsSql(Connection conn, QueryAndParams sqlAndParams,
                                               FetchDataWork<T> fetchDataWork)
-        throws PersistenceException {
+        throws ObjectException {
         QueryLogUtils.printSql(logger, sqlAndParams.getQuery(), sqlAndParams.getParams());
         try (PreparedStatement stmt = conn.prepareStatement(sqlAndParams.getQuery())) {
             DatabaseAccess.setQueryStmtParameters(stmt, sqlAndParams.getParams());
@@ -209,15 +210,15 @@ public abstract class OrmDaoUtils {
             //stmt.close();
             //return obj;
         } catch (SQLException e) {
-            throw new PersistenceException(sqlAndParams.getQuery(), e);
+            throw new ObjectException(sqlAndParams.getQuery(), e);
         } catch (IOException | InstantiationException | IllegalAccessException | NoSuchFieldException e) {
-            throw new PersistenceException(PersistenceException.ILLEGALACCESS_EXCEPTION, e);
+            throw new ObjectException(ObjectException.ILLEGALACCESS_EXCEPTION, e);
         }
     }
 
     private final static <T> T queryParamsSql(Connection conn, QueryAndParams sqlAndParams,
                                               int startPos, int maxSize, FetchDataWork<T> fetchDataWork)
-        throws PersistenceException {
+        throws ObjectException {
         sqlAndParams.setQuery(QueryUtils.buildLimitQuerySQL(
             sqlAndParams.getQuery(), startPos, maxSize, false, DBType.mapDBType(conn)
         ));
@@ -232,24 +233,24 @@ public abstract class OrmDaoUtils {
      * @param fetchDataWork 获取数据的方法
      * @param <T>           返回类型嗯
      * @return 返回结果
-     * @throws PersistenceException 异常
+     * @throws ObjectException 异常
      */
     public static <T> T queryNamedParamsSql(Connection conn, QueryAndNamedParams sqlAndParams,
                                             FetchDataWork<T> fetchDataWork)
-        throws PersistenceException {
+        throws ObjectException {
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(sqlAndParams);
         return queryParamsSql(conn, qap, fetchDataWork);
     }
 
     private static <T> T queryNamedParamsSql(Connection conn, QueryAndNamedParams sqlAndParams,
                                              int startPos, int maxSize, FetchDataWork<T> fetchDataWork)
-        throws PersistenceException {
+        throws ObjectException {
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(sqlAndParams);
         return queryParamsSql(conn, qap, startPos, maxSize, fetchDataWork);
     }
 
     public static <T> T getObjectBySql(Connection connection, String sql, Map<String, Object> properties, Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
         //JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
         return queryNamedParamsSql(
             connection, new QueryAndNamedParams(sql,
@@ -259,7 +260,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> T getObjectByProperties(Connection connection, Map<String, Object> properties, Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         Pair<String, TableField[]> q =
             GeneralJsonObjectDao.buildSelectSqlWithFields(mapInfo, null, false,
@@ -272,7 +273,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> T getObjectById(Connection connection, Object id, final Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         //Pair<String,String[]> q = GeneralJsonObjectDao.buildGetObjectSqlByPk(mapInfo, false);
@@ -282,7 +283,7 @@ public abstract class OrmDaoUtils {
 
         if (ReflectionOpt.isScalarType(id.getClass())) {
             if (mapInfo.countPkColumn() != 1)
-                throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION,
+                throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
                     "表" + mapInfo.getTableName() + "不是单主键表，这个方法不适用。");
             return queryNamedParamsSql(connection, new QueryAndNamedParams(q.getKey(),
                     CollectionsOpt.createHashMap(mapInfo.getPkFields().get(0).getPropertyName(), id)),
@@ -290,7 +291,7 @@ public abstract class OrmDaoUtils {
         } else {
             Map<String, Object> idObj = OrmUtils.fetchObjectField(id);
             if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, idObj)) {
-                throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION,
+                throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
                     "缺少主键对应的属性。");
             }
             return queryNamedParamsSql(connection,
@@ -301,7 +302,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> T getObjectExcludeLazyById(Connection connection, Object id, final Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         String sql = "select " + GeneralJsonObjectDao.buildFieldSql(mapInfo, "", 1) +
@@ -310,14 +311,14 @@ public abstract class OrmDaoUtils {
 
         if (ReflectionOpt.isScalarType(id.getClass())) {
             if (mapInfo.countPkColumn() != 1)
-                throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION, "表" + mapInfo.getTableName() + "不是单主键表，这个方法不适用。");
+                throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "表" + mapInfo.getTableName() + "不是单主键表，这个方法不适用。");
             return getObjectBySql(connection, sql,
                 CollectionsOpt.createHashMap(mapInfo.getPkFields().get(0).getPropertyName(), id), type);
 
         } else {
             Map<String, Object> idObj = OrmUtils.fetchObjectField(id);
             if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, idObj)) {
-                throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
+                throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
             }
             return getObjectBySql(connection, sql, idObj, type);
         }
@@ -325,7 +326,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> T getObjectWithReferences(Connection connection, Object id, final Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
 
         T object = getObjectById(connection, id, type);
         fetchObjectReferences(connection, object);
@@ -333,28 +334,28 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> T getObjectCascadeById(Connection connection, Object id, final Class<T> type, int depth)
-        throws PersistenceException {
+        throws ObjectException {
 
         T object = getObjectById(connection, id, type);
         fetchObjectReferencesCascade(connection, object, type, depth);
         return object;
     }
 
-    private static int deleteObjectById(Connection connection, Map<String, Object> id, TableMapInfo mapInfo) throws PersistenceException {
+    private static int deleteObjectById(Connection connection, Map<String, Object> id, TableMapInfo mapInfo) throws ObjectException {
         try {
             JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
             return sqlDialect.deleteObjectById(id);
         } catch (SQLException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
-    public static <T> int deleteObjectById(Connection connection, Map<String, Object> id, Class<T> type) throws PersistenceException {
+    public static <T> int deleteObjectById(Connection connection, Map<String, Object> id, Class<T> type) throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         return deleteObjectById(connection, id, mapInfo);
     }
 
-    public static <T> int deleteObject(Connection connection, T object) throws PersistenceException {
+    public static <T> int deleteObject(Connection connection, T object) throws ObjectException {
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         Map<String, Object> idMap = OrmUtils.fetchObjectDatabaseField(object, mapInfo);
@@ -362,25 +363,25 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int deleteObjectById(Connection connection, Object id, Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         if (ReflectionOpt.isScalarType(id.getClass())) {
             if (mapInfo.countPkColumn() != 1)
-                throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION, "表" + mapInfo.getTableName() + "不是单主键表，这个方法不适用。");
+                throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "表" + mapInfo.getTableName() + "不是单主键表，这个方法不适用。");
             return deleteObjectById(connection,
                 CollectionsOpt.createHashMap(mapInfo.getPkFields().get(0).getPropertyName(), id),
                 mapInfo);
         } else {
             Map<String, Object> idObj = OrmUtils.fetchObjectField(id);
             if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, idObj)) {
-                throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
+                throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
             }
             return deleteObjectById(connection, idObj, mapInfo);
         }
     }
 
     public static <T> List<T> listAllObjects(Connection connection, Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         Pair<String, TableField[]> q =
             GeneralJsonObjectDao.buildSelectSqlWithFields(mapInfo, null, true,
@@ -392,7 +393,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> List<T> listObjectsByProperties(Connection connection, Map<String, Object> properties, Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         Pair<String, TableField[]> q =
             GeneralJsonObjectDao.buildSelectSqlWithFields(mapInfo, null, true,
@@ -405,22 +406,22 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int countObjectByProperties(Connection connection, Map<String, Object> properties, Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         String countSql = GeneralJsonObjectDao.buildCountSqlByProperties(mapInfo, properties);
         try {
             return NumberBaseOpt.castObjectToInteger(
                 DatabaseAccess.getScalarObjectQuery(connection, countSql, properties), 0);
         } catch (SQLException e) {
-            throw new PersistenceException(countSql, e);
+            throw new ObjectException(countSql, e);
         } catch (IOException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
     public static <T> List<T> listObjectsByProperties(Connection connection, Map<String, Object> properties, Class<T> type,
                                                       final int startPos, final int maxSize)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         Pair<String, TableField[]> q =
             GeneralJsonObjectDao.buildSelectSqlWithFields(mapInfo, null, true,
@@ -433,7 +434,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> List<T> queryObjectsBySql(Connection connection, String sql, Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
         return queryNamedParamsSql(
             connection, new QueryAndNamedParams(sql,
                 new HashMap<>()),
@@ -441,7 +442,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> List<T> queryObjectsByParamsSql(Connection connection, String sql, Object[] params, Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
         return queryParamsSql(
             connection, new QueryAndParams(sql, params),
             (rs) -> OrmUtils.fetchObjectListFormResultSet(rs, type));
@@ -449,7 +450,7 @@ public abstract class OrmDaoUtils {
 
     public static <T> List<T> queryObjectsByNamedParamsSql(Connection connection, String sql,
                                                            Map<String, Object> params, Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
         return queryNamedParamsSql(
             connection, new QueryAndNamedParams(sql, params),
             (rs) -> OrmUtils.fetchObjectListFormResultSet(rs, type));
@@ -457,7 +458,7 @@ public abstract class OrmDaoUtils {
 
     public static <T> List<T> queryObjectsBySql(Connection connection, String sql, Class<T> type,
                                                 int startPos, int maxSize)
-        throws PersistenceException {
+        throws ObjectException {
         return queryNamedParamsSql(
             connection, new QueryAndNamedParams(sql,
                 new HashMap<>()), startPos, maxSize,
@@ -466,7 +467,7 @@ public abstract class OrmDaoUtils {
 
     public static <T> List<T> queryObjectsByParamsSql(Connection connection, String sql, Object[] params, Class<T> type,
                                                       int startPos, int maxSize)
-        throws PersistenceException {
+        throws ObjectException {
         return queryParamsSql(
             connection, new QueryAndParams(sql, params), startPos, maxSize,
             (rs) -> OrmUtils.fetchObjectListFormResultSet(rs, type));
@@ -475,18 +476,18 @@ public abstract class OrmDaoUtils {
     public static <T> List<T> queryObjectsByNamedParamsSql(Connection connection, String sql,
                                                            Map<String, Object> params, Class<T> type,
                                                            int startPos, int maxSize)
-        throws PersistenceException {
+        throws ObjectException {
         return queryNamedParamsSql(
             connection, new QueryAndNamedParams(sql, params), startPos, maxSize,
             (rs) -> OrmUtils.fetchObjectListFormResultSet(rs, type));
     }
 
     public static <T> T fetchObjectLazyColumn(Connection connection, T object, String columnName)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         Map<String, Object> idMap = OrmUtils.fetchObjectDatabaseField(object, mapInfo);
         if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, idMap)) {
-            throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
         }
 
         String sql = "select " + mapInfo.findFieldByName(columnName).getColumnName() +
@@ -499,7 +500,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> T fetchObjectLazyColumns(Connection connection, T object)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         String fieldSql = GeneralJsonObjectDao.buildFieldSql(mapInfo, "", 2);
         if (StringUtils.isBlank(fieldSql)) {
@@ -507,7 +508,7 @@ public abstract class OrmDaoUtils {
         }
         Map<String, Object> idMap = OrmUtils.fetchObjectDatabaseField(object, mapInfo);
         if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, idMap)) {
-            throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
         }
 
         String sql = "select " + fieldSql +
@@ -521,7 +522,7 @@ public abstract class OrmDaoUtils {
 
     private static <T> T innerFetchObjectReferencesCascade(Connection connection, T object, SimpleTableReference ref,
                                                            TableMapInfo mapInfo, int depth)
-        throws PersistenceException {
+        throws ObjectException {
 
         if (ref == null || ref.getReferenceColumns().size() < 1)
             return object;
@@ -554,7 +555,7 @@ public abstract class OrmDaoUtils {
     }
 
     private static <T> T fetchObjectReference(Connection connection, T object, SimpleTableReference ref, TableMapInfo mapInfo)
-        throws PersistenceException {
+        throws ObjectException {
         return innerFetchObjectReferencesCascade(connection, object, ref, mapInfo, 1);
     }
 
@@ -569,7 +570,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> T fetchObjectReference(Connection connection, T object, String reference)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         SimpleTableReference ref = mapInfo.findReference(reference);
 
@@ -577,7 +578,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> T fetchObjectReferences(Connection connection, T object)
-        throws PersistenceException {
+        throws ObjectException {
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         if (mapInfo.hasReferences()) {
@@ -589,18 +590,18 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int deleteObjectByProperties(Connection connection, Map<String, Object> properties, Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
         try {
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
             JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
             return sqlDialect.deleteObjectsByProperties(properties);
         } catch (SQLException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
     public static <T> int deleteObjectReference(Connection connection, T object, SimpleTableReference ref)
-        throws PersistenceException {
+        throws ObjectException {
 
         if (ref == null || ref.getReferenceColumns().size() < 1)
             return 0;
@@ -611,14 +612,14 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int deleteObjectReference(Connection connection, T object, String reference)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         SimpleTableReference ref = mapInfo.findReference(reference);
         return deleteObjectReference(connection, object, ref);
     }
 
     public static <T> int deleteObjectReferences(Connection connection, T object)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         int n = 0;
         if (mapInfo.hasReferences()) {
@@ -630,7 +631,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int deleteObjectWithReferences(Connection connection, T object)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         Map<String, Object> idMap = OrmUtils.fetchObjectDatabaseField(object, mapInfo);
 
@@ -644,7 +645,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int deleteObjectCascade(Connection connection, T object, int depth)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         Map<String, Object> idMap = OrmUtils.fetchObjectDatabaseField(object, mapInfo);
         int res = deleteObjectById(connection, idMap, mapInfo);
@@ -664,18 +665,18 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int deleteObjectWithReferencesById(Connection connection, Object id, final Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
 
         return deleteObjectWithReferences(connection, getObjectById(connection, id, type));
     }
 
     public static <T> int deleteObjectCascadeById(Connection connection, Object id, final Class<T> type, int depth)
-        throws PersistenceException {
+        throws ObjectException {
         return deleteObjectCascade(connection, getObjectById(connection, id, type), depth);
     }
 
     public static <T> int replaceObjectsAsTabulation(Connection connection, List<T> dbObjects, List<T> newObjects)
-        throws PersistenceException {
+        throws ObjectException {
         if (newObjects == null || newObjects.size() == 0) {
             if (dbObjects == null || dbObjects.size() == 0) {
                 return 0;
@@ -716,14 +717,14 @@ public abstract class OrmDaoUtils {
 
     public static <T> int replaceObjectsAsTabulation(Connection connection, List<T> newObjects,
                                                      final String propertyName, final Object propertyValue)
-        throws PersistenceException {
+        throws ObjectException {
         return replaceObjectsAsTabulation(connection, newObjects,
             CollectionsOpt.createHashMap(propertyName, propertyValue));
     }
 
     public static <T> int replaceObjectsAsTabulation(Connection connection, List<T> newObjects,
                                                      Map<String, Object> properties)
-        throws PersistenceException {
+        throws ObjectException {
         if (newObjects == null || newObjects.size() < 1)
             return 0;
         Class<T> objType = (Class<T>) newObjects.iterator().next().getClass();
@@ -733,7 +734,7 @@ public abstract class OrmDaoUtils {
 
     private static <T> int innerSaveNewObjectReferenceCascade(Connection connection, T object,
                                                               SimpleTableReference ref, TableMapInfo mapInfo, int depth)
-        throws PersistenceException {
+        throws ObjectException {
 
         if (ref == null || ref.getReferenceColumns().size() < 1)
             return 0;
@@ -769,7 +770,7 @@ public abstract class OrmDaoUtils {
     }
 
     private static <T> int saveObjectReference(Connection connection, T object, SimpleTableReference ref, TableMapInfo mapInfo)
-        throws PersistenceException {
+        throws ObjectException {
 
         if (ref == null || ref.getReferenceColumns().size() < 1)
             return 0;
@@ -815,7 +816,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int saveObjectReference(Connection connection, T object, String reference)
-        throws PersistenceException {
+        throws ObjectException {
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         SimpleTableReference ref = mapInfo.findReference(reference);
@@ -823,7 +824,7 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int saveObjectReferences(Connection connection, T object)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         int n = 0;
         if (mapInfo.hasReferences()) {
@@ -835,13 +836,13 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int saveNewObjectWithReferences(Connection connection, T object)
-        throws PersistenceException {
+        throws ObjectException {
         return saveNewObject(connection, object)
             + saveObjectReferences(connection, object);
     }
 
     public static <T> int saveNewObjectCascade(Connection connection, T object, int depth)
-        throws PersistenceException {
+        throws ObjectException {
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         int n = saveNewObject(connection, object);
@@ -855,14 +856,14 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int updateObjectWithReferences(Connection connection, T object)
-        throws PersistenceException {
+        throws ObjectException {
         return updateObject(connection, object)
             + saveObjectReferences(connection, object);
     }
 
     private static <T> int innerReplaceObjectsAsTabulationCascade(Connection connection, List<T> dbObjects,
                                                                   List<T> newObjects, int depth)
-        throws PersistenceException {
+        throws ObjectException {
 
         if (newObjects == null || newObjects.size() == 0) {
             if (dbObjects == null || dbObjects.size() == 0) {
@@ -905,7 +906,7 @@ public abstract class OrmDaoUtils {
 
     private static <T> int innerUpdateObjectReferenceCascade(Connection connection, T object,
                                                              SimpleTableReference ref, TableMapInfo mapInfo, int depth)
-        throws PersistenceException {
+        throws ObjectException {
 
         if (ref == null || ref.getReferenceColumns().size() < 1)
             return 0;
@@ -952,7 +953,7 @@ public abstract class OrmDaoUtils {
         return 1;
     }
 
-    public static <T> int updateObjectCascade(Connection connection, T object, int depth) throws PersistenceException {
+    public static <T> int updateObjectCascade(Connection connection, T object, int depth) throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         int n = updateObject(connection, object);
         if (depth > 0 && mapInfo.hasReferences()) {
@@ -964,12 +965,12 @@ public abstract class OrmDaoUtils {
     }
 
     public static <T> int checkObjectExists(Connection connection, T object)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         Map<String, Object> objectMap = OrmUtils.fetchObjectDatabaseField(object, mapInfo);
 
         if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, objectMap)) {
-            throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
         }
         String sql =
             "select count(*) as checkExists from " + mapInfo.getTableName()
@@ -980,47 +981,47 @@ public abstract class OrmDaoUtils {
                 DatabaseAccess.getScalarObjectQuery(connection, sql, objectMap));
             return checkExists == null ? 0 : checkExists.intValue();
         } catch (SQLException e) {
-            throw new PersistenceException(sql, e);
+            throw new ObjectException(sql, e);
         } catch (IOException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
     public static <T> int fetchObjectsCount(Connection connection, Map<String, Object> properties, Class<T> type)
-        throws PersistenceException {
+        throws ObjectException {
         try {
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
             JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
             return sqlDialect.fetchObjectsCount(properties).intValue();
         } catch (SQLException | IOException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
     public static <T> int fetchObjectsCount(Connection connection, String sql, Map<String, Object> properties)
-        throws PersistenceException {
+        throws ObjectException {
         try {
             return NumberBaseOpt.castObjectToInteger(
                 DatabaseAccess.getScalarObjectQuery(connection, sql, properties));
         } catch (SQLException e) {
-            throw new PersistenceException(sql, e);
+            throw new ObjectException(sql, e);
         } catch (IOException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
-    private static <T> T prepareObjectForMerge(Connection connection, T object) throws PersistenceException {
+    private static <T> T prepareObjectForMerge(Connection connection, T object) throws ObjectException {
         try {
             TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
             JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(connection, mapInfo);
             return OrmUtils.prepareObjectForMerge(object, mapInfo, sqlDialect);
         } catch (IOException | SQLException e) {
-            throw new PersistenceException(e);
+            throw new ObjectException(e);
         }
     }
 
     public static <T> int mergeObjectWithReferences(Connection connection, T object)
-        throws PersistenceException {
+        throws ObjectException {
         object = prepareObjectForMerge(connection, object);
         int checkExists = checkObjectExists(connection, object);
         if (checkExists == 0) {
@@ -1028,11 +1029,11 @@ public abstract class OrmDaoUtils {
         } else if (checkExists == 1) {
             return updateObjectWithReferences(connection, object);
         } else {
-            throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION, "主键属性有误，返回多个条记录。");
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "主键属性有误，返回多个条记录。");
         }
     }
 
-    public static <T> int mergeObjectCascade(Connection connection, T object, int depth) throws PersistenceException {
+    public static <T> int mergeObjectCascade(Connection connection, T object, int depth) throws ObjectException {
         object = prepareObjectForMerge(connection, object);
         int checkExists = checkObjectExists(connection, object);
         if (checkExists == 0) {
@@ -1040,7 +1041,7 @@ public abstract class OrmDaoUtils {
         } else if (checkExists == 1) {
             return updateObjectCascade(connection, object, depth);
         } else {
-            throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION, "主键属性有误，返回多个条记录。");
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "主键属性有误，返回多个条记录。");
         }
     }
 

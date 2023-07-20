@@ -7,6 +7,7 @@ import com.centit.framework.core.po.EntityWithVersionTag;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.common.LeftRightPair;
+import com.centit.support.common.ObjectException;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
@@ -462,7 +463,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     try {
                         OrmUtils.prepareObjectForUpdate(o, mapInfo, sqlDialect);
                     } catch (IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                     EntityWithVersionTag ewvto = (EntityWithVersionTag) o;
                     SimpleTableField field = mapInfo.findFieldByColumn(ewvto.obtainVersionProperty());
@@ -503,11 +504,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * 只更改对象的部分属性
      * @param fields 需要修改的部分属性
      * @param object 除了对应修改的属性 需要有相应的值，主键对应的属性也必须要值
-     * @throws PersistenceException 运行时异常
+     * @throws ObjectException 运行时异常
      * @return 是否 更新了数据库
      */
     public int updateObject(Collection<String> fields, T object)
-            throws PersistenceException {
+            throws ObjectException {
         if (object instanceof EntityWithVersionTag) {
             return updateObjectWithVersion(object, fields);
         }
@@ -520,11 +521,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * 只更改对象的部分属性
      * @param fields 需要修改的部分属性
      * @param object 除了对应修改的属性 需要有相应的值，主键对应的属性也必须要值
-     * @throws PersistenceException 运行时异常
+     * @throws ObjectException 运行时异常
      * @return 是否 更新了数据库
      */
     public int updateObject(String[] fields, T object)
-            throws PersistenceException {
+            throws ObjectException {
         if (object instanceof EntityWithVersionTag) {
             return updateObjectWithVersion(object, CollectionsOpt.arrayToList(fields));
         }
@@ -532,7 +533,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public int updateObjectWithNullField(T object, boolean includeLazy)
-        throws PersistenceException {
+        throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         List<String> fields = includeLazy ? mapInfo.getAllFieldsName()
                   : mapInfo.getFieldsNameWithoutLazy();
@@ -540,7 +541,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public int updateObjectWithNullField(T object)
-        throws PersistenceException {
+        throws ObjectException {
         return updateObjectWithNullField(object, false);
     }
 
@@ -930,7 +931,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                 (ConnectionCallback<T>) conn ->
                     OrmDaoUtils.queryNamedParamsSql(conn, queryAndParams,
                         (rs) -> OrmUtils.fetchObjectFormResultSet(rs, (Class<T>) getPoClass(), q.getRight())));
-        } catch (PersistenceException exception){
+        } catch (ObjectException exception){
             logger.error("执行sql语句 " + querySql + " 时抛出异常" + exception.getMessage());
             return null;
         }
@@ -1045,7 +1046,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         return ja;
                     }
                 } catch (SQLException | IOException e) {
-                    throw new PersistenceException(e);
+                    throw new ObjectException(e);
                 }
             });
     }
@@ -1058,7 +1059,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                     return GeneralJsonObjectDao.findObjectsBySql(conn, QueryUtils.buildLimitQuerySQL(querySql,
                         startPos, maxSize, false, DBType.mapDBType(conn)), params, fields);
                 } catch (SQLException | IOException e) {
-                    throw new PersistenceException(e);
+                    throw new ObjectException(e);
                 }
             });
     }

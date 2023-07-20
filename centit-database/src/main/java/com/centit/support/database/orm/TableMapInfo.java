@@ -1,9 +1,9 @@
 package com.centit.support.database.orm;
 
 import com.centit.support.common.LeftRightPair;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.SimpleTableInfo;
-import com.centit.support.database.utils.PersistenceException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -125,7 +125,7 @@ public class TableMapInfo extends SimpleTableInfo {
                 field.getBeanField().setObjectFieldValue(object, newValue);
             }
         } catch (IllegalAccessException | InstantiationException e) {
-            PersistenceException exception = new PersistenceException(500, "创建EmbeddedId 实例错误", e);
+            ObjectException exception = new ObjectException(500, "创建EmbeddedId 实例错误", e);
             exception.setObjectData(this);
             throw exception;
         }

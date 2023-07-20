@@ -2,9 +2,10 @@ package com.centit.support.database.utils;
 
 import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.GeneralAlgorithm;
-import com.centit.support.database.ddl.*;
-import com.centit.support.database.metadata.TableInfo;
+import com.centit.support.database.ddl.DDLOperations;
+import com.centit.support.database.ddl.GeneralDDLOperations;
 import com.centit.support.database.metadata.TableField;
+import com.centit.support.database.metadata.TableInfo;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

@@ -2,6 +2,7 @@ package com.centit.support.database.utils;
 
 import com.centit.support.algorithm.*;
 import com.centit.support.common.LeftRightPair;
+import com.centit.support.common.ObjectException;
 import com.centit.support.compiler.EmbedFunc;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.compiler.VariableFormula;
@@ -745,8 +746,8 @@ public abstract class QueryUtils {
                 return buildPostgreSqlLimitQuerySQL(sql, offset, maxsize, asParameter);
 
             default:
-                throw new PersistenceException(PersistenceException.ORM_METADATA_EXCEPTION,
-                    "不支持的数据库类型：" + dbType.toString());
+                throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
+                    "不支持的数据库类型：" + dbType);
         }
     }
 

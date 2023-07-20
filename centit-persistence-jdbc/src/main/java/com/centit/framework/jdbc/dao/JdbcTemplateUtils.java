@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.common.ObjectException;
 import com.centit.support.database.jsonmaptable.GeneralJsonObjectDao;
 import com.centit.support.database.jsonmaptable.JsonObjectDao;
 import com.centit.support.database.orm.JpaMetadata;
@@ -45,7 +46,7 @@ public abstract class JdbcTemplateUtils {
                     (ConnectionCallback<Object>) conn ->
                             DatabaseAccess.callFunction(conn, procName, sqlType, paramObjs));
         } catch (DataAccessException e){
-            throw new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION, e);
+            throw new ObjectException(ObjectException.DATABASE_SQL_EXCEPTION, e);
         }
     }
 
@@ -55,7 +56,7 @@ public abstract class JdbcTemplateUtils {
                     (ConnectionCallback<Boolean>) conn ->
                             DatabaseAccess.callProcedure(conn, procName, paramObjs));
         } catch (DataAccessException e){
-            throw new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION, e);
+            throw new ObjectException(ObjectException.DATABASE_SQL_EXCEPTION, e);
         }
     }
 
@@ -67,7 +68,7 @@ public abstract class JdbcTemplateUtils {
                     (ConnectionCallback<Boolean>) conn ->
                             DatabaseAccess.doExecuteSql(conn,sSql));
         } catch (DataAccessException e){
-            throw new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION, e);
+            throw new ObjectException(ObjectException.DATABASE_SQL_EXCEPTION, e);
         }*/
     }
 
@@ -82,7 +83,7 @@ public abstract class JdbcTemplateUtils {
                     (ConnectionCallback<Integer>) conn ->
                             DatabaseAccess.doExecuteSql(conn, sSql, values));
         } catch (DataAccessException e){
-            throw new PersistenceException(PersistenceException.DATABASE_SQL_EXCEPTION, e);
+            throw new ObjectException(ObjectException.DATABASE_SQL_EXCEPTION, e);
         }*/
     }
 
@@ -110,7 +111,7 @@ public abstract class JdbcTemplateUtils {
                         return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, querySql,
                                 namedParams, fieldNames, pageDesc.getPageNo(), pageDesc.getPageSize());
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -132,7 +133,7 @@ public abstract class JdbcTemplateUtils {
                         return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, querySql,
                                 namedParams, fieldNames);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -149,7 +150,7 @@ public abstract class JdbcTemplateUtils {
                     try {
                         return DatabaseAccess.findObjectsByNamedSqlAsJSON(conn, querySql, params);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -179,7 +180,7 @@ public abstract class JdbcTemplateUtils {
                         return DatabaseAccess.findObjectsAsJSON(conn, querySql,
                                 params, fieldNames, pageDesc.getPageNo(), pageDesc.getPageSize());
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -193,7 +194,7 @@ public abstract class JdbcTemplateUtils {
                         return DatabaseAccess.findObjectsAsJSON(conn, querySql,
                                 params, fieldNames);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -219,7 +220,7 @@ public abstract class JdbcTemplateUtils {
                     try {
                         return DatabaseAccess.findObjectsAsJSON(conn, querySql, params, fieldnames);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -231,7 +232,7 @@ public abstract class JdbcTemplateUtils {
                     try {
                         return DatabaseAccess.findObjectsAsJSON(conn, querySql, params);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -256,7 +257,7 @@ public abstract class JdbcTemplateUtils {
                         return DatabaseAccess.findObjectsBySql(conn, querySql,
                                 params);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -272,7 +273,7 @@ public abstract class JdbcTemplateUtils {
                             return DatabaseAccess.findObjectsBySql(conn, querySql,
                                     params, pageDesc.getPageNo(), pageDesc.getPageSize());
                         } catch (SQLException | IOException e) {
-                            throw new PersistenceException(e);
+                            throw new ObjectException(e);
                         }
                     });
         }else{
@@ -304,7 +305,7 @@ public abstract class JdbcTemplateUtils {
                         return DatabaseAccess.findObjectsByNamedSql(conn, querySql,
                                 namedParams);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -321,7 +322,7 @@ public abstract class JdbcTemplateUtils {
                             return DatabaseAccess.findObjectsByNamedSql(conn, querySql,
                                     namedParams, pageDesc.getPageNo(), pageDesc.getPageSize());
                         } catch (SQLException | IOException e) {
-                            throw new PersistenceException(e);
+                            throw new ObjectException(e);
                         }
                     });
         }else{
@@ -432,7 +433,7 @@ public abstract class JdbcTemplateUtils {
                     try {
                         return DatabaseAccess.getObjectAsJSON(conn, querySql, params,fieldName);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -449,7 +450,7 @@ public abstract class JdbcTemplateUtils {
                     try {
                         return DatabaseAccess.getObjectAsJSON(conn, querySql, params, fieldName);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -465,7 +466,7 @@ public abstract class JdbcTemplateUtils {
                     try {
                         return DatabaseAccess.getObjectAsJSON(conn, querySql);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -478,7 +479,7 @@ public abstract class JdbcTemplateUtils {
                     try {
                         return DatabaseAccess.getScalarObjectQuery(conn, sNamedSql, values);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -492,7 +493,7 @@ public abstract class JdbcTemplateUtils {
                     try {
                         return DatabaseAccess.getScalarObjectQuery(conn, sSql,values);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -507,7 +508,7 @@ public abstract class JdbcTemplateUtils {
                     try {
                         return DatabaseAccess.getScalarObjectQuery(conn, sSql);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }
@@ -522,7 +523,7 @@ public abstract class JdbcTemplateUtils {
                     try {
                         return DatabaseAccess.getScalarObjectQuery(conn, sSql, value);
                     } catch (SQLException | IOException e) {
-                        throw new PersistenceException(e);
+                        throw new ObjectException(e);
                     }
                 });
     }

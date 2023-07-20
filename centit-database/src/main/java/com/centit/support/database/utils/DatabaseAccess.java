@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.centit.support.algorithm.*;
+import com.centit.support.common.ObjectException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -783,7 +784,7 @@ public abstract class DatabaseAccess {
     }
 
     private static String makePageQuerySql(Connection conn, String sSql, int pageNo,
-                                           int pageSize) throws PersistenceException {
+                                           int pageSize) throws ObjectException {
         int offset = (pageNo > 1 && pageSize > 0) ? (pageNo - 1) * pageSize : 0;
         return QueryUtils.buildLimitQuerySQL(sSql, offset, pageSize, false, DBType.mapDBType(conn));
     }

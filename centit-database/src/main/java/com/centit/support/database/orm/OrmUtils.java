@@ -12,7 +12,6 @@ import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.utils.DatabaseAccess;
 import com.centit.support.database.utils.FieldType;
-import com.centit.support.database.utils.PersistenceException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -171,7 +170,7 @@ public abstract class OrmUtils {
                                     mapInfo.setObjectFieldValue(object, field, prefix + UuidOpt.getUuidAsString22());
                                 } else /*if (sqlDialect!=null)*/ {
                                     /*if (mapInfo.countPkColumn() != 1 || !field.isPrimaryKey()) {
-                                        throw new ObjectException(PersistenceException.ORM_METADATA_EXCEPTION,
+                                        throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
                                             "主键生成规则RANDOM_ID只能用于单主键表中！");
                                     }*/
                                     for (int i = 0; i < 100; i++) {
@@ -219,7 +218,7 @@ public abstract class OrmUtils {
                         case SUB_ORDER: {
                             int pkCount = mapInfo.countPkColumn();
                             if (pkCount < 2 || !field.isPrimaryKey() /*|| filed.getFieldType()*/) {
-                                throw new ObjectException(PersistenceException.ORM_METADATA_EXCEPTION,
+                                throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
                                     "主键生成规则SUB_ORDER必须用于符合主键表中，并且只能用于整型字段！");
                             }
                             StringBuilder sqlBuilder = new StringBuilder("select max(");
