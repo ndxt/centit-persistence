@@ -1,10 +1,10 @@
 package com.centit.framework.core.service.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.centit.framework.components.CodeRepositoryUtil;
 import com.centit.framework.core.dao.DataPowerFilter;
 import com.centit.framework.core.service.DataScopePowerManager;
-import com.centit.framework.security.model.CentitUserDetails;
+import com.centit.framework.model.basedata.UserInfo;
+import com.centit.framework.model.security.CentitUserDetails;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class DataScopePowerManagerImpl implements DataScopePowerManager {
     }
 
     @Override
-    public DataPowerFilter createUserDataPowerFilter(JSONObject userInfo, String topUnit, String currentUnit) {
+    public DataPowerFilter createUserDataPowerFilter(UserInfo userInfo, String topUnit, String currentUnit) {
 
         DataPowerFilter dpf = new DataPowerFilter(topUnit);
         //当前用户信息

@@ -1,8 +1,8 @@
 package com.centit.framework.core.service;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.centit.framework.core.dao.DataPowerFilter;
-import com.centit.framework.security.model.CentitUserDetails;
+import com.centit.framework.model.basedata.UserInfo;
+import com.centit.framework.model.security.CentitUserDetails;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ public interface DataScopePowerManager {
      * @param currentUnit 用户当前机构
      * @return DataPowerFilter
      */
-    DataPowerFilter createUserDataPowerFilter(JSONObject userInfo, String topUnit, String currentUnit);
+    DataPowerFilter createUserDataPowerFilter(UserInfo userInfo, String topUnit, String currentUnit);
 
     /**
      * 创建用户数据范围过滤器，和上面的方法结合使用
