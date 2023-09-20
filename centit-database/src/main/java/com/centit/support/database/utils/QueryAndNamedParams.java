@@ -1,5 +1,6 @@
 package com.centit.support.database.utils;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,7 +9,9 @@ import java.util.Map;
  *
  * @author codefan
  */
-public class QueryAndNamedParams {
+public class QueryAndNamedParams implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 查询语句，可以是hql也可能是sql
      */

@@ -2,12 +2,15 @@ package com.centit.support.database.utils;
 
 import com.centit.support.compiler.Lexer;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class QueryAndParams {
+public class QueryAndParams implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public String queryStmt;
     public Object[] params;
 
