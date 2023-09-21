@@ -36,8 +36,6 @@ public class JdbcConfig implements EnvironmentAware {
     protected Logger logger = LoggerFactory.getLogger(JdbcConfig.class);
     protected Environment env;
 
-
-
     @Resource
     @Override
     public void setEnvironment(Environment environment) {
@@ -146,6 +144,7 @@ public class JdbcConfig implements EnvironmentAware {
         return transactionManager;
     }
 
+    @Lazy
     @Bean
     public PersistenceExceptionTranslationPostProcessor persistenceExceptionTranslationPostProcessor() {
         return new PersistenceExceptionTranslationPostProcessor();
