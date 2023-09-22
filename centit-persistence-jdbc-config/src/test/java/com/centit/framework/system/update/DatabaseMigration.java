@@ -1,7 +1,5 @@
 package com.centit.framework.system.update;
 
-import org.flywaydb.core.Flyway;
-
 import javax.sql.DataSource;
 
 public class DatabaseMigration {
@@ -38,6 +36,7 @@ public class DatabaseMigration {
         this.javaPackage  = "com.centit.framework.system.update";
     }
 
+    /*
     public void migrate() {
         Flyway flyway = new Flyway();
         flyway.setDataSource(dataSource);
@@ -50,5 +49,5 @@ public class DatabaseMigration {
         flyway.setValidateOnMigrate(true); // 设置执行migrate操作之前的validation行为
 
         flyway.migrate();
-    }
+    }*/
 }

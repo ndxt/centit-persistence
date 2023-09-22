@@ -2,7 +2,6 @@ package com.centit.framework.jdbc.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.centit.framework.core.dao.ExtendedQueryPool;
-import com.centit.framework.flyway.plugin.FlywayExt;
 import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringRegularOpt;
@@ -11,13 +10,11 @@ import com.centit.support.database.utils.QueryLogUtils;
 import com.centit.support.security.SecurityOptUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.DocumentException;
-import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -27,10 +24,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.SQLException;
 
 @EnableTransactionManagement(proxyTargetClass = true)//启用注解事物管理
-@Lazy
 public class JdbcConfig implements EnvironmentAware {
 
     protected Logger logger = LoggerFactory.getLogger(JdbcConfig.class);
@@ -114,8 +109,9 @@ public class JdbcConfig implements EnvironmentAware {
         return ds;
     }
 
+    /*
     @Bean
-    public Flyway flyway(DataSource dataSource) throws SQLException {
+    public Flyway flyway(@Autowired DataSource dataSource) throws SQLException {
         String flywayEnable = env.getProperty("flyway.enable");
         if (StringRegularOpt.isTrue(flywayEnable)) {
             Flyway flywayMigration;
@@ -133,11 +129,12 @@ public class JdbcConfig implements EnvironmentAware {
         } else {
             return null;
         }
-    }
+    }*/
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Lazy
     @Bean
-    @DependsOn("flyway")
+    //@DependsOn("flyway")
     public DataSourceTransactionManager transactionManager(@Autowired DataSource dataSource) {
         DataSourceTransactionManager transactionManager = new DataSourceTransactionManager();
         transactionManager.setDataSource(dataSource);
