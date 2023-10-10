@@ -254,10 +254,10 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
     }
 
     /**
-     * 符合条件 返回1 否在 范围 -1
+     * 符合条件 返回1 否在 返回 -1， 返回 0 表示不适用
      * @param obj 验证对象
      * @param filter 过滤条件爱呢
-     * @return 1 or -1
+     * @return  1 、-1 or 0
      */
     public int checkObjectFilter(Object obj,String filter){
         DataPowerFilterTranslater translater = getPowerFilterTranslater();
@@ -267,6 +267,7 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
         StringBuilder checkStatement= new StringBuilder();
         String sWord = varMorp.getAWord();
         int prePos = 0;
+        boolean hasFetchField = false;
         while( sWord!=null && ! "".equals(sWord) ){
             if( "[".equals(sWord)){
                 int curPos = varMorp.getCurrPos();
@@ -287,8 +288,10 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
                 if(fieldValue==null){
                     fieldValue = ReflectionOpt.attainExpressionValue(obj,columnName);
                 }
-                checkStatement.append(QueryUtils.buildObjectStringForQuery(fieldValue));
-
+                if(fieldValue!=null) {
+                    checkStatement.append(QueryUtils.buildObjectStringForQuery(fieldValue));
+                    hasFetchField = true;
+                }
             }else if( "{".equals(sWord)){
                 int curPos = varMorp.getCurrPos();
                 if(curPos-1>prePos) {
@@ -305,6 +308,7 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
             }
             sWord = varMorp.getAWord();
         }
+        if(!hasFetchField) return 0;
         checkStatement.append(filter.substring(prePos));
         return BooleanBaseOpt.castObjectToBoolean(
                 VariableFormula.calculate(checkStatement.toString()),false)?
