@@ -1,5 +1,6 @@
 package com.centit.support.database.utils;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.centit.support.compiler.Lexer;
 
 import java.io.Serializable;
@@ -186,5 +187,13 @@ public class QueryAndParams implements Serializable {
         if (index >= params.length)
             return null;
         return params[index];
+    }
+
+    @Override
+    public String toString() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("queryStmt", queryStmt);
+        jsonObject.put("params", params);
+        return jsonObject.toJSONString();
     }
 }

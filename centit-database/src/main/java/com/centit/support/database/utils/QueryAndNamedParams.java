@@ -1,5 +1,7 @@
 package com.centit.support.database.utils;
 
+import com.alibaba.fastjson2.JSONObject;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -105,5 +107,13 @@ public class QueryAndNamedParams implements Serializable {
         /*for(Map.Entry<String, Object> param : oParams.entrySet())
             params.put(param.getLeft(), param.getRight());*/
         return this;
+    }
+
+    @Override
+    public String toString() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("queryStmt", queryStmt);
+        jsonObject.put("params", params);
+        return jsonObject.toJSONString();
     }
 }
