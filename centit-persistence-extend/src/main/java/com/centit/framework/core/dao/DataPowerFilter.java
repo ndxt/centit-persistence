@@ -253,15 +253,21 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
             filters, false, true);
     }
 
+    private static boolean matchTableAndObjectName(String tableName, String objectName){
+        return tableName.equalsIgnoreCase(objectName) ||
+            objectName.equalsIgnoreCase(FieldType.mapClassName(tableName)) ||
+            tableName.equalsIgnoreCase(FieldType.mapClassName(objectName));
+    }
+
     /**
      * 符合条件 返回1 否在 返回 -1， 返回 0 表示不适用
      * @param obj 验证对象
      * @param filter 过滤条件爱呢
      * @return  1 、-1 or 0
      */
-    public int checkObjectFilter(Object obj,String filter){
+    public int checkObjectFilter(Object obj, String tableName, String filter){
         DataPowerFilterTranslater translater = getPowerFilterTranslater();
-        String poClassName = obj.getClass().getSimpleName();
+        String poClassName = StringUtils.isBlank(tableName)? obj.getClass().getSimpleName() : tableName;
         Lexer varMorp = new Lexer();
         varMorp.setFormula(filter);
         StringBuilder checkStatement= new StringBuilder();
@@ -281,7 +287,9 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
                 if(n<0) return 0;
 
                 String tempClassName = columnDesc.substring(0,n);
-                if(!poClassName.equals(tempClassName)) return 0;
+
+                if(!matchTableAndObjectName(poClassName, tempClassName)) return 0;
+
                 String columnName = columnDesc.substring(n+1);
                 Object fieldValue = ReflectionOpt.attainExpressionValue(obj,
                     FieldType.mapPropName(columnName));
@@ -315,17 +323,25 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
                 1:-1;
     }
 
-    public boolean checkObject(Object obj,Collection<String> filters){
+    public int checkObjectFilter(Object obj, String filter){
+        return checkObjectFilter(obj, null, filter);
+    }
+
+    public boolean checkObject(Object obj, String tableName, Collection<String> filters){
         if(filters==null) return true;
 
         int nFalse=0;
         for(String filter : filters){
-            int nRes =  checkObjectFilter(obj,filter);
+            int nRes =  checkObjectFilter(obj, tableName, filter);
             if(nRes==1) // 只要符合一个条件就可以
                 return true;
             else if(nRes==-1) // 不符合条件 判断下一个
                 nFalse++;
         }
         return nFalse == 0; // 如果 过滤条件为 空 也算合法
+    }
+    public boolean checkObject(Object obj, Collection<String> filters){
+
+        return checkObject(obj,null, filters);
     }
 }
