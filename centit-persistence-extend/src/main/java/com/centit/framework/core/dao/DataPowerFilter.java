@@ -9,6 +9,8 @@ import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.LeftRightPair;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.compiler.VariableFormula;
+import com.centit.support.database.orm.JpaMetadata;
+import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.database.utils.FieldType;
 import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
@@ -267,7 +269,16 @@ public class DataPowerFilter implements UserUnitVariableTranslate {
      */
     public int checkObjectFilter(Object obj, String tableName, String filter){
         DataPowerFilterTranslater translater = getPowerFilterTranslater();
-        String poClassName = StringUtils.isBlank(tableName)? obj.getClass().getSimpleName() : tableName;
+        String poClassName = tableName;
+        if(StringUtils.isBlank(tableName)){
+            TableMapInfo tif = JpaMetadata.obtainMapInfoFromClass(obj.getClass());
+            if(tif!=null){
+                poClassName = tif.getTableName();
+            } else {
+                poClassName = obj.getClass().getSimpleName();
+            }
+        }
+
         Lexer varMorp = new Lexer();
         varMorp.setFormula(filter);
         StringBuilder checkStatement= new StringBuilder();
