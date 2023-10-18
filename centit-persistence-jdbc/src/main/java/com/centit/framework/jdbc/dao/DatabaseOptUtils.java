@@ -7,13 +7,13 @@ import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.database.utils.QueryUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collection;
