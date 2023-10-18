@@ -10,20 +10,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 public enum DBType {
-    Unknown(false), SqlServer(true),Oracle(true),
-    DB2(true), Access(true),MySql(true),
-    H2(true), PostgreSql(true),DM(true),
-    KingBase(true), GBase(true), Oscar(true);
+    Unknown, SqlServer,Oracle,
+    DB2, Access,MySql,
+    H2, PostgreSql,DM,
+    KingBase, GBase, Oscar;
 
 
     protected static final Logger logger = LoggerFactory.getLogger(DBType.class);
-    private boolean isRelationalDatabase;
-    DBType(boolean isRmdb){
-        this.isRelationalDatabase = isRmdb;
+    DBType(){
     }
 
     public boolean isRmdb(){
-        return isRelationalDatabase;
+        return !this.equals(Unknown);
     }
 
     @Override
@@ -82,31 +80,6 @@ public enum DBType {
                 return Unknown;
         }
     }
-    /*
-    public static DBType valueOf(String dbname) {
-        switch (dbname.toLowerCase()) {
-            case "sqlserver":
-                return SqlServer;
-            case "oracle":
-                return Oracle;
-            case "db2":
-                return DB2;
-            case "access":
-                return Access;
-            case "mysql":
-                return MySql;
-            case "h2":
-                return H2;
-            case "postgresql":
-                return PostgreSql;
-            case "dm":
-                return DM;
-            case "kingbase":
-                return KingBase;
-            default:
-                return Unknown;
-        }
-    }*/
 
     public static DBType mapDBType(String connurl) {
         if (StringUtils.isBlank(connurl))
