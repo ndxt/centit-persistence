@@ -92,7 +92,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * 请不要使用这个方法，我们一般获取jdbcTemplate来操作数据库
      * @return the JDBC Connection
      * @throws CannotGetJdbcConnectionException if the attempt to get a Connection failed
-     * @see org.springframework.jdbc.datasource.DataSourceUtils#getConnection(javax.sql.DataSource)
+     * @see org.springframework.jdbc.datasource.DataSourceUtils#getConnection(jakarta.sql.DataSource)
      */
     @Deprecated
     public Connection getConnection() throws CannotGetJdbcConnectionException {

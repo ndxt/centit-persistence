@@ -7,11 +7,11 @@ import com.centit.support.database.orm.OrmDaoUtils;
 import com.centit.support.database.orm.ValueGenerator;
 import com.centit.support.database.utils.DataSourceDescription;
 import com.centit.support.database.utils.TransactionHandler;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.Table;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Date;
