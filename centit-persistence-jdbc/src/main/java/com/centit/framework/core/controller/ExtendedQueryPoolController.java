@@ -2,8 +2,8 @@ package com.centit.framework.core.controller;
 
 import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.support.database.utils.DBType;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.DocumentException;
 import org.slf4j.Logger;
@@ -20,8 +20,8 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/sqlPool")
-@Api(value="持久化框架中的sql语句资源",
-        tags= "框架中的sql语句资源")
+@Tag(name="持久化框架中的sql语句资源",
+    description= "框架中的sql语句资源")
 public class ExtendedQueryPoolController {
 
     protected Logger logger = LoggerFactory.getLogger(ExtendedQueryPoolController.class);
@@ -45,7 +45,7 @@ public class ExtendedQueryPoolController {
      * 重新load Sql ExtendedMap
      * @return Map &lt; query_ID, 查询语句 &gt; 查询语句了列表
      */
-    @ApiOperation(value = "重启加载[home]/sqlscript目录中的sql(*.xml)脚本文件", notes = "重启加载sql语句")
+    @Operation(summary = "重启加载[home]/sqlscript目录中的sql(*.xml)脚本文件", description = "重启加载sql语句")
     @RequestMapping(value = "/reloadextendedsqlmap", method = { RequestMethod.GET })
     @ResponseBody
     public Map<String,Object> reloadExtendedSqlMap() {

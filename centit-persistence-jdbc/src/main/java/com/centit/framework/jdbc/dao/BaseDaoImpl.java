@@ -31,7 +31,6 @@ import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
-import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.Serializable;
@@ -66,8 +65,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * Set the JDBC DataSource to obtain connections from.
      * @param dataSource 数据源
      */
-    @Resource
-    public void setDataSource(DataSource dataSource) {
+    public void setDataSource(@Autowired DataSource dataSource) {
         if (this.jdbcTemplate == null || dataSource != this.jdbcTemplate.getDataSource()) {
             this.jdbcTemplate = new JdbcTemplate(dataSource);
         }

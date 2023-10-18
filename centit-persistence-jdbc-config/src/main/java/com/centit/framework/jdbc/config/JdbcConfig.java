@@ -21,7 +21,6 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.io.IOException;
 
@@ -31,9 +30,8 @@ public class JdbcConfig implements EnvironmentAware {
     protected Logger logger = LoggerFactory.getLogger(JdbcConfig.class);
     protected Environment env;
 
-    @Resource
     @Override
-    public void setEnvironment(Environment environment) {
+    public void setEnvironment(@Autowired Environment environment) {
         if (environment != null) {
             this.env = environment;
         }

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>centit-persistence</artifactId>
         <groupId>com.centit.framework</groupId>
-        <version>5.4-SNAPSHOT</version>
+        <version>JDK21-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -38,15 +38,5 @@
             <artifactId>spring-context</artifactId>
             <scope>provided</scope>
         </dependency>
-
-        <!-- server runtime library -->
-        <dependency>
-            <groupId>com.sun</groupId>
-            <artifactId>tools</artifactId>
-            <version>${jdk.version}</version>
-            <systemPath>${java.home}/../lib/tools.jar</systemPath>
-            <scope>system</scope>
-        </dependency>
-
     </dependencies>
 </project>
