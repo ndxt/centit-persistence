@@ -1193,7 +1193,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param tableAlias 表的别名
      * @return 返回对象
      */
-    @Deprecated
     public List<T> listObjectsByFilter(String whereSql, Object[] params, String tableAlias) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         String fieldsSql = GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias, 1);
