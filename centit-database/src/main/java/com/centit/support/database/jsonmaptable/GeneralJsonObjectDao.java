@@ -541,6 +541,10 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             case "_nn":
                 currentBuild.append(fieldName).append(" is not null");
                 break;
+            case "_bk":
+                currentBuild.append("(").append(fieldName).append(" is null or ")
+                    .append(fieldName).append("= '')");
+                break;
             case "_in":
                 currentBuild.append(fieldName).append(" in (:").append(plCol).append(")");
                 break;

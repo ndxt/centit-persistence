@@ -47,7 +47,7 @@ import java.util.*;
  * @param <T> po类
  * @param <PK> po主键类型 ; 对多个字段联合主键的可以使用Map《String, Object》类型
  */
-@SuppressWarnings({"unused","unchecked"})
+@SuppressWarnings({"unused", "unchecked"})
 public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializable> {
     protected static Logger logger = LoggerFactory.getLogger(BaseDaoImpl.class);
     private Class<?> poClass = null;
@@ -59,6 +59,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     //@Deprecated
     //protected Map<String, String> filterField = null;
 
+    @Autowired
+    protected DataSource dataSource;
+
     protected JdbcTemplate jdbcTemplate;
     private static final int DEFAULT_CASCADE_DEPTH = 3;
     /**
@@ -66,6 +69,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param dataSource 数据源
      */
     public void setDataSource(@Autowired DataSource dataSource) {
+        this.dataSource = dataSource;
         if (this.jdbcTemplate == null || dataSource != this.jdbcTemplate.getDataSource()) {
             this.jdbcTemplate = new JdbcTemplate(dataSource);
         }
@@ -76,6 +80,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return JdbcTemplate
      */
     public JdbcTemplate getJdbcTemplate() {
+        if (this.jdbcTemplate == null && dataSource!=null) {
+            this.jdbcTemplate = new JdbcTemplate(dataSource);
+        }
         return this.jdbcTemplate;
     }
 
@@ -84,7 +91,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return DataSource
      */
     public DataSource getDataSource() {
-        return (this.jdbcTemplate != null ? this.jdbcTemplate.getDataSource() : null);
+        return this.dataSource;
+        //return (this.jdbcTemplate != null ? this.jdbcTemplate.getDataSource() : null);
     }
 
     /**
