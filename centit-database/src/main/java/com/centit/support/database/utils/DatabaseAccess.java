@@ -35,10 +35,9 @@ public abstract class DatabaseAccess {
 
     private static Object transObjectForSqlParam(Object param) {
         // 避免重复转换
-        if (param instanceof java.sql.Date) {
+        if (param instanceof java.util.Date) {
             return param;
-        } else if (param instanceof java.util.Date ||
-            param instanceof java.time.LocalDate || param instanceof java.time.LocalDateTime) {
+        } else if( param instanceof java.time.LocalDate || param instanceof java.time.LocalDateTime) {
             return DatetimeOpt.convertToSqlTimestamp(
                 DatetimeOpt.castObjectToDate(param));
         }
