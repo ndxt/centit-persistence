@@ -44,7 +44,7 @@ public enum DBType {
             put(DB2, "com.ibm.db2.jcc.DB2Driver");
             put(SqlServer, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
             put(Access, "net.ucanaccess.jdbc.UcanaccessDriver");
-            put(MySql, "com.mysql.jdbc.Driver");
+            put(MySql, "com.mysql.cj.jdbc.Driver");
             put(H2, "org.h2.Driver");
             put(PostgreSql, "org.postgresql.Driver");
             put(DM, "dm.jdbc.driver.DmDriver");
