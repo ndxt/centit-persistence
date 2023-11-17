@@ -40,11 +40,11 @@ public abstract class DatabaseAccess {
         }
 
         if (param instanceof java.util.Date) {
-            return DatetimeOpt.convertToSqlDate((java.util.Date)param);
+            return DatetimeOpt.convertToSqlTimestamp((java.util.Date)param);
         }
 
         if( param instanceof java.time.LocalDate || param instanceof java.time.LocalDateTime) {
-            return DatetimeOpt.convertToSqlDate(
+            return DatetimeOpt.convertToSqlTimestamp (
                 DatetimeOpt.castObjectToDate(param));
         }
 
