@@ -36,7 +36,7 @@ public enum DBType {
             || DBType.Oscar.equals(this);
     }
 
-    private static HashMap<DBType, String> dbDrivers = new HashMap<DBType, String>() {
+    private static HashMap<DBType, String> dbDrivers = new HashMap<>() {
         {
             put(Oracle, "oracle.jdbc.driver.OracleDriver");
             put(DB2, "com.ibm.db2.jcc.DB2Driver");
