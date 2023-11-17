@@ -1,7 +1,7 @@
 package com.centit.support.database.utils;
 
-import com.alibaba.druid.pool.DruidDataSource;
 import com.centit.support.database.metadata.IDatabaseInfo;
+import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,33 +16,34 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class DbcpConnectPools {
     private static final Logger logger = LoggerFactory.getLogger(DbcpConnectPools.class);
     private static final
-    ConcurrentHashMap<DataSourceDescription, DruidDataSource> dbcpDataSourcePools
+    ConcurrentHashMap<DataSourceDescription, HikariDataSource> dbcpDataSourcePools
         = new ConcurrentHashMap<>();
     private DbcpConnectPools() {
         throw new IllegalAccessError("Utility class");
     }
 
-    private static DruidDataSource mapDataSource(DataSourceDescription dsDesc) {
-        DruidDataSource ds = new DruidDataSource();
+    private static HikariDataSource mapDataSource(DataSourceDescription dsDesc) {
+        HikariDataSource ds = new HikariDataSource();
         ds.setDriverClassName(dsDesc.getDriver());
         ds.setUsername(dsDesc.getUsername());
         ds.setPassword(dsDesc.getPassword());
-        ds.setUrl(dsDesc.getConnUrl());
-        ds.setInitialSize(dsDesc.getInitialSize());
-        ds.setMaxActive(dsDesc.getMaxTotal());
-        //ds.setMaxIdle(dsDesc.getMaxIdle());
-        ds.setMaxWait(dsDesc.getMaxWaitMillis());
-        ds.setMinIdle(dsDesc.getMinIdle());
+        ds.setJdbcUrl(dsDesc.getConnUrl());
+        ds.setConnectionTimeout(dsDesc.getMaxWaitMillis());
+        ds.setMaximumPoolSize(dsDesc.getMaxTotal());
+        ds.setMaxLifetime(180000);
+        ds.setIdleTimeout(6000);
+        ds.setValidationTimeout(5000);
+        ds.setMinimumIdle(dsDesc.getMinIdle());
         String validationQuery = DBType.getDBValidationQuery(dsDesc.getDbType());
         if(StringUtils.isNotBlank(validationQuery)) {
-            ds.setValidationQuery(validationQuery);
-            ds.setTestWhileIdle(true);
+            ds.setConnectionTestQuery(validationQuery);
         }
         return ds;
     }
 
-    public static synchronized DruidDataSource getDataSource(DataSourceDescription dsDesc) {
-        DruidDataSource ds = dbcpDataSourcePools.get(dsDesc);
+
+    public static synchronized HikariDataSource getDataSource(DataSourceDescription dsDesc) {
+        HikariDataSource ds = dbcpDataSourcePools.get(dsDesc);
         if (ds == null) {
             ds = mapDataSource(dsDesc);
             dbcpDataSourcePools.put(dsDesc, ds);
@@ -51,14 +52,14 @@ public abstract class DbcpConnectPools {
     }
 
     public static synchronized Connection getDbcpConnect(DataSourceDescription dsDesc) throws SQLException {
-        DruidDataSource ds = getDataSource(dsDesc);
+        HikariDataSource ds = getDataSource(dsDesc);
         Connection conn = ds.getConnection();
         conn.setAutoCommit(false);
         ///*dsDesc.getUsername(),dsDesc.getDbType(),*/
         return conn;
     }
 
-    public static DruidDataSource getDataSource(IDatabaseInfo dbinfo) {
+    public static HikariDataSource getDataSource(IDatabaseInfo dbinfo) {
         return DbcpConnectPools.getDataSource(DataSourceDescription.valueOf(dbinfo));
     }
 
@@ -68,16 +69,12 @@ public abstract class DbcpConnectPools {
 
     /* 获得数据源连接状态 */
     public static Map<String, Object> getDataSourceStats(DataSourceDescription dsDesc) {
-        DruidDataSource bds = dbcpDataSourcePools.get(dsDesc);
+        HikariDataSource bds = dbcpDataSourcePools.get(dsDesc);
         if (bds == null) {
             return null;
         }
         Map<String, Object> map = new HashMap<>(2);
-        map.put("activeCount", bds.getActiveCount());
-        map.put("poolingCount", bds.getPoolingCount());
-        map.put("resetCount", bds.getResetCount());
-        map.put("errorCount", bds.getErrorCount());
-        map.put("discardCount", bds.getDiscardCount());
+        map.put("poolName", bds.getPoolName());
         return map;
     }
 
@@ -85,14 +82,14 @@ public abstract class DbcpConnectPools {
      * 关闭数据源
      */
     public static synchronized void shutdownDataSource() {
-        for (Map.Entry<DataSourceDescription, DruidDataSource> dbs : dbcpDataSourcePools.entrySet()) {
+        for (Map.Entry<DataSourceDescription, HikariDataSource> dbs : dbcpDataSourcePools.entrySet()) {
             dbs.getValue().close();
         }
         //dbcpDataSourcePools.clear();
     }
 
     public static synchronized boolean testDataSource(DataSourceDescription dsDesc) {
-        DruidDataSource ds = mapDataSource(dsDesc);
+        HikariDataSource ds = mapDataSource(dsDesc);
         boolean connOk = false;
         try {
             //Class.forName(dsDesc.getDriver());
