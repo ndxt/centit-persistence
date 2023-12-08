@@ -49,7 +49,8 @@ public class JdbcConfig implements EnvironmentAware {
         ds.setMaximumPoolSize(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxActive"),100));
         ds.setConnectionTimeout(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.maxWait"), 5000));
         ds.setMinimumIdle(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.minIdle"), 5));
-        ds.setValidationTimeout(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.validationTimeout"), 5000));
+        ds.setValidationTimeout(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.validationTimeout"), 60000));
+        //ds.setKeepaliveTime(NumberBaseOpt.castObjectToInteger(env.getProperty("jdbc.keepaliveTime"), 60000));
 
         DBType dbType = DBType.mapDBType(env.getProperty("jdbc.url"));
         String validationQuery = env.getProperty("jdbc.validationQuery");
