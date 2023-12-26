@@ -654,7 +654,7 @@ public abstract class QueryUtils {
         //throw new SQLException("DB2 unsupported parameter in fetch statement.");
         if (offset == 0) {
             return maxsize > 1 ? sql + " fetch first " + maxsize + " rows only" :
-                " fetch first 1 row only";
+                sql + " fetch first 1 row only";
         }
         //nest the main query in an outer select
         return "select * from ( select inner2_.*, rownumber() over(order by order of inner2_) as rownumber_ from ( "
