@@ -1961,6 +1961,7 @@ public abstract class QueryUtils {
         int prePos = 0;
         while (sWord != null && !sWord.equals("")) {
             if (sWord.equals("{")) {
+
                 int curPos = varMorp.getCurrPos();
                 if (curPos - 1 > prePos)
                     hqlBuilder.append(queryStatement.substring(prePos, curPos - 1));
@@ -1968,6 +1969,14 @@ public abstract class QueryUtils {
                 prePos = varMorp.getCurrPos();
                 //分析表别名， 格式为 TableNameOrClass:alias,TableNameOrClass:alias,.....
                 String tablesDesc = queryStatement.substring(curPos, prePos - 1).trim();
+                //required 关键字表示必须有对应的权限过滤语句，如果没有 则恒为false
+                boolean required = false;
+                String firstWord = Lexer.getFirstWord(tablesDesc);
+                if("required".equalsIgnoreCase(firstWord)){
+                    required = true;
+                    tablesDesc = tablesDesc.substring(8).trim();
+                }
+
                 String[] tables = tablesDesc.split(",");
                 Map<String, String> tableMap = new HashMap<>();
                 for (String tableDesc : tables) {
@@ -1978,13 +1987,6 @@ public abstract class QueryUtils {
                         aliasName = tableLexer.getAWord();
                     }
                     tableMap.put(tableName, aliasName);
-                    /*
-                    int n= tableDesc.indexOf(':');
-                    if(n<1){
-                        tableMap.put(tableDesc, "");
-                    }else{
-                        tableMap.put(tableDesc.substring(0,n), tableDesc.substring(n+1));
-                    }*/
                 }
                 translater.setTableAlias(tableMap);
                 QueryAndNamedParams hqlPiece =
@@ -1994,7 +1996,11 @@ public abstract class QueryUtils {
                 if (hqlPiece != null && !StringBaseOpt.isNvl(hqlPiece.getQuery())) {
                     hqlBuilder.append(" and ").append(hqlPiece.getQuery());
                     hqlAndParams.addAllParams(hqlPiece.getParams());
+                } else if(required){
+                    //必须要有范围权限，否则就添加永远是false的语句
+                    hqlBuilder.append(" and 0=1 ");
                 }
+
             } else if (sWord.equals("[")) {
                 int curPos = varMorp.getCurrPos();
                 if (curPos - 1 > prePos)
