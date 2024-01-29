@@ -191,7 +191,7 @@ public abstract class QueryUtils {
             if (obj != null) {
                 if (dataCount > 0)
                     sb.append(",");
-                sb.append(buildStringForQuery(String.valueOf(obj)));
+                sb.append(buildObjectStringForQuery(obj));
                 dataCount++;
             }
         }
@@ -208,7 +208,7 @@ public abstract class QueryUtils {
             if (obj != null) {
                 if (dataCount > 0)
                     sb.append(",");
-                sb.append(buildStringForQuery(String.valueOf(obj)));
+                sb.append(buildObjectStringForQuery(obj));
                 dataCount++;
             }
         }
@@ -217,10 +217,10 @@ public abstract class QueryUtils {
     }
 
     public static String buildObjectStringForQuery(Object fieldValue) {
+        if (fieldValue==null)
+            return "''";
         if (fieldValue instanceof java.util.Date) {
             return QueryUtils.buildDatetimeStringForQuery((java.util.Date) fieldValue);
-        } else if (fieldValue instanceof java.sql.Date) {
-            return QueryUtils.buildDatetimeStringForQuery((java.sql.Date) fieldValue);
         } else if (fieldValue.getClass().getSuperclass().equals(Number.class)) {
             return fieldValue.toString();
         } else if (fieldValue instanceof Object[]) {
