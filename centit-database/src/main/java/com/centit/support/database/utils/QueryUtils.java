@@ -191,7 +191,7 @@ public abstract class QueryUtils {
             if (obj != null) {
                 if (dataCount > 0)
                     sb.append(",");
-                sb.append(buildStringForQuery(String.valueOf(obj)));
+                sb.append(buildObjectStringForQuery(obj));
                 dataCount++;
             }
         }
@@ -200,7 +200,7 @@ public abstract class QueryUtils {
     }
 
     public static String buildObjectsStringForQuery(Collection<?> objects) {
-        if (objects == null || objects.size() < 1)
+        if (objects == null || objects.isEmpty())
             return "()";
         StringBuilder sb = new StringBuilder("(");
         int dataCount = 0;
@@ -208,7 +208,7 @@ public abstract class QueryUtils {
             if (obj != null) {
                 if (dataCount > 0)
                     sb.append(",");
-                sb.append(buildStringForQuery(String.valueOf(obj)));
+                sb.append(buildObjectStringForQuery(obj));
                 dataCount++;
             }
         }
