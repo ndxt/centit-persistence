@@ -139,9 +139,9 @@ public abstract class GeneralDDLOperations implements DDLOperations {
                 }
             } else { // VC_ID varchar(32) not null primary key comment 'VC_ID(主键)',
                 SimpleTableField column = new SimpleTableField();
+                aWrod = StringRegularOpt.trimString(aWrod);
                 column.setColumnName(aWrod);
                 aWrod = sql.getAWord();
-                aWrod = StringRegularOpt.trimString(aWrod);
                 column.setColumnType(aWrod);
                 aWrod = sql.getAWord();
                 while(StringUtils.isNotBlank(aWrod) && !",".equals(aWrod)) {
