@@ -184,8 +184,8 @@ public abstract class QueryUtils {
 
     public static String buildObjectsStringForQuery(Object[] objects) {
         if (objects == null || objects.length < 1)
-            return "()";
-        StringBuilder sb = new StringBuilder("(");
+            return "''";
+        StringBuilder sb = new StringBuilder();
         int dataCount = 0;
         for (Object obj : objects) {
             if (obj != null) {
@@ -195,14 +195,13 @@ public abstract class QueryUtils {
                 dataCount++;
             }
         }
-        sb.append(")");
-        return sb.toString();
+        return dataCount == 0? "''" : sb.toString();
     }
 
     public static String buildObjectsStringForQuery(Collection<?> objects) {
         if (objects == null || objects.isEmpty())
-            return "()";
-        StringBuilder sb = new StringBuilder("(");
+            return "''";
+        StringBuilder sb = new StringBuilder();
         int dataCount = 0;
         for (Object obj : objects) {
             if (obj != null) {
@@ -212,8 +211,7 @@ public abstract class QueryUtils {
                 dataCount++;
             }
         }
-        sb.append(")");
-        return sb.toString();
+        return dataCount == 0? "''" : sb.toString();
     }
 
     public static String buildObjectStringForQuery(Object fieldValue) {
