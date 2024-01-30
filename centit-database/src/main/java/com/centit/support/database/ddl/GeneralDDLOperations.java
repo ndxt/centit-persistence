@@ -1,6 +1,7 @@
 package com.centit.support.database.ddl;
 
 import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.common.ObjectException;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.metadata.SimpleTableField;
@@ -108,6 +109,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
             aWrod = sql.getAWord();
         }
         aWrod = sql.getAWord();
+        aWrod = StringRegularOpt.trimString(aWrod);
         tableInfo.setTableName(aWrod);
         aWrod = sql.getAWord();
         while(StringUtils.isNotBlank(aWrod) && !"(".equalsIgnoreCase(aWrod)){
@@ -121,6 +123,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
                     aWrod = sql.getAWord();
                 }
                 aWrod = sql.getAWord();
+                aWrod = StringRegularOpt.trimString(aWrod);
                 SimpleTableField column = tableInfo.findFieldByColumn(aWrod);
                 if(column !=null){
                     column.setPrimaryKey(true);
@@ -136,6 +139,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
                 }
             } else { // VC_ID varchar(32) not null primary key comment 'VC_ID(主键)',
                 SimpleTableField column = new SimpleTableField();
+                aWrod = StringRegularOpt.trimString(aWrod);
                 column.setColumnName(aWrod);
                 aWrod = sql.getAWord();
                 column.setColumnType(aWrod);
@@ -158,11 +162,13 @@ public abstract class GeneralDDLOperations implements DDLOperations {
                         }
                     } else if ("primary".equalsIgnoreCase(aWrod)) {
                         aWrod = sql.getAWord();
+                        aWrod = StringRegularOpt.trimString(aWrod);
                         if ("key".equals(aWrod)) {
                             column.setPrimaryKey(true);
                         }
                     } else if ("comment".equalsIgnoreCase(aWrod)) {
                         aWrod = sql.getAWord();
+                        aWrod = StringRegularOpt.trimString(aWrod);
                         column.setFieldLabelName(aWrod);
                         column.setColumnComment(aWrod);
                     }

@@ -5,19 +5,18 @@ import com.centit.support.database.metadata.SimpleTableInfo;
 
 public class TestDDLUtils {
     public static void main(String[] args) {
-        String sql = "create table P_PRO_MEMBER_CONTRIBUTE_DEGREE (" +
-            "  VC_ID varchar(32) not null comment 'VC_ID(主键)'," +
-            "  VC_PRO_ID varchar(32) comment 'VC_PRO_ID(项目ID)'," +
-            "  VC_TARGET_ID varchar(32) comment 'VC_TARGET_ID(标的ID)'," +
-            "  VC_USER_ID varchar(32) comment 'VC_USER_ID(成员Id)',\n" +
-            "  VC_USER_TYPE varchar(100) comment 'VC_USER_TYPE(成员类型代码)',\n" +
-            "  L_BEFORE_INVEST_RATIO DOUBLE comment 'L_BEFORE_INVEST_RATIO(投前比例)',\n" +
-            "  L_AFTER_INVEST_RATIO DOUBLE comment 'L_AFTER_INVEST_RATIO(投后比例)',\n" +
-            "  L_QUIT_INVEST_RATIO DOUBLE comment 'L_QUIT_INVEST_RATIO(退出比例)',\n" +
-            "  UPDATEDATE Date comment 'UPDATEDATE(更新时间)',\n" +
-            "  UPDATOR varchar(32) comment 'UPDATOR(更新人)',\n" +
-            "  L_STATE BIGINT comment 'L_STATE(状态)',\n" +
-            "  primary key (VC_ID, VC_PRO_ID ));";
+        String sql = "CREATE TABLE `history_version` (\n" +
+            "  `history_id` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NOT NULL COMMENT '主键id',\n" +
+            "  `relation_id` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin DEFAULT NULL COMMENT '关联表id',\n" +
+            "  `os_id` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin DEFAULT NULL COMMENT '应用id',\n" +
+            "  `content` longtext CHARACTER SET utf8mb3 COLLATE utf8mb3_bin COMMENT '内容',\n" +
+            "  `label` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin DEFAULT NULL COMMENT '标签',\n" +
+            "  `memo` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin DEFAULT NULL COMMENT '备注',\n" +
+            "  `push_time` datetime DEFAULT NULL COMMENT '提交时间',\n" +
+            "  `push_user` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin DEFAULT NULL COMMENT '提交人',\n" +
+            "  `type` char(1) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin DEFAULT NULL COMMENT '类型 1：工作流 2：页面设计 3：api网关',\n" +
+            "  PRIMARY KEY (`history_id`) USING BTREE\n" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin;";
         SimpleTableInfo tableInfo = GeneralDDLOperations.parseDDL(sql);
         System.out.println(tableInfo.getTableName());
     }
