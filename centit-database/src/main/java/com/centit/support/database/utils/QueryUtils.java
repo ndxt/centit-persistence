@@ -181,23 +181,6 @@ public abstract class QueryUtils {
         return "'" + StringUtils.replace(value.trim(), "'", "''") + "'";
     }
 
-
-    public static String buildObjectsStringForQuery(Object[] objects) {
-        if (objects == null || objects.length < 1)
-            return "''";
-        StringBuilder sb = new StringBuilder();
-        int dataCount = 0;
-        for (Object obj : objects) {
-            if (obj != null) {
-                if (dataCount > 0)
-                    sb.append(",");
-                sb.append(buildObjectStringForQuery(obj));
-                dataCount++;
-            }
-        }
-        return dataCount == 0? "''" : sb.toString();
-    }
-
     public static String buildObjectsStringForQuery(Collection<?> objects) {
         if (objects == null || objects.isEmpty())
             return "''";
@@ -212,6 +195,10 @@ public abstract class QueryUtils {
             }
         }
         return dataCount == 0? "''" : sb.toString();
+    }
+
+    public static String buildObjectsStringForQuery(Object[] objects) {
+        return buildObjectsStringForQuery(CollectionsOpt.arrayToList(objects));
     }
 
     public static String buildObjectStringForQuery(Object fieldValue) {
