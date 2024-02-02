@@ -679,17 +679,16 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         sbUpdate.append(ti.getTableName()).append(" set ");
         int updateColCount = 0;
         for (String f : fields) {
-            if (/*exceptPk && */ti.isParmaryKey(f))
-                continue;
             TableField col = ti.findFieldByName(f);
-            if (col != null) {
-                if (updateColCount > 0) {
-                    sbUpdate.append(", ");
-                }
-                sbUpdate.append(col.getColumnName());
-                sbUpdate.append(" = :").append(f);
-                updateColCount++;
+            if (col == null || col.isPrimaryKey())
+                continue;
+
+            if (updateColCount > 0) {
+                sbUpdate.append(", ");
             }
+            sbUpdate.append(col.getColumnName());
+            sbUpdate.append(" = :").append(f);
+            updateColCount++;
         }
         if (updateColCount == 0) {
             return null;// throw exception
