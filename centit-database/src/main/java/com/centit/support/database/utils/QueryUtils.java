@@ -1731,33 +1731,37 @@ public abstract class QueryUtils {
                     hqlPiece.append(filter.substring(prePos, curPos - 1));
                 varMorp.seekToRightBrace();//('}');
                 prePos = varMorp.getCurrPos();
+                if(prePos <= curPos+1){
+                    return null; // 变量名为空，格式不正确
+                }
                 String param = filter.substring(curPos, prePos - 1).trim();
-                if (StringUtils.isNotBlank(param)) {
-                    ImmutableTriple<String, String, String> paramMeta = parseParameter(param);
-                    //{paramName,paramAlias,paramPretreatment};
-                    String paramName = StringUtils.isBlank(paramMeta.left) ? paramMeta.middle : paramMeta.left;
-                    String paramAlias = StringUtils.isBlank(paramMeta.middle) ? paramMeta.left : paramMeta.middle;
+                if (StringUtils.isBlank(param)) {
+                    return null; // 变量名为空，格式不正确
+                }
+                ImmutableTriple<String, String, String> paramMeta = parseParameter(param);
+                //{paramName,paramAlias,paramPretreatment};
+                String paramName = StringUtils.isBlank(paramMeta.left) ? paramMeta.middle : paramMeta.left;
+                String paramAlias = StringUtils.isBlank(paramMeta.middle) ? paramMeta.left : paramMeta.middle;
 
-                    LeftRightPair<String, Object> paramPair = translater.translateParam(paramName);
-                    if (paramPair == null)
-                        return null;
+                LeftRightPair<String, Object> paramPair = translater.translateParam(paramName);
+                if (paramPair == null)
+                    return null;
 
-                    if (paramPair.getRight() != null) {
-                        Object realParam = pretreatParameter(paramMeta.right, paramPair.getRight());
-                        if (hasPretreatment(paramMeta.right, SQL_PRETREAT_CREEPFORIN)) {
-                            QueryAndNamedParams inSt = buildInStatement(paramAlias, realParam);
-                            hqlPiece.append(inSt.getQuery());
-                            hqlAndParams.addAllParams(inSt.getParams());
-                        } else if (hasPretreatment(paramMeta.right, SQL_PRETREAT_INPLACE)) {
-                            hqlPiece.append(cleanSqlStatement(StringBaseOpt.objectToString(realParam)));
-                        } else {
-                            hqlPiece.append(":").append(paramAlias);
-                            hqlAndParams.addParam(paramAlias, realParam);
-                        }
-
+                if (paramPair.getRight() != null) {
+                    Object realParam = pretreatParameter(paramMeta.right, paramPair.getRight());
+                    if (hasPretreatment(paramMeta.right, SQL_PRETREAT_CREEPFORIN)) {
+                        QueryAndNamedParams inSt = buildInStatement(paramAlias, realParam);
+                        hqlPiece.append(inSt.getQuery());
+                        hqlAndParams.addAllParams(inSt.getParams());
+                    } else if (hasPretreatment(paramMeta.right, SQL_PRETREAT_INPLACE)) {
+                        hqlPiece.append(cleanSqlStatement(StringBaseOpt.objectToString(realParam)));
                     } else {
-                        hqlPiece.append(paramPair.getLeft());
+                        hqlPiece.append(":").append(paramAlias);
+                        hqlAndParams.addParam(paramAlias, realParam);
                     }
+
+                } else {
+                    hqlPiece.append(paramPair.getLeft());
                 }
             }
 
@@ -1765,34 +1769,38 @@ public abstract class QueryUtils {
         }
         hqlPiece.append(filter.substring(prePos));
         hqlAndParams.setQuery(hqlPiece.toString());
+        if(StringUtils.isBlank(hqlAndParams.getQuery())){
+            return null;
+        }
         return hqlAndParams;
     }
 
     public static QueryAndNamedParams translateQueryFilter(Collection<String> filters,
                                                            IFilterTranslater translater, boolean isUnion) {
-        if (filters == null || filters.size() < 1)
+        if (filters == null || filters.isEmpty())
             return null;
         QueryAndNamedParams hqlAndParams = new QueryAndNamedParams();
         StringBuilder hqlBuilder = new StringBuilder();
 
-        boolean haveSql = false;
+        int hqlPieceCount = 0;
         for (String filter : filters) {
             QueryAndNamedParams hqlPiece = translateQueryFilter(filter, translater);
-            if (hqlPiece != null) {
-                if (!haveSql)
-                    hqlBuilder.append("(");
-                else
+            if (hqlPiece != null && StringUtils.isNotBlank(hqlPiece.getQuery())) {
+                if (hqlPieceCount>0)
                     hqlBuilder.append(isUnion ? " or " : " and ");
-                haveSql = true;
+                hqlPieceCount ++;
                 hqlBuilder.append(hqlPiece.getQuery());
                 hqlAndParams.addAllParams(hqlPiece.getParams());
             }
         }
 
-        if (haveSql)
-            hqlBuilder.append(" )");
-
-        hqlAndParams.setQuery(hqlBuilder.toString());
+        if (hqlPieceCount == 0)
+            return null;
+        if(hqlPieceCount > 1 && isUnion){
+            hqlAndParams.setQuery("( " + hqlBuilder.toString() + " )");
+        } else {
+            hqlAndParams.setQuery(hqlBuilder.toString());
+        }
         return hqlAndParams;
     }
 

@@ -5,6 +5,7 @@ import com.centit.support.database.orm.ValueGenerator;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Date;
@@ -20,6 +21,7 @@ public class Career implements Serializable {
      */
     @Column(name = "CAREER_ID")
     @ValueGenerator( strategy= GeneratorType.UUID)
+    @Id
     String careerId;
     /**
      * 外建

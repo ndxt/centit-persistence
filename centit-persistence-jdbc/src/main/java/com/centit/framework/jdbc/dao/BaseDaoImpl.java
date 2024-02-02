@@ -25,7 +25,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -282,7 +281,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return queryAndParams;
     }
 
-    protected QueryAndNamedParams  buildFilterByParams(Map<String, Object> filterMap,
+    protected QueryAndNamedParams buildFilterByParams(Map<String, Object> filterMap,
                                                       Collection<String> extentFilters, QueryUtils.IFilterTranslater powerTranslater) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Map<String, Object> queryParams = new HashMap<>(filterMap.size()+4);
@@ -292,7 +291,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             new HashMap<>();
         //buildFilterSqlPieces(ti, alias,  filterMap, filterGroup);
 
-        if(filterList.size()>0){
+        if(!filterList.isEmpty()){
             leftFilterMap = new HashMap<>(filterMap.size()+4);
             for(Map.Entry<String, Object> ent : filterMap.entrySet()) {
                 DataFilter df = filterList.get(ent.getKey());
@@ -340,8 +339,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             tableAlias.put(mapInfo.getTableName(), "");
             translater.setTableAlias(tableAlias );
             QueryAndNamedParams powerFilter = QueryUtils.translateQueryFilter(extentFilters, translater, true);
-            filterQuery.append(" and ").append(powerFilter.getQuery());
-            queryParams.putAll(powerFilter.getParams());
+            if(powerFilter != null && StringUtils.isNotBlank(powerFilter.getQuery())){
+                filterQuery.append(" and ").append(powerFilter.getQuery());
+                queryParams.putAll(powerFilter.getParams());
+            }
         }
 
         for(Map.Entry<String, LeftRightPair<Integer , StringBuilder>> ent : filterGroup.entrySet()){
