@@ -118,7 +118,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
         aWrod = sql.getAWord();
         //获取字段
         while(StringUtils.isNotBlank(aWrod)){
-            if("constraint".equalsIgnoreCase(aWrod) || "primary".equalsIgnoreCase(aWrod)){
+            if("constraint".equalsIgnoreCase(aWrod) || "primary".equalsIgnoreCase(aWrod) || "key".equalsIgnoreCase(aWrod)){
                 while(StringUtils.isNotBlank(aWrod) && !"(".equalsIgnoreCase(aWrod)){
                     aWrod = sql.getAWord();
                 }
