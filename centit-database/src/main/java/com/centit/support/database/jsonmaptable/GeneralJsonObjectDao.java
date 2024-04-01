@@ -439,6 +439,8 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             Map<String, LeftRightPair<Integer , StringBuilder>> filterGroup) {
 
         for (Map.Entry<String, Object> filterEnt : filterMap.entrySet()) {
+            if(filterEnt.getValue()==null)
+                continue;
             String plCol = filterEnt.getKey();
             int plColLength = plCol.length();
             boolean beGroup = false;
@@ -485,7 +487,6 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                     optSuffix, currentBuild);
             }
         }
-
     }
 
     public static String buildFilterSql(TableInfo ti, String alias, Map<String, Object> filterMap) {
