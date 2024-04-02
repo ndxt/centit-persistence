@@ -294,6 +294,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if(!filterList.isEmpty()){
             leftFilterMap = new HashMap<>(filterMap.size()+4);
             for(Map.Entry<String, Object> ent : filterMap.entrySet()) {
+                if(ent.getValue()==null)
+                    continue;
                 DataFilter df = filterList.get(ent.getKey());
                 if(df != null){
                     String plCol = df.getValueName();
