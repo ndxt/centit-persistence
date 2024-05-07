@@ -460,8 +460,7 @@ public abstract class FieldType {
             "VARCHAR".equalsIgnoreCase(columnType) ||
             "VARCHAR2".equalsIgnoreCase(columnType) ||
             FieldType.STRING.equalsIgnoreCase(columnType) ||
-            FieldType.FILE_ID.equalsIgnoreCase(columnType) ||
-            FieldType.BOOLEAN.equalsIgnoreCase(columnType)) {
+            FieldType.FILE_ID.equalsIgnoreCase(columnType)) {
             return String.class;
         } else if ("DATE".equalsIgnoreCase(columnType) ||
             "TIME".equalsIgnoreCase(columnType) ||
@@ -476,13 +475,16 @@ public abstract class FieldType {
             return String.class;
         } else if ("BLOB".equalsIgnoreCase(columnType) ||
             "VARBINARY".equalsIgnoreCase(columnType) ||
-            FieldType.BYTE_ARRAY.equalsIgnoreCase(columnType)) {
+            FieldType.BYTE_ARRAY.equalsIgnoreCase(columnType) ||
+            "JSONB".equalsIgnoreCase(columnType)) {
             return byte[].class;
         } else if (FieldType.MONEY.equalsIgnoreCase(columnType)) {
             return BigDecimal.class;//FieldType.MONEY;
         } else if (FieldType.FLOAT.equalsIgnoreCase(columnType)) {
             return Float.class;
-        } else if ("Int".equalsIgnoreCase(columnType) ||
+        } else if ("INT".equalsIgnoreCase(columnType) ||
+            "INT4".equalsIgnoreCase(columnType) ||
+            "INT8".equalsIgnoreCase(columnType) ||
             FieldType.INTEGER.equalsIgnoreCase(columnType)) {
             return Integer.class;
         } else if (FieldType.DOUBLE.equalsIgnoreCase(columnType)) {
@@ -490,8 +492,12 @@ public abstract class FieldType {
         } else if ("BIGINT".equalsIgnoreCase(columnType) ||
             FieldType.LONG.equalsIgnoreCase(columnType)) {
             return Long.class;
-        } else if (FieldType.JSON_OBJECT.equalsIgnoreCase(columnType)) {
+        } else if (FieldType.JSON_OBJECT.equalsIgnoreCase(columnType) ||
+            "JSON".equalsIgnoreCase(columnType) ) {
             return JSON.class;
+        } else if ("bool".equalsIgnoreCase(columnType) ||
+            "boolean".equalsIgnoreCase(columnType)) {
+            return Boolean.class;
         } else {
             return String.class;
         }
@@ -591,7 +597,6 @@ public abstract class FieldType {
 
     public static String mapToFieldType(String columnType, int scale) {
         if ("NUMBER".equalsIgnoreCase(columnType) ||
-            "INTEGER".equalsIgnoreCase(columnType) ||
             "NUMERIC".equalsIgnoreCase(columnType) ||
             "DECIMAL".equalsIgnoreCase(columnType)) {
             if (scale > 0) {
@@ -628,8 +633,15 @@ public abstract class FieldType {
             return FieldType.LONG;
         }
 
-        if ("INT".equalsIgnoreCase(columnType)) {
+        if ("INT".equalsIgnoreCase(columnType) ||
+            "INT4".equalsIgnoreCase(columnType) ||
+            "INT8".equalsIgnoreCase(columnType) ||
+            "INTEGER".equalsIgnoreCase(columnType) ) {
             return FieldType.INTEGER;
+        }
+        if ("bool".equalsIgnoreCase(columnType) ||
+            "boolean".equalsIgnoreCase(columnType)) {
+            return FieldType.BOOLEAN;
         }
 
         return columnType;
