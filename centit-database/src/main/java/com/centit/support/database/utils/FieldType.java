@@ -10,6 +10,7 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public abstract class FieldType {
     public static final String VOID = "void";
     /**
@@ -405,11 +406,6 @@ public abstract class FieldType {
         switch (dt) {
             case SqlServer:
                 return mapToSqlServerColumnType(ft);
-            case Oracle:
-            case DM:
-            case KingBase:
-            case Oscar:
-                return mapToOracleColumnType(ft);
             case DB2:
                 return mapToDB2ColumnType(ft);
             case MySql:
@@ -420,6 +416,10 @@ public abstract class FieldType {
                 return mapToPostgreSqlColumnType(ft);
             case GBase:
                 return mapToGBaseColumnType(ft);
+            case Oracle:
+            case DM:
+            case KingBase:
+            case Oscar:
             default:
                 return mapToOracleColumnType(ft);
         }
@@ -529,10 +529,7 @@ public abstract class FieldType {
                 return Double.class;
             case 3:
                 return Long.class;
-            case -1:
-            case 1:
-            case 12:
-                return String.class;
+
             case 91:
             case 92:
                 return Date.class;
@@ -545,10 +542,9 @@ public abstract class FieldType {
             case -4:
             case 2004:
                 return byte[].class;
-            /*case 2005:
-                return "String";
-            case 16:
-                return "String";*/
+            case -1:
+            case 1:
+            case 12:
             default:
                 return String.class;
         }
@@ -569,10 +565,7 @@ public abstract class FieldType {
                 return FieldType.DOUBLE;
             case 3:
                 return FieldType.LONG;
-            case -1:
-            case 1:
-            case 12:
-                return FieldType.STRING;
+
             case 91:
                 return FieldType.DATE;
             case 92:
@@ -590,6 +583,9 @@ public abstract class FieldType {
                 return FieldType.TEXT;
             case 16:
                 return FieldType.BOOLEAN;
+            case -1:
+            case 1:
+            case 12:
             default:
                 return FieldType.STRING;
         }
