@@ -245,6 +245,8 @@ public abstract class GeneralDDLOperations implements DDLOperations {
     }
 
     protected void appendColumnsSQL(final TableInfo tableInfo, StringBuilder sbCreate, boolean fieldStartNewLine) {
+        if(tableInfo.getColumns()==null)
+            return;
         for (TableField field : tableInfo.getColumns()) {
             appendColumnSQL(field, sbCreate);
             if (StringUtils.isNotBlank(field.getDefaultValue())) {
