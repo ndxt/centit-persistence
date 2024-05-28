@@ -10,10 +10,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 public enum DBType {
-    Unknown(false), SqlServer(true),Oracle(true),
-    DB2(true), Access(true),MySql(true),
-    H2(true), PostgreSql(true),DM(true),
-    KingBase(true), GBase(true), Oscar(true);
+    Unknown(false), SqlServer(true), Oracle(true),
+    DB2(true), Access(true), MySql(true),
+    H2(true), PostgreSql(true), DM(true),
+    KingBase(true), GBase(true), Oscar(true),
+    ClickHouse(false);
 
 
     protected static final Logger logger = LoggerFactory.getLogger(DBType.class);
@@ -51,6 +52,7 @@ public enum DBType {
             put(KingBase, "com.kingbase.Driver");
             put(GBase, "com.gbasedbt.jdbc.IfxDriver");
             put(Oscar, "com.oscar.Driver");
+            put(ClickHouse, "com.clickhouse.jdbc.ClickHouseDriver");
         }
     };
 
@@ -78,6 +80,8 @@ public enum DBType {
                 return GBase;
             case 11:
                 return Oscar;
+            case 12:
+                return ClickHouse;
             default:
                 return Unknown;
         }
@@ -144,6 +148,9 @@ public enum DBType {
         if (connurl.startsWith("jdbc:oscar")
             || "oscar".equalsIgnoreCase(connurl))
             return Oscar;
+        if (connurl.startsWith("jdbc:clickhouse")
+            || "clickhouse".equalsIgnoreCase(connurl))
+            return ClickHouse;
         return Unknown;
     }
 
@@ -187,6 +194,8 @@ public enum DBType {
             return GBase;
         if (dialectName.contains("Oscar"))
             return Oscar;
+        if (dialectName.contains("ClickHouse"))
+            return ClickHouse;
         return Unknown;
     }
 
@@ -204,6 +213,7 @@ public enum DBType {
         dbtypes.add(KingBase);
         dbtypes.add(GBase);
         dbtypes.add(Oscar);
+        dbtypes.add(ClickHouse);
         return dbtypes;
     }
 
@@ -240,6 +250,8 @@ public enum DBType {
                 return "gbase";
             case Oscar:
                 return "shentong";
+            case ClickHouse:
+                return "clickhouse";
             default:
                 return "unknown";
         }
@@ -258,6 +270,7 @@ public enum DBType {
             case MySql:
             case H2:
             case SqlServer:
+            case ClickHouse:
                 return "select 1";
             case PostgreSql:
                 return "select version()";

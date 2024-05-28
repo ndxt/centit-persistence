@@ -45,6 +45,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
             case SqlServer:
                 return new SqlSvrDDLOperations();
             case MySql:
+            case ClickHouse:
                 return new MySqlDDLOperations();
             case H2:
                 return new H2DDLOperations();

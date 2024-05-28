@@ -351,9 +351,43 @@ public abstract class FieldType {
                 return ft;
         }
     }
-
-    public static String mapToH2ColumnType(String ft) {
-        return mapToMySqlColumnType(ft);
+    public static String mapToClickHouseColumnType(String ft) {
+        if (StringUtils.isBlank(ft))
+            return ft;
+        switch (ft) {
+            case STRING:
+                return "String";
+            case INTEGER:
+                return "Int32";
+            case IDENTITY:
+            case LONG:
+                return "Int64";
+            case MONEY:
+                return "Decimal32(4)";
+            case FLOAT:
+                return "Float32";
+            case DOUBLE:
+                return "Float64";
+            case BOOLEAN:
+                return "FixedString(1)";
+            case DATE:
+                return "Date";
+            case DATETIME:
+                return "Datetime";
+            case TIMESTAMP:
+                return "Datetime64";
+            case TEXT:
+            case JSON_OBJECT:
+            case BYTE_ARRAY:
+            case FILE:
+                return "String";//长文本
+            case FILE_ID:
+                return "FixedString(64)";//默认记录文件的ID号
+            case ENUM_NAME:
+                return "FixedString(64)";//
+            default:
+                return ft;
+        }
     }
 
     public static String mapToPostgreSqlColumnType(String ft) {
@@ -408,10 +442,11 @@ public abstract class FieldType {
                 return mapToSqlServerColumnType(ft);
             case DB2:
                 return mapToDB2ColumnType(ft);
+            case H2:
             case MySql:
                 return mapToMySqlColumnType(ft);
-            case H2:
-                return mapToH2ColumnType(ft);
+            case ClickHouse:
+                return mapToClickHouseColumnType(ft);
             case PostgreSql:
                 return mapToPostgreSqlColumnType(ft);
             case GBase:
@@ -452,13 +487,16 @@ public abstract class FieldType {
         if ("NUMBER".equalsIgnoreCase(columnType) ||
             "DECIMAL".equalsIgnoreCase(columnType)) {
             if (scale > 0) {
-                return Double.class;
+                return BigDecimal.class;
             } else {
                 return Long.class;
             }
         } else if ("CHAR".equalsIgnoreCase(columnType) ||
             "VARCHAR".equalsIgnoreCase(columnType) ||
             "VARCHAR2".equalsIgnoreCase(columnType) ||
+            "CLOB".equalsIgnoreCase(columnType) ||
+            "TEXT".equalsIgnoreCase(columnType) ||
+            "FixedString".equalsIgnoreCase(columnType) ||
             FieldType.STRING.equalsIgnoreCase(columnType) ||
             FieldType.FILE_ID.equalsIgnoreCase(columnType)) {
             return String.class;
@@ -468,28 +506,37 @@ public abstract class FieldType {
             "SQLDATE".equalsIgnoreCase(columnType)) {
             return Date.class;
         } else if ("TIMESTAMP".equalsIgnoreCase(columnType) ||
+            "DATETIME64".equalsIgnoreCase(columnType) ||
             "SQLTIMESTAMP".equalsIgnoreCase(columnType)) {
             return Timestamp.class;
-        } else if ("CLOB".equalsIgnoreCase(columnType) ||
-            "TEXT".equalsIgnoreCase(columnType)) {
-            return String.class;
         } else if ("BLOB".equalsIgnoreCase(columnType) ||
             "VARBINARY".equalsIgnoreCase(columnType) ||
             FieldType.BYTE_ARRAY.equalsIgnoreCase(columnType) ||
             "JSONB".equalsIgnoreCase(columnType)) {
             return byte[].class;
-        } else if (FieldType.MONEY.equalsIgnoreCase(columnType)) {
+        } else if (FieldType.MONEY.equalsIgnoreCase(columnType) ||
+                "DECIMAL32".equalsIgnoreCase(columnType) ||
+                "DECIMAL64".equalsIgnoreCase(columnType) ||
+                "DECIMAL128".equalsIgnoreCase(columnType)) {
             return BigDecimal.class;//FieldType.MONEY;
-        } else if (FieldType.FLOAT.equalsIgnoreCase(columnType)) {
+        } else if ("Float32".equalsIgnoreCase(columnType) ||
+            FieldType.FLOAT.equalsIgnoreCase(columnType)) {
             return Float.class;
         } else if ("INT".equalsIgnoreCase(columnType) ||
             "INT4".equalsIgnoreCase(columnType) ||
             "INT8".equalsIgnoreCase(columnType) ||
+            "INT16".equalsIgnoreCase(columnType) ||
+            "INT32".equalsIgnoreCase(columnType) ||
+            "UINT16".equalsIgnoreCase(columnType) ||
+            "UINT32".equalsIgnoreCase(columnType) ||
             FieldType.INTEGER.equalsIgnoreCase(columnType)) {
             return Integer.class;
-        } else if (FieldType.DOUBLE.equalsIgnoreCase(columnType)) {
+        } else if ("Float64".equalsIgnoreCase(columnType) ||
+            FieldType.DOUBLE.equalsIgnoreCase(columnType)) {
             return Double.class;
         } else if ("BIGINT".equalsIgnoreCase(columnType) ||
+            "INT64".equalsIgnoreCase(columnType) ||
+            "UINT64".equalsIgnoreCase(columnType) ||
             FieldType.LONG.equalsIgnoreCase(columnType)) {
             return Long.class;
         } else if (FieldType.JSON_OBJECT.equalsIgnoreCase(columnType) ||
@@ -623,19 +670,14 @@ public abstract class FieldType {
             return FieldType.FLOAT;
         } else if ("DOUBLE".equalsIgnoreCase(columnType)) {
             return FieldType.DOUBLE;
-        }
-
-        if ("BIGINT".equalsIgnoreCase(columnType) || "SERIAL".equalsIgnoreCase(columnType)) {
+        } else  if ("BIGINT".equalsIgnoreCase(columnType) || "SERIAL".equalsIgnoreCase(columnType)) {
             return FieldType.LONG;
-        }
-
-        if ("INT".equalsIgnoreCase(columnType) ||
+        } else if ("INT".equalsIgnoreCase(columnType) ||
             "INT4".equalsIgnoreCase(columnType) ||
             "INT8".equalsIgnoreCase(columnType) ||
             "INTEGER".equalsIgnoreCase(columnType) ) {
             return FieldType.INTEGER;
-        }
-        if ("bool".equalsIgnoreCase(columnType) ||
+        } else if ("bool".equalsIgnoreCase(columnType) ||
             "boolean".equalsIgnoreCase(columnType)) {
             return FieldType.BOOLEAN;
         }

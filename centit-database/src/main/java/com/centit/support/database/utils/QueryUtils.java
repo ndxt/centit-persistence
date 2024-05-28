@@ -726,6 +726,7 @@ public abstract class QueryUtils {
                 return buildSqlServerLimitQuerySQL(sql, offset, maxsize);
             case MySql:
             case H2:
+            case ClickHouse:
                 return buildMySqlLimitQuerySQL(sql, offset, maxsize, asParameter);
             case PostgreSql:
                 return buildPostgreSqlLimitQuerySQL(sql, offset, maxsize, asParameter);

@@ -83,6 +83,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             case SqlServer:
                 return new SqlSvrJsonObjectDao(conn, tableInfo);
             case MySql:
+            case ClickHouse:
                 return new MySqlJsonObjectDao(conn, tableInfo);
             case H2:
                 return new H2JsonObjectDao(conn, tableInfo);
@@ -108,6 +109,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             case SqlServer:
                 return new SqlSvrJsonObjectDao(conn);
             case MySql:
+            case ClickHouse:
                 return new MySqlJsonObjectDao(conn);
             case H2:
                 return new H2JsonObjectDao(conn);
