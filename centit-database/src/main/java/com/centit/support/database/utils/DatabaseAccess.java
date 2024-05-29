@@ -232,6 +232,9 @@ public abstract class DatabaseAccess {
                 } else if (obj.getClass().getName().startsWith("oracle.sql.TIMESTAMP")) {
                     // 适配 oracle的TIMESTAMP数据类型
                     jo.put(fieldNames[i], rs.getTimestamp(i + 1));
+                } else if (obj.getClass().getName().startsWith("com.clickhouse.data.value.Unsigned")) {
+                    // 适配clickhouse的unsigned数据类型
+                    jo.put(fieldNames[i], rs.getLong(i + 1));
                 } else {
                     jo.put(fieldNames[i], obj);
                 }
@@ -523,7 +526,10 @@ public abstract class DatabaseAccess {
                 } else if (obj.getClass().getName().startsWith("oracle.sql.TIMESTAMP")) {
                     // 适配 oracle的TIMESTAMP数据类型
                     objs[i - 1] = rs.getTimestamp(i);
-                } else {
+                } else if (obj.getClass().getName().startsWith("com.clickhouse.data.value.Unsigned")) {
+                    // 适配clickhouse的unsigned数据类型
+                    objs[i - 1] = rs.getLong(i);
+                }else {
                     objs[i - 1] = obj;
                 }
             } else {

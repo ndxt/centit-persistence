@@ -670,11 +670,18 @@ public abstract class FieldType {
             return FieldType.FLOAT;
         } else if ("DOUBLE".equalsIgnoreCase(columnType)) {
             return FieldType.DOUBLE;
-        } else  if ("BIGINT".equalsIgnoreCase(columnType) || "SERIAL".equalsIgnoreCase(columnType)) {
+        } else  if ("BIGINT".equalsIgnoreCase(columnType) ||
+            "INT64".equalsIgnoreCase(columnType) ||
+            "UINT64".equalsIgnoreCase(columnType) ||
+            "SERIAL".equalsIgnoreCase(columnType)) {
             return FieldType.LONG;
         } else if ("INT".equalsIgnoreCase(columnType) ||
             "INT4".equalsIgnoreCase(columnType) ||
             "INT8".equalsIgnoreCase(columnType) ||
+            "INT16".equalsIgnoreCase(columnType) ||
+            "INT32".equalsIgnoreCase(columnType) ||
+            "UINT16".equalsIgnoreCase(columnType) ||
+            "UINT32".equalsIgnoreCase(columnType) ||
             "INTEGER".equalsIgnoreCase(columnType) ) {
             return FieldType.INTEGER;
         } else if ("bool".equalsIgnoreCase(columnType) ||

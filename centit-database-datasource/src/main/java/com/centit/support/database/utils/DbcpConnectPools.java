@@ -34,6 +34,7 @@ public abstract class DbcpConnectPools {
         ds.setIdleTimeout(6000);
         ds.setValidationTimeout(5000);
         ds.setMinimumIdle(dsDesc.getMinIdle());
+
         String validationQuery = DBType.getDBValidationQuery(dsDesc.getDbType());
         if(StringUtils.isNotBlank(validationQuery)) {
             ds.setConnectionTestQuery(validationQuery);
