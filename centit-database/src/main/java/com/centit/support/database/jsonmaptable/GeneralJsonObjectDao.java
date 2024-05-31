@@ -529,12 +529,6 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             case "_le":
                 currentBuild.append(fieldName).append(" <= :").append(plCol);
                 break;
-            case "_lk":
-                currentBuild.append(fieldName).append(" like :").append(plCol);
-                break;
-            case "_nk":
-                currentBuild.append(fieldName).append(" not like :").append(plCol);
-                break;
             case "_ne":
                 currentBuild.append(fieldName).append(" <> :").append(plCol);
                 break;
@@ -549,6 +543,12 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 break;
             case "_ni":
                 currentBuild.append(fieldName).append(" not in (:").append(plCol).append(")");
+                break;
+            case "_lk":
+                currentBuild.append(fieldName).append(" like :").append(plCol);
+                break;
+            case "_nk":
+                currentBuild.append(fieldName).append(" not like :").append(plCol);
                 break;
             case "_ft": //full_text 只有mysql可以用
                 currentBuild.append("match(").append(fieldName).append(") against(:").append(plCol).append(")");
