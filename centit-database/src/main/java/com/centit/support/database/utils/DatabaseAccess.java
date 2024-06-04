@@ -264,7 +264,7 @@ public abstract class DatabaseAccess {
             int cc = rs.getMetaData().getColumnCount();
             String[] fields = new String[cc];
             int asFn = 0;
-            if (fieldNames != null) {
+            if (fieldNames != null && fieldNames.length > 0) {
                 asFn = fieldNames.length;
                 System.arraycopy(fieldNames, 0, fields, 0, asFn);
                 /*for (int i = 0; i < asFn; i++) {
