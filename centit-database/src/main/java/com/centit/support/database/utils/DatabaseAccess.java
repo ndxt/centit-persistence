@@ -26,20 +26,21 @@ public abstract class DatabaseAccess {
         throw new IllegalAccessError("Utility class");
     }
 
-    public static SQLException createAccessException(String sql, SQLException e) {
-        SQLException exception = new SQLException(sql + " raise " + e.getMessage(),
+    public static SQLException createAccessExceptionWithData(String sql, SQLException e, Object ... data) {
+        StringBuilder sb = new StringBuilder(sql);
+        sb.append(" raise " ).append(e.getMessage());
+        if(data != null && data.length>0){
+            sb.append(" With data:\r\n" ).append(JSON.toJSONString(data));
+        }
+        SQLException exception = new SQLException(sb.toString(),
             e.getSQLState(), e.getErrorCode(), e.getCause());
         exception.setNextException(e.getNextException());
         exception.setStackTrace(e.getStackTrace());
         return exception;
     }
-    public static SQLException createAccessExceptionWithData(String sql, SQLException e, Object data)  {
-        SQLException exception = new SQLException(sql + " raise " + e.getMessage()
-            +" With data:\r\n" + JSON.toJSONString(data),
-            e.getSQLState(), e.getErrorCode(), e.getCause());
-        exception.setNextException(e.getNextException());
-        exception.setStackTrace(e.getStackTrace());
-        return exception;
+
+    public static SQLException createAccessException(String sql, SQLException e) {
+        return createAccessExceptionWithData(sql, e, null);
     }
 
     private static Object transObjectForSqlParam(Object param) {
