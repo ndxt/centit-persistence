@@ -833,7 +833,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 }
             }
         } catch (SQLException e) {
-            throw DatabaseAccess.createAccessException(qap.getQuery(), e);
+            throw DatabaseAccess.createAccessExceptionWithData(qap.getQuery(), e, qap.getParams());
         }
         return null;
     }
