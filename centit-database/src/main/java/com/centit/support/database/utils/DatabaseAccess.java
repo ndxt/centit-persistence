@@ -27,7 +27,16 @@ public abstract class DatabaseAccess {
     }
 
     public static SQLException createAccessException(String sql, SQLException e) {
-        SQLException exception = new SQLException(sql + " raise " + e.getMessage(), e.getSQLState(), e.getErrorCode(), e.getCause());
+        SQLException exception = new SQLException(sql + " raise " + e.getMessage(),
+            e.getSQLState(), e.getErrorCode(), e.getCause());
+        exception.setNextException(e.getNextException());
+        exception.setStackTrace(e.getStackTrace());
+        return exception;
+    }
+    public static SQLException createAccessExceptionWithData(String sql, SQLException e, Object data)  {
+        SQLException exception = new SQLException(sql + " raise " + e.getMessage()
+            +" With data:\r\n" + JSON.toJSONString(data),
+            e.getSQLState(), e.getErrorCode(), e.getCause());
         exception.setNextException(e.getNextException());
         exception.setStackTrace(e.getStackTrace());
         return exception;
