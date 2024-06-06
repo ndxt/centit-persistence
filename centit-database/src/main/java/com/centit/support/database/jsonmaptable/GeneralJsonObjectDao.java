@@ -627,6 +627,13 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                                         jo.put(fields[i].getPropertyName(), JSON.parse(
                                             StringBaseOpt.castObjectToString(obj)));
                                         break;
+                                    // "com.clickhouse.data.value.Unsigned"
+                                    case FieldType.LONG:
+                                        jo.put(fields[i].getPropertyName(), NumberBaseOpt.castObjectToLong(obj));
+                                        break;
+                                    case FieldType.INTEGER:
+                                        jo.put(fields[i].getPropertyName(), NumberBaseOpt.castObjectToInteger(obj));
+                                        break;
                                     default:
                                         jo.put(fields[i].getPropertyName(), obj);
                                         break;
