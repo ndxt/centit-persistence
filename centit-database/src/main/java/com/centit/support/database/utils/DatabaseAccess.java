@@ -296,7 +296,7 @@ public abstract class DatabaseAccess {
             for (int i = 0; i < asFn; i++) {
                 fields[i] = StringUtils.isBlank(fieldNames[i]) ?
                     FieldType.mapPropName(rs.getMetaData().getColumnLabel(i + 1)) :
-                    fields[i];
+                    fieldNames[i];
             }
         }
         for (int i = asFn; i < cc; i++) {
