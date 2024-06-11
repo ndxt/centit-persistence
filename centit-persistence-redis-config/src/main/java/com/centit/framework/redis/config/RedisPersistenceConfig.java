@@ -15,7 +15,10 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import java.net.UnknownHostException;
 
 /**
  * Created by zou_wy on 2017/6/14.
@@ -53,8 +56,8 @@ public class RedisPersistenceConfig {
      * @param redisConnectionFactory 这个是 framework-session-redis中的bean耦合
      * @return RedisTemplate bean
      */
-    @Bean("objectRedisTemplate")
-    public RedisTemplate<String, JSONObject> objectRedisTemplate(@Autowired @Qualifier("redisConnectionFactory")
+    @Bean("jsonRedisTemplate")
+    public RedisTemplate<String, JSONObject> jsonRedisTemplate(@Autowired @Qualifier("redisConnectionFactory")
                                                                RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, JSONObject> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
@@ -64,6 +67,22 @@ public class RedisPersistenceConfig {
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
         template.afterPropertiesSet();
+        return template;
+    }
+
+    @Bean("redisTemplate")
+    public RedisTemplate<Object, Object> redisTemplate(@Autowired @Qualifier("redisConnectionFactory")
+        RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<Object, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(redisConnectionFactory);
+        return template;
+    }
+
+    @Bean("stringRedisTemplate")
+    public StringRedisTemplate stringRedisTemplate(@Autowired @Qualifier("redisConnectionFactory")
+        RedisConnectionFactory redisConnectionFactory) {
+        StringRedisTemplate template = new StringRedisTemplate();
+        template.setConnectionFactory(redisConnectionFactory);
         return template;
     }
 
