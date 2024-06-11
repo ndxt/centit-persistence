@@ -31,6 +31,7 @@
         <module>centit-persistence-jdbc-config</module>
         <module>centit-persistence-dynamic-datasource</module>
         <module>centit-persistence-flyway-plugin</module>
+        <module>centit-persistence-redis-config</module>
     </modules>
 
     <licenses>
