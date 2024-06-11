@@ -2,6 +2,7 @@ package com.centit.framework.redis.config;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.support.spring.data.redis.GenericFastJsonRedisSerializer;
+import com.centit.support.security.SecurityOptUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +18,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-
-import java.net.UnknownHostException;
 
 /**
  * Created by zou_wy on 2017/6/14.
@@ -47,7 +46,8 @@ public class RedisPersistenceConfig {
         System.out.println("Redis Session服务器URL："+host+":"+port+"/"+database);
         configuration.setDatabase(database);
         if(StringUtils.isNotBlank(password)){
-            configuration.setPassword(RedisPassword.of(password));
+            configuration.setPassword(RedisPassword.of(
+                SecurityOptUtils.decodeSecurityString(password)));
         }
         return new LettuceConnectionFactory(configuration);
     }
