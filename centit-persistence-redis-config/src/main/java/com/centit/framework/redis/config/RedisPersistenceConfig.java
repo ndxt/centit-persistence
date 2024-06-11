@@ -70,6 +70,14 @@ public class RedisPersistenceConfig {
         return template;
     }
 
+    @Bean("objectRedisTemplate")
+    public RedisTemplate<String, Object> objectRedisTemplate(@Autowired @Qualifier("redisConnectionFactory")
+                                                       RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(redisConnectionFactory);
+        return template;
+    }
+
     @Bean("redisTemplate")
     public RedisTemplate<Object, Object> redisTemplate(@Autowired @Qualifier("redisConnectionFactory")
         RedisConnectionFactory redisConnectionFactory) {
