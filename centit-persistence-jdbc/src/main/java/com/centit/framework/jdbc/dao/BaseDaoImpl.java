@@ -550,18 +550,16 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public int mergeObject(T o) {
-        if (o instanceof EntityWithVersionTag) {
-            T dbObj = this.getObjectById(o);
-            if(dbObj==null){
-                this.innerSaveNewObject(o);
-                return 1;
-            }else{
-                return this.innerUpdateObject(o);
-            }
+        T dbObj = this.getObjectById(o);
+        if(dbObj==null){
+            this.innerSaveNewObject(o);
+            return 1;
+        }else{
+            return this.innerUpdateObject(o);
         }
-        return  jdbcTemplate.execute(
+       /* return  jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
-                        OrmDaoUtils.mergeObject(conn, o));
+                        OrmDaoUtils.mergeObject(conn, o));*/
     }
 
     public T getObjectById(Object id) {
