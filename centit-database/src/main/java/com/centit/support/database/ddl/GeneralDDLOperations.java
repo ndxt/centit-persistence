@@ -45,6 +45,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
             case SqlServer:
                 return new SqlSvrDDLOperations();
             case MySql:
+            case ClickHouse:
                 return new MySqlDDLOperations();
             case H2:
                 return new H2DDLOperations();
@@ -245,6 +246,8 @@ public abstract class GeneralDDLOperations implements DDLOperations {
     }
 
     protected void appendColumnsSQL(final TableInfo tableInfo, StringBuilder sbCreate, boolean fieldStartNewLine) {
+        if(tableInfo.getColumns()==null)
+            return;
         for (TableField field : tableInfo.getColumns()) {
             appendColumnSQL(field, sbCreate);
             if (StringUtils.isNotBlank(field.getDefaultValue())) {

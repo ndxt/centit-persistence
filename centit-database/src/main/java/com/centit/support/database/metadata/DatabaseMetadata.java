@@ -25,6 +25,7 @@ public interface DatabaseMetadata {
             case Access:
             case H2:
             case GBase:
+            case ClickHouse:
             default:
                 return new JdbcMetadata();
         }

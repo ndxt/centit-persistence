@@ -83,6 +83,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             case SqlServer:
                 return new SqlSvrJsonObjectDao(conn, tableInfo);
             case MySql:
+            case ClickHouse:
                 return new MySqlJsonObjectDao(conn, tableInfo);
             case H2:
                 return new H2JsonObjectDao(conn, tableInfo);
@@ -108,6 +109,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             case SqlServer:
                 return new SqlSvrJsonObjectDao(conn);
             case MySql:
+            case ClickHouse:
                 return new MySqlJsonObjectDao(conn);
             case H2:
                 return new H2JsonObjectDao(conn);
@@ -439,6 +441,8 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             Map<String, LeftRightPair<Integer , StringBuilder>> filterGroup) {
 
         for (Map.Entry<String, Object> filterEnt : filterMap.entrySet()) {
+            if(filterEnt.getValue()==null)
+                continue;
             String plCol = filterEnt.getKey();
             int plColLength = plCol.length();
             boolean beGroup = false;
@@ -485,7 +489,6 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                     optSuffix, currentBuild);
             }
         }
-
     }
 
     public static String buildFilterSql(TableInfo ti, String alias, Map<String, Object> filterMap) {
@@ -526,12 +529,6 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             case "_le":
                 currentBuild.append(fieldName).append(" <= :").append(plCol);
                 break;
-            case "_lk":
-                currentBuild.append(fieldName).append(" like :").append(plCol);
-                break;
-            case "_ni":
-                currentBuild.append(fieldName).append(" not in (:").append(plCol).append(")");
-                break;
             case "_ne":
                 currentBuild.append(fieldName).append(" <> :").append(plCol);
                 break;
@@ -543,6 +540,15 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 break;
             case "_in":
                 currentBuild.append(fieldName).append(" in (:").append(plCol).append(")");
+                break;
+            case "_ni":
+                currentBuild.append(fieldName).append(" not in (:").append(plCol).append(")");
+                break;
+            case "_lk":
+                currentBuild.append(fieldName).append(" like :").append(plCol);
+                break;
+            case "_nk":
+                currentBuild.append(fieldName).append(" not like :").append(plCol);
                 break;
             case "_ft": //full_text 只有mysql可以用
                 currentBuild.append("match(").append(fieldName).append(") against(:").append(plCol).append(")");
@@ -620,6 +626,13 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                                     case FieldType.JSON_OBJECT:
                                         jo.put(fields[i].getPropertyName(), JSON.parse(
                                             StringBaseOpt.castObjectToString(obj)));
+                                        break;
+                                    // "com.clickhouse.data.value.Unsigned"
+                                    case FieldType.LONG:
+                                        jo.put(fields[i].getPropertyName(), NumberBaseOpt.castObjectToLong(obj));
+                                        break;
+                                    case FieldType.INTEGER:
+                                        jo.put(fields[i].getPropertyName(), NumberBaseOpt.castObjectToInteger(obj));
                                         break;
                                     default:
                                         jo.put(fields[i].getPropertyName(), obj);
@@ -827,7 +840,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 }
             }
         } catch (SQLException e) {
-            throw DatabaseAccess.createAccessException(qap.getQuery(), e);
+            throw DatabaseAccess.createAccessExceptionWithData(qap.getQuery(), e, qap.getParams());
         }
         return null;
     }
