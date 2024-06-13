@@ -6,6 +6,7 @@ import io.lettuce.core.RedisClient;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -21,9 +22,9 @@ public class RedisClientConfig implements EnvironmentAware {
 
     protected Environment env;
 
-    @Resource
+
     @Override
-    public void setEnvironment(Environment environment) {
+    public void setEnvironment(@Autowired Environment environment) {
         if (environment != null) {
             this.env = environment;
         }
@@ -41,6 +42,7 @@ public class RedisClientConfig implements EnvironmentAware {
             redisUri.append(SecurityOptUtils.decodeSecurityString(password)).append("@");
         }
         redisUri.append(host).append(":").append(port).append("/").append(database);
+        logger.info("Redis数据缓存服务器:{}", redisUri.toString());
         return RedisClient.create(redisUri.toString());
     }
 
