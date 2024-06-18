@@ -6,8 +6,11 @@ import com.alibaba.fastjson2.JSONObject;
 import com.centit.support.algorithm.*;
 import com.centit.support.common.LeftRightPair;
 import com.centit.support.compiler.Lexer;
+import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
+import com.centit.support.database.orm.JpaMetadata;
+import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.database.utils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -511,6 +514,57 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         }
 
         return sBuilder.toString();
+    }
+
+    public static String buildOrderBySql(TableInfo ti, String alias, Map<String, Object> filterMap) {
+        String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.SELF_ORDER_BY));
+        if (StringUtils.isBlank(selfOrderBy)) {
+            StringBaseOpt.objectToString(filterMap.get("orderBy"));
+        }
+        if(StringUtils.isNotBlank(selfOrderBy)){
+            StringBuilder orderSql = new StringBuilder();
+            Lexer lexer = new Lexer(selfOrderBy, Lexer.LANG_TYPE_SQL);
+            String aword = lexer.getAWord();
+            while(StringUtils.isNotBlank(aword)){
+                TableField field = ti.findFieldByName(aword);
+                if(field!=null){
+                    if(orderSql.length()>0){
+                        orderSql.append(", ");
+                    }
+                    if(StringUtils.isNotBlank(alias))
+                        orderSql.append(alias).append(".");
+                    orderSql.append(field.getColumnName());
+                }
+                aword = lexer.getAWord();
+                if(StringUtils.equalsAnyIgnoreCase(aword, "desc", "asc")){
+                    if(field!=null){
+                        orderSql.append(" ").append(aword);
+                    }
+                    aword = lexer.getAWord();
+                }
+                if(!",".equals(aword)){
+                    break;
+                }
+            }
+
+            if(orderSql.length()>0){
+                return orderSql.toString();
+            }
+        }
+
+        String sortField = StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.TABLE_SORT_FIELD));
+        TableField field = ti.findFieldByName(sortField);
+        if(field!=null){
+            String sf= StringUtils.isBlank(alias)? field.getColumnName()
+                : alias + "." + field.getColumnName();
+
+            String orderField = StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.TABLE_SORT_ORDER));
+            if(StringUtils.equalsAnyIgnoreCase(orderField, "desc", "asc")){
+                return sf + " " +orderField;
+            }
+            return sf;
+        }
+        return null;
     }
 
     private static void dealSuffixSql(Map.Entry<String, Object> filterEnt, String fieldName,
