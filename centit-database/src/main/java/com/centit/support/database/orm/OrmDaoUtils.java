@@ -289,7 +289,8 @@ public abstract class OrmDaoUtils {
                     CollectionsOpt.createHashMap(mapInfo.getPkFields().get(0).getPropertyName(), id)),
                 (rs) -> OrmUtils.fetchObjectFormResultSet(rs, type, q.getRight()));
         } else {
-            Map<String, Object> idObj = OrmUtils.fetchObjectField(id);
+            Map<String, Object> idObj = OrmUtils.fetchObjectDatabaseField(id, mapInfo);
+            // fetchObjectField(id);
             if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, idObj)) {
                 throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
                     "缺少主键对应的属性。");
