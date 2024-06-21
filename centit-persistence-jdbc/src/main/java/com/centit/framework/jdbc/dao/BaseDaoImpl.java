@@ -549,9 +549,27 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return updateObjectWithNullField(object, false);
     }
 
+    public int checkObjectExists(T object){
+        return jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.checkObjectExists(conn, object));
+    }
+
+    public int checkObjectExistsById(Object id){
+        return jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.checkObjectExistsById(conn, id, (Class<T>) getPoClass()));
+    }
+
+    public T getObjectById(Object id) {
+        return jdbcTemplate.execute(
+                (ConnectionCallback<T>) conn ->
+                        OrmDaoUtils.getObjectById(conn, id, (Class<T>) getPoClass()));
+    }
+
     public int mergeObject(T o) {
         T dbObj = this.getObjectById(o);
-        if(dbObj==null){
+        if(checkObjectExists(o)>0){
             this.innerSaveNewObject(o);
             return 1;
         }else{
@@ -560,12 +578,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
        /* return  jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.mergeObject(conn, o));*/
-    }
-
-    public T getObjectById(Object id) {
-        return jdbcTemplate.execute(
-                (ConnectionCallback<T>) conn ->
-                        OrmDaoUtils.getObjectById(conn, id, (Class<T>) getPoClass()));
     }
 
     public T getObjectExcludeLazyById(Object id) {

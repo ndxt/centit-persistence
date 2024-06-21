@@ -992,6 +992,33 @@ public abstract class OrmDaoUtils {
         }
     }
 
+    public static <T> int checkObjectExistsById(Connection connection, Object id, Class<T> type)
+            throws ObjectException {
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
+        Map<String, Object> objectMap;
+        if(type.isInstance(id)) {
+            objectMap = OrmUtils.fetchObjectDatabaseField(id, mapInfo);
+        }else{
+            objectMap = OrmUtils.fetchObjectField(id);
+        }
+        if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, objectMap)) {
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
+        }
+        String sql =
+                "select count(*) as checkExists from " + mapInfo.getTableName()
+                        + " where " + GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, null);
+
+        try {
+            Long checkExists = NumberBaseOpt.castObjectToLong(
+                    DatabaseAccess.getScalarObjectQuery(connection, sql, objectMap));
+            return checkExists == null ? 0 : checkExists.intValue();
+        } catch (SQLException e) {
+            throw new ObjectException(sql, e);
+        } catch (IOException e) {
+            throw new ObjectException(e);
+        }
+    }
+
     public static <T> int fetchObjectsCount(Connection connection, Map<String, Object> properties, Class<T> type)
         throws ObjectException {
         try {
