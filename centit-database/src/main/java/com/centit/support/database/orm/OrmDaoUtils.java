@@ -290,7 +290,7 @@ public abstract class OrmDaoUtils {
                 (rs) -> OrmUtils.fetchObjectFormResultSet(rs, type, q.getRight()));
         } else {
             Map<String, Object> idObj;
-            if(type.isInstance(id)){
+           if(type.isAssignableFrom(id.getClass())){
                 idObj = OrmUtils.fetchObjectDatabaseField(id, mapInfo);
             } else {
                 idObj = OrmUtils.fetchObjectField(id);
@@ -322,7 +322,7 @@ public abstract class OrmDaoUtils {
 
         } else {
             Map<String, Object> idObj;
-            if(type.isInstance(id)){
+           if(type.isAssignableFrom(id.getClass())){
                 idObj = OrmUtils.fetchObjectDatabaseField(id, mapInfo);
             } else {
                 idObj = OrmUtils.fetchObjectField(id);
@@ -383,7 +383,7 @@ public abstract class OrmDaoUtils {
                 mapInfo);
         } else {
             Map<String, Object> idObj;
-            if(type.isInstance(id)){
+           if(type.isAssignableFrom(id.getClass())){
                 idObj = OrmUtils.fetchObjectDatabaseField(id, mapInfo);
             } else {
                 idObj = OrmUtils.fetchObjectField(id);
@@ -1006,7 +1006,7 @@ public abstract class OrmDaoUtils {
             throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         Map<String, Object> objectMap;
-        if(type.isInstance(id)) {
+        if(type.isAssignableFrom(id.getClass())) {
             objectMap = OrmUtils.fetchObjectDatabaseField(id, mapInfo);
         }else{
             objectMap = OrmUtils.fetchObjectField(id);
