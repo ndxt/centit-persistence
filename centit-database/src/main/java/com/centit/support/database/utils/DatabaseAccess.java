@@ -27,8 +27,8 @@ public abstract class DatabaseAccess {
     }
 
     public static SQLException createAccessExceptionWithData(String sql, SQLException e, Object ... data) {
-        StringBuilder sb = new StringBuilder(sql);
-        sb.append(" raise " ).append(e.getMessage());
+        StringBuilder sb = new StringBuilder(e.getMessage());
+        sb.append("\r\nSQL: " ).append(sql);
         if(data != null && data.length>0){
             sb.append(" With data:\r\n");
             if(data.length == 1 ){
@@ -45,7 +45,7 @@ public abstract class DatabaseAccess {
     }
 
     public static SQLException createAccessException(String sql, SQLException e) {
-        return createAccessExceptionWithData(sql, e, null);
+        return createAccessExceptionWithData(sql, e);
     }
 
     private static Object transObjectForSqlParam(Object param) {

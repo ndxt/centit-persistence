@@ -989,7 +989,7 @@ public abstract class OrmDaoUtils {
         }
         String sql =
             "select count(*) as checkExists from " + mapInfo.getTableName()
-                + " where " + GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, null);
+                + " where " + GeneralJsonObjectDao.buildFilterSqlByPk(mapInfo, null);
 
         try {
             Long checkExists = NumberBaseOpt.castObjectToLong(
@@ -1016,7 +1016,7 @@ public abstract class OrmDaoUtils {
         }
         String sql =
                 "select count(*) as checkExists from " + mapInfo.getTableName()
-                        + " where " + GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, null);
+                        + " where " + GeneralJsonObjectDao.buildFilterSqlByPk(mapInfo, null);
 
         try {
             Long checkExists = NumberBaseOpt.castObjectToLong(
