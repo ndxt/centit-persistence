@@ -568,12 +568,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public int mergeObject(T o) {
-        T dbObj = this.getObjectById(o);
         if(checkObjectExists(o)>0){
+            return this.innerUpdateObject(o);
+        }else{
             this.innerSaveNewObject(o);
             return 1;
-        }else{
-            return this.innerUpdateObject(o);
         }
        /* return  jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
