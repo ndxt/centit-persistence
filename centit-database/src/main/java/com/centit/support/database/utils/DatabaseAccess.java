@@ -30,7 +30,7 @@ public abstract class DatabaseAccess {
         StringBuilder sb = new StringBuilder(e.getMessage());
         sb.append("\r\nSQL: " ).append(sql);
         if(data != null && data.length>0){
-            sb.append(" With data:\r\n");
+            sb.append("\r\nWith data: ");
             if(data.length == 1 ){
                 sb.append(JSON.toJSONString(data[0]));
             } else {
