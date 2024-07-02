@@ -983,23 +983,7 @@ public abstract class OrmDaoUtils {
         throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         Map<String, Object> objectMap = OrmUtils.fetchObjectDatabaseField(object, mapInfo);
-
-        if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, objectMap)) {
-            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
-        }
-        String sql =
-            "select count(*) as checkExists from " + mapInfo.getTableName()
-                + " where " + GeneralJsonObjectDao.buildFilterSqlByPk(mapInfo, null);
-
-        try {
-            Long checkExists = NumberBaseOpt.castObjectToLong(
-                DatabaseAccess.getScalarObjectQuery(connection, sql, objectMap));
-            return checkExists == null ? 0 : checkExists.intValue();
-        } catch (SQLException e) {
-            throw new ObjectException(sql, e);
-        } catch (IOException e) {
-            throw new ObjectException(e);
-        }
+        return checkObjectExistsInner(connection, mapInfo, objectMap);
     }
 
     public static <T> int checkObjectExistsById(Connection connection, Object id, Class<T> type)
@@ -1011,13 +995,17 @@ public abstract class OrmDaoUtils {
         }else{
             objectMap = OrmUtils.fetchObjectField(id);
         }
+        return checkObjectExistsInner(connection, mapInfo, objectMap);
+    }
+
+    private static int checkObjectExistsInner(Connection connection, TableMapInfo mapInfo, Map<String, Object> objectMap) {
         if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, objectMap)) {
-            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
+            return 0;
+            //throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
         }
         String sql =
                 "select count(*) as checkExists from " + mapInfo.getTableName()
                         + " where " + GeneralJsonObjectDao.buildFilterSqlByPk(mapInfo, null);
-
         try {
             Long checkExists = NumberBaseOpt.castObjectToLong(
                     DatabaseAccess.getScalarObjectQuery(connection, sql, objectMap));
