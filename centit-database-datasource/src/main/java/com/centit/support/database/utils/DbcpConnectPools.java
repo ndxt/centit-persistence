@@ -74,10 +74,6 @@ public abstract class DbcpConnectPools {
         }
         Map<String, Object> map = new HashMap<>(2);
         map.put("poolName", bds.getPoolName());
-        /*map.put("poolingCount", bds.getPoolingCount());
-        map.put("resetCount", bds.getResetCount());
-        map.put("errorCount", bds.getErrorCount());
-        map.put("discardCount", bds.getDiscardCount());*/
         return map;
     }
 

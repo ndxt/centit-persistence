@@ -91,6 +91,8 @@ public abstract class OrmUtils {
                     mapInfo.setObjectFieldValue(object, field, newValue);
                     break;
                 default:
+                    // "com.clickhouse.data.value.Unsigned"
+                    // 这个会自动转换为 long、 integer 应该是没有问题的
                     mapInfo.setObjectFieldValue(object, field, newValue);
                     break;
             }

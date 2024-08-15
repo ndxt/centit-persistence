@@ -20,15 +20,13 @@ public class CodeBook {
     /*
      * orderby
      */
-    /**
-     * 默认的排序，放到 filterField 中
-     */
-    public static final String ORDER_BY_HQL_ID = "ORDER BY";
 
     /**
      * 用户自定义排序描述，  放到 filterDesc 中
      */
     public static final String SELF_ORDER_BY = GeneralJsonObjectDao.SELF_ORDER_BY;
+
+    public static final String SELF_ORDER_BY2 = GeneralJsonObjectDao.SELF_ORDER_BY2;
     /**
      * 用户自定义排序字段 ， 放到 filterDesc 中
      */

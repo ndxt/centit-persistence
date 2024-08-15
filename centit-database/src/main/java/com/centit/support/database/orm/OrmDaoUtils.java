@@ -289,7 +289,12 @@ public abstract class OrmDaoUtils {
                     CollectionsOpt.createHashMap(mapInfo.getPkFields().get(0).getPropertyName(), id)),
                 (rs) -> OrmUtils.fetchObjectFormResultSet(rs, type, q.getRight()));
         } else {
-            Map<String, Object> idObj = OrmUtils.fetchObjectField(id);
+            Map<String, Object> idObj;
+           if(type.isAssignableFrom(id.getClass())){
+                idObj = OrmUtils.fetchObjectDatabaseField(id, mapInfo);
+            } else {
+                idObj = OrmUtils.fetchObjectField(id);
+            }
             if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, idObj)) {
                 throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
                     "缺少主键对应的属性。");
@@ -316,7 +321,12 @@ public abstract class OrmDaoUtils {
                 CollectionsOpt.createHashMap(mapInfo.getPkFields().get(0).getPropertyName(), id), type);
 
         } else {
-            Map<String, Object> idObj = OrmUtils.fetchObjectField(id);
+            Map<String, Object> idObj;
+           if(type.isAssignableFrom(id.getClass())){
+                idObj = OrmUtils.fetchObjectDatabaseField(id, mapInfo);
+            } else {
+                idObj = OrmUtils.fetchObjectField(id);
+            }
             if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, idObj)) {
                 throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
             }
@@ -372,7 +382,12 @@ public abstract class OrmDaoUtils {
                 CollectionsOpt.createHashMap(mapInfo.getPkFields().get(0).getPropertyName(), id),
                 mapInfo);
         } else {
-            Map<String, Object> idObj = OrmUtils.fetchObjectField(id);
+            Map<String, Object> idObj;
+           if(type.isAssignableFrom(id.getClass())){
+                idObj = OrmUtils.fetchObjectDatabaseField(id, mapInfo);
+            } else {
+                idObj = OrmUtils.fetchObjectField(id);
+            }
             if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, idObj)) {
                 throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
             }
@@ -968,17 +983,32 @@ public abstract class OrmDaoUtils {
         throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(object.getClass());
         Map<String, Object> objectMap = OrmUtils.fetchObjectDatabaseField(object, mapInfo);
+        return checkObjectExistsInner(connection, mapInfo, objectMap);
+    }
 
+    public static <T> int checkObjectExistsById(Connection connection, Object id, Class<T> type)
+            throws ObjectException {
+        TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
+        Map<String, Object> objectMap;
+        if(type.isAssignableFrom(id.getClass())) {
+            objectMap = OrmUtils.fetchObjectDatabaseField(id, mapInfo);
+        }else{
+            objectMap = OrmUtils.fetchObjectField(id);
+        }
+        return checkObjectExistsInner(connection, mapInfo, objectMap);
+    }
+
+    private static int checkObjectExistsInner(Connection connection, TableMapInfo mapInfo, Map<String, Object> objectMap) {
         if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, objectMap)) {
-            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
+            return 0;
+            //throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "缺少主键对应的属性。");
         }
         String sql =
-            "select count(*) as checkExists from " + mapInfo.getTableName()
-                + " where " + GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, null);
-
+                "select count(*) as checkExists from " + mapInfo.getTableName()
+                        + " where " + GeneralJsonObjectDao.buildFilterSqlByPk(mapInfo, null);
         try {
             Long checkExists = NumberBaseOpt.castObjectToLong(
-                DatabaseAccess.getScalarObjectQuery(connection, sql, objectMap));
+                    DatabaseAccess.getScalarObjectQuery(connection, sql, objectMap));
             return checkExists == null ? 0 : checkExists.intValue();
         } catch (SQLException e) {
             throw new ObjectException(sql, e);

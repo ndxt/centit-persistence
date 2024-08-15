@@ -27,6 +27,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
      * 用户自定义排序描述，  放到 filterDesc 中
      */
     public static final String SELF_ORDER_BY = "ORDER_BY";
+    public static final String SELF_ORDER_BY2 = "orderBy";
     /**
      * 用户自定义排序字段 ， 放到 filterDesc 中
      */
@@ -83,6 +84,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             case SqlServer:
                 return new SqlSvrJsonObjectDao(conn, tableInfo);
             case MySql:
+            case ClickHouse:
                 return new MySqlJsonObjectDao(conn, tableInfo);
             case H2:
                 return new H2JsonObjectDao(conn, tableInfo);
@@ -108,6 +110,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             case SqlServer:
                 return new SqlSvrJsonObjectDao(conn);
             case MySql:
+            case ClickHouse:
                 return new MySqlJsonObjectDao(conn);
             case H2:
                 return new H2JsonObjectDao(conn);
@@ -318,6 +321,57 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         return null;
     }
 
+    public static String buildOrderBySql(TableInfo ti, String alias, Map<String, Object> filterMap) {
+        String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.SELF_ORDER_BY));
+        if (StringUtils.isBlank(selfOrderBy)) {
+            StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.SELF_ORDER_BY2));
+        }
+        if(StringUtils.isNotBlank(selfOrderBy)){
+            StringBuilder orderSql = new StringBuilder();
+            Lexer lexer = new Lexer(selfOrderBy, Lexer.LANG_TYPE_SQL);
+            String aword = lexer.getAWord();
+            while(StringUtils.isNotBlank(aword)){
+                TableField field = ti.findFieldByName(aword);
+                if(field!=null){
+                    if(orderSql.length()>0){
+                        orderSql.append(", ");
+                    }
+                    if(StringUtils.isNotBlank(alias))
+                        orderSql.append(alias).append(".");
+                    orderSql.append(field.getColumnName());
+                }
+                aword = lexer.getAWord();
+                while(StringUtils.equalsAnyIgnoreCase(aword, "desc", "asc","nulls", "first", "last")){
+                    if(field!=null){
+                        orderSql.append(" ").append(aword);
+                    }
+                    aword = lexer.getAWord();
+                }
+                if(!",".equals(aword)){
+                    break;
+                }
+            }
+
+            if(orderSql.length()>0){
+                return orderSql.toString();
+            }
+        }
+
+        String sortField = StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.TABLE_SORT_FIELD));
+        TableField field = ti.findFieldByName(sortField);
+        if(field!=null){
+            String sf = StringUtils.isBlank(alias)? field.getColumnName()
+                : alias + "." + field.getColumnName();
+            String orderField = StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.TABLE_SORT_ORDER));
+            if(StringUtils.isNotBlank(orderField)){
+                return sf + " " +orderField;
+            }
+            return sf;
+        }
+        return null;
+    }
+
+
     /**
      * querySql 用户检查order by 中的字段属性 对应的查询标识 比如，
      * select a+b as ab from table
@@ -329,6 +383,10 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
      */
     public static String fetchSelfOrderSql(String querySql, Map<String, Object> filterMap) {
         String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.SELF_ORDER_BY));
+        if (StringUtils.isBlank(selfOrderBy)) {
+            StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.SELF_ORDER_BY2));
+        }
+
         if (StringUtils.isNotBlank(selfOrderBy)) {
             Lexer lexer = new Lexer(selfOrderBy, Lexer.LANG_TYPE_SQL);
             StringBuilder orderBuilder = new StringBuilder();
@@ -439,6 +497,8 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             Map<String, LeftRightPair<Integer , StringBuilder>> filterGroup) {
 
         for (Map.Entry<String, Object> filterEnt : filterMap.entrySet()) {
+            if(filterEnt.getValue()==null)
+                continue;
             String plCol = filterEnt.getKey();
             int plColLength = plCol.length();
             boolean beGroup = false;
@@ -485,7 +545,6 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                     optSuffix, currentBuild);
             }
         }
-
     }
 
     public static String buildFilterSql(TableInfo ti, String alias, Map<String, Object> filterMap) {
@@ -526,12 +585,6 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             case "_le":
                 currentBuild.append(fieldName).append(" <= :").append(plCol);
                 break;
-            case "_lk":
-                currentBuild.append(fieldName).append(" like :").append(plCol);
-                break;
-            case "_ni":
-                currentBuild.append(fieldName).append(" not in (:").append(plCol).append(")");
-                break;
             case "_ne":
                 currentBuild.append(fieldName).append(" <> :").append(plCol);
                 break;
@@ -547,6 +600,15 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 break;
             case "_in":
                 currentBuild.append(fieldName).append(" in (:").append(plCol).append(")");
+                break;
+            case "_ni":
+                currentBuild.append(fieldName).append(" not in (:").append(plCol).append(")");
+                break;
+            case "_lk":
+                currentBuild.append(fieldName).append(" like :").append(plCol);
+                break;
+            case "_nk":
+                currentBuild.append(fieldName).append(" not like :").append(plCol);
                 break;
             case "_ft": //full_text 只有mysql可以用
                 currentBuild.append("match(").append(fieldName).append(") against(:").append(plCol).append(")");
@@ -625,6 +687,13 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                                         jo.put(fields[i].getPropertyName(), JSON.parse(
                                             StringBaseOpt.castObjectToString(obj)));
                                         break;
+                                    // "com.clickhouse.data.value.Unsigned"
+                                    case FieldType.LONG:
+                                        jo.put(fields[i].getPropertyName(), NumberBaseOpt.castObjectToLong(obj));
+                                        break;
+                                    case FieldType.INTEGER:
+                                        jo.put(fields[i].getPropertyName(), NumberBaseOpt.castObjectToInteger(obj));
+                                        break;
                                     default:
                                         jo.put(fields[i].getPropertyName(), obj);
                                         break;
@@ -683,17 +752,16 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         sbUpdate.append(ti.getTableName()).append(" set ");
         int updateColCount = 0;
         for (String f : fields) {
-            if (/*exceptPk && */ti.isParmaryKey(f))
-                continue;
             TableField col = ti.findFieldByName(f);
-            if (col != null) {
-                if (updateColCount > 0) {
-                    sbUpdate.append(", ");
-                }
-                sbUpdate.append(col.getColumnName());
-                sbUpdate.append(" = :").append(f);
-                updateColCount++;
+            if (col == null || col.isPrimaryKey())
+                continue;
+
+            if (updateColCount > 0) {
+                sbUpdate.append(", ");
             }
+            sbUpdate.append(col.getColumnName());
+            sbUpdate.append(" = :").append(f);
+            updateColCount++;
         }
         if (updateColCount == 0) {
             return null;// throw exception
@@ -832,7 +900,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 }
             }
         } catch (SQLException e) {
-            throw DatabaseAccess.createAccessException(qap.getQuery(), e);
+            throw DatabaseAccess.createAccessExceptionWithData(qap.getQuery(), e, qap.getParams());
         }
         return null;
     }

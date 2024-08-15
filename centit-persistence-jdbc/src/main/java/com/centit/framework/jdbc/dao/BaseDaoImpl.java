@@ -288,7 +288,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return queryAndParams;
     }
 
-    protected QueryAndNamedParams  buildFilterByParams(Map<String, Object> filterMap,
+    protected QueryAndNamedParams buildFilterByParams(Map<String, Object> filterMap,
                                                       Collection<String> extentFilters, QueryUtils.IFilterTranslater powerTranslater) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Map<String, Object> queryParams = new HashMap<>(filterMap.size()+4);
@@ -298,9 +298,11 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             new HashMap<>();
         //buildFilterSqlPieces(ti, alias,  filterMap, filterGroup);
 
-        if(filterList.size()>0){
+        if(!filterList.isEmpty()){
             leftFilterMap = new HashMap<>(filterMap.size()+4);
             for(Map.Entry<String, Object> ent : filterMap.entrySet()) {
+                if(ent.getValue()==null)
+                    continue;
                 DataFilter df = filterList.get(ent.getKey());
                 if(df != null){
                     String plCol = df.getValueName();
@@ -346,8 +348,10 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             tableAlias.put(mapInfo.getTableName(), "");
             translater.setTableAlias(tableAlias );
             QueryAndNamedParams powerFilter = QueryUtils.translateQueryFilter(extentFilters, translater, true);
-            filterQuery.append(" and ").append(powerFilter.getQuery());
-            queryParams.putAll(powerFilter.getParams());
+            if(powerFilter != null && StringUtils.isNotBlank(powerFilter.getQuery())){
+                filterQuery.append(" and ").append(powerFilter.getQuery());
+                queryParams.putAll(powerFilter.getParams());
+            }
         }
 
         for(Map.Entry<String, LeftRightPair<Integer , StringBuilder>> ent : filterGroup.entrySet()){
@@ -552,25 +556,34 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         return updateObjectWithNullField(object, false);
     }
 
-    public int mergeObject(T o) {
-        if (o instanceof EntityWithVersionTag) {
-            T dbObj = this.getObjectById(o);
-            if(dbObj==null){
-                this.innerSaveNewObject(o);
-                return 1;
-            }else{
-                return this.innerUpdateObject(o);
-            }
-        }
-        return  jdbcTemplate.execute(
+    public int checkObjectExists(T object){
+        return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
-                        OrmDaoUtils.mergeObject(conn, o));
+                        OrmDaoUtils.checkObjectExists(conn, object));
+    }
+
+    public int checkObjectExistsById(Object id){
+        return jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.checkObjectExistsById(conn, id, (Class<T>) getPoClass()));
     }
 
     public T getObjectById(Object id) {
         return jdbcTemplate.execute(
                 (ConnectionCallback<T>) conn ->
                         OrmDaoUtils.getObjectById(conn, id, (Class<T>) getPoClass()));
+    }
+
+    public int mergeObject(T o) {
+        if(checkObjectExists(o)>0){
+            return this.innerUpdateObject(o);
+        }else{
+            this.innerSaveNewObject(o);
+            return 1;
+        }
+       /* return  jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        OrmDaoUtils.mergeObject(conn, o));*/
     }
 
     public T getObjectExcludeLazyById(Object id) {

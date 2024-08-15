@@ -181,46 +181,31 @@ public abstract class QueryUtils {
         return "'" + StringUtils.replace(value.trim(), "'", "''") + "'";
     }
 
-
-    public static String buildObjectsStringForQuery(Object[] objects) {
-        if (objects == null || objects.length < 1)
-            return "()";
-        StringBuilder sb = new StringBuilder("(");
+    public static String buildObjectsStringForQuery(Collection<?> objects) {
+        if (objects == null || objects.isEmpty())
+            return "''";
+        StringBuilder sb = new StringBuilder();
         int dataCount = 0;
         for (Object obj : objects) {
             if (obj != null) {
                 if (dataCount > 0)
                     sb.append(",");
-                sb.append(buildStringForQuery(String.valueOf(obj)));
+                sb.append(buildObjectStringForQuery(obj));
                 dataCount++;
             }
         }
-        sb.append(")");
-        return sb.toString();
+        return dataCount == 0? "''" : sb.toString();
     }
 
-    public static String buildObjectsStringForQuery(Collection<?> objects) {
-        if (objects == null || objects.size() < 1)
-            return "()";
-        StringBuilder sb = new StringBuilder("(");
-        int dataCount = 0;
-        for (Object obj : objects) {
-            if (obj != null) {
-                if (dataCount > 0)
-                    sb.append(",");
-                sb.append(buildStringForQuery(String.valueOf(obj)));
-                dataCount++;
-            }
-        }
-        sb.append(")");
-        return sb.toString();
+    public static String buildObjectsStringForQuery(Object[] objects) {
+        return buildObjectsStringForQuery(CollectionsOpt.arrayToList(objects));
     }
 
     public static String buildObjectStringForQuery(Object fieldValue) {
+        if (fieldValue==null)
+            return "''";
         if (fieldValue instanceof java.util.Date) {
             return QueryUtils.buildDatetimeStringForQuery((java.util.Date) fieldValue);
-        } else if (fieldValue instanceof java.sql.Date) {
-            return QueryUtils.buildDatetimeStringForQuery((java.sql.Date) fieldValue);
         } else if (fieldValue.getClass().getSuperclass().equals(Number.class)) {
             return fieldValue.toString();
         } else if (fieldValue instanceof Object[]) {
@@ -654,7 +639,7 @@ public abstract class QueryUtils {
         //throw new SQLException("DB2 unsupported parameter in fetch statement.");
         if (offset == 0) {
             return maxsize > 1 ? sql + " fetch first " + maxsize + " rows only" :
-                " fetch first 1 row only";
+                sql + " fetch first 1 row only";
         }
         //nest the main query in an outer select
         return "select * from ( select inner2_.*, rownumber() over(order by order of inner2_) as rownumber_ from ( "
@@ -741,6 +726,7 @@ public abstract class QueryUtils {
                 return buildSqlServerLimitQuerySQL(sql, offset, maxsize);
             case MySql:
             case H2:
+            case ClickHouse:
                 return buildMySqlLimitQuerySQL(sql, offset, maxsize, asParameter);
             case PostgreSql:
                 return buildPostgreSqlLimitQuerySQL(sql, offset, maxsize, asParameter);
@@ -1746,33 +1732,37 @@ public abstract class QueryUtils {
                     hqlPiece.append(filter.substring(prePos, curPos - 1));
                 varMorp.seekToRightBrace();//('}');
                 prePos = varMorp.getCurrPos();
+                if(prePos <= curPos+1){
+                    return null; // 变量名为空，格式不正确
+                }
                 String param = filter.substring(curPos, prePos - 1).trim();
-                if (StringUtils.isNotBlank(param)) {
-                    ImmutableTriple<String, String, String> paramMeta = parseParameter(param);
-                    //{paramName,paramAlias,paramPretreatment};
-                    String paramName = StringUtils.isBlank(paramMeta.left) ? paramMeta.middle : paramMeta.left;
-                    String paramAlias = StringUtils.isBlank(paramMeta.middle) ? paramMeta.left : paramMeta.middle;
+                if (StringUtils.isBlank(param)) {
+                    return null; // 变量名为空，格式不正确
+                }
+                ImmutableTriple<String, String, String> paramMeta = parseParameter(param);
+                //{paramName,paramAlias,paramPretreatment};
+                String paramName = StringUtils.isBlank(paramMeta.left) ? paramMeta.middle : paramMeta.left;
+                String paramAlias = StringUtils.isBlank(paramMeta.middle) ? paramMeta.left : paramMeta.middle;
 
-                    LeftRightPair<String, Object> paramPair = translater.translateParam(paramName);
-                    if (paramPair == null)
-                        return null;
+                LeftRightPair<String, Object> paramPair = translater.translateParam(paramName);
+                if (paramPair == null)
+                    return null;
 
-                    if (paramPair.getRight() != null) {
-                        Object realParam = pretreatParameter(paramMeta.right, paramPair.getRight());
-                        if (hasPretreatment(paramMeta.right, SQL_PRETREAT_CREEPFORIN)) {
-                            QueryAndNamedParams inSt = buildInStatement(paramAlias, realParam);
-                            hqlPiece.append(inSt.getQuery());
-                            hqlAndParams.addAllParams(inSt.getParams());
-                        } else if (hasPretreatment(paramMeta.right, SQL_PRETREAT_INPLACE)) {
-                            hqlPiece.append(cleanSqlStatement(StringBaseOpt.objectToString(realParam)));
-                        } else {
-                            hqlPiece.append(":").append(paramAlias);
-                            hqlAndParams.addParam(paramAlias, realParam);
-                        }
-
+                if (paramPair.getRight() != null) {
+                    Object realParam = pretreatParameter(paramMeta.right, paramPair.getRight());
+                    if (hasPretreatment(paramMeta.right, SQL_PRETREAT_CREEPFORIN)) {
+                        QueryAndNamedParams inSt = buildInStatement(paramAlias, realParam);
+                        hqlPiece.append(inSt.getQuery());
+                        hqlAndParams.addAllParams(inSt.getParams());
+                    } else if (hasPretreatment(paramMeta.right, SQL_PRETREAT_INPLACE)) {
+                        hqlPiece.append(cleanSqlStatement(StringBaseOpt.objectToString(realParam)));
                     } else {
-                        hqlPiece.append(paramPair.getLeft());
+                        hqlPiece.append(":").append(paramAlias);
+                        hqlAndParams.addParam(paramAlias, realParam);
                     }
+
+                } else {
+                    hqlPiece.append(paramPair.getLeft());
                 }
             }
 
@@ -1780,34 +1770,38 @@ public abstract class QueryUtils {
         }
         hqlPiece.append(filter.substring(prePos));
         hqlAndParams.setQuery(hqlPiece.toString());
+        if(StringUtils.isBlank(hqlAndParams.getQuery())){
+            return null;
+        }
         return hqlAndParams;
     }
 
     public static QueryAndNamedParams translateQueryFilter(Collection<String> filters,
                                                            IFilterTranslater translater, boolean isUnion) {
-        if (filters == null || filters.size() < 1)
+        if (filters == null || filters.isEmpty())
             return null;
         QueryAndNamedParams hqlAndParams = new QueryAndNamedParams();
         StringBuilder hqlBuilder = new StringBuilder();
 
-        boolean haveSql = false;
+        int hqlPieceCount = 0;
         for (String filter : filters) {
             QueryAndNamedParams hqlPiece = translateQueryFilter(filter, translater);
-            if (hqlPiece != null) {
-                if (!haveSql)
-                    hqlBuilder.append("(");
-                else
+            if (hqlPiece != null && StringUtils.isNotBlank(hqlPiece.getQuery())) {
+                if (hqlPieceCount>0)
                     hqlBuilder.append(isUnion ? " or " : " and ");
-                haveSql = true;
+                hqlPieceCount ++;
                 hqlBuilder.append(hqlPiece.getQuery());
                 hqlAndParams.addAllParams(hqlPiece.getParams());
             }
         }
 
-        if (haveSql)
-            hqlBuilder.append(" )");
-
-        hqlAndParams.setQuery(hqlBuilder.toString());
+        if (hqlPieceCount == 0)
+            return null;
+        if(hqlPieceCount > 1 && isUnion){
+            hqlAndParams.setQuery("( " + hqlBuilder.toString() + " )");
+        } else {
+            hqlAndParams.setQuery(hqlBuilder.toString());
+        }
         return hqlAndParams;
     }
 
@@ -1961,6 +1955,7 @@ public abstract class QueryUtils {
         int prePos = 0;
         while (sWord != null && !sWord.equals("")) {
             if (sWord.equals("{")) {
+
                 int curPos = varMorp.getCurrPos();
                 if (curPos - 1 > prePos)
                     hqlBuilder.append(queryStatement.substring(prePos, curPos - 1));
@@ -1968,6 +1963,14 @@ public abstract class QueryUtils {
                 prePos = varMorp.getCurrPos();
                 //分析表别名， 格式为 TableNameOrClass:alias,TableNameOrClass:alias,.....
                 String tablesDesc = queryStatement.substring(curPos, prePos - 1).trim();
+                //required 关键字表示必须有对应的权限过滤语句，如果没有 则恒为false
+                boolean required = false;
+                String firstWord = Lexer.getFirstWord(tablesDesc);
+                if("required".equalsIgnoreCase(firstWord)){
+                    required = true;
+                    tablesDesc = tablesDesc.substring(8).trim();
+                }
+
                 String[] tables = tablesDesc.split(",");
                 Map<String, String> tableMap = new HashMap<>();
                 for (String tableDesc : tables) {
@@ -1978,13 +1981,6 @@ public abstract class QueryUtils {
                         aliasName = tableLexer.getAWord();
                     }
                     tableMap.put(tableName, aliasName);
-                    /*
-                    int n= tableDesc.indexOf(':');
-                    if(n<1){
-                        tableMap.put(tableDesc, "");
-                    }else{
-                        tableMap.put(tableDesc.substring(0,n), tableDesc.substring(n+1));
-                    }*/
                 }
                 translater.setTableAlias(tableMap);
                 QueryAndNamedParams hqlPiece =
@@ -1994,7 +1990,11 @@ public abstract class QueryUtils {
                 if (hqlPiece != null && !StringBaseOpt.isNvl(hqlPiece.getQuery())) {
                     hqlBuilder.append(" and ").append(hqlPiece.getQuery());
                     hqlAndParams.addAllParams(hqlPiece.getParams());
+                } else if(required){
+                    //必须要有范围权限，否则就添加永远是false的语句
+                    hqlBuilder.append(" and 0=1 ");
                 }
+
             } else if (sWord.equals("[")) {
                 int curPos = varMorp.getCurrPos();
                 if (curPos - 1 > prePos)

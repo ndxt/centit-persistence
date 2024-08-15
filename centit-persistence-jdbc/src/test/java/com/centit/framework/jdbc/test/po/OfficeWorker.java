@@ -24,6 +24,7 @@ public class OfficeWorker implements EntityWithDeleteTag,EntityWithVersionTag,Se
      */
     @Column(name = "WORKER_ID")
     @ValueGenerator(strategy= GeneratorType.UUID, value = "S_WORKER_ID")
+    @Id
     private String workerId;
     @Column(name = "WORKER_NAME")
     private String workerName;

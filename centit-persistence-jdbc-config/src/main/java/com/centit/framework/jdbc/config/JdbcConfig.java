@@ -37,6 +37,7 @@ public class JdbcConfig implements EnvironmentAware {
         }
     }
 
+
     @Bean(destroyMethod = "close")
     public DataSource dataSource() {
         HikariDataSource ds = new HikariDataSource();
@@ -81,7 +82,6 @@ public class JdbcConfig implements EnvironmentAware {
         }
         return ds;
     }
-
 
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Lazy
