@@ -62,7 +62,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     @Autowired
     protected DataSource dataSource;
 
+    @Autowired(required = false)
     protected JdbcTemplate jdbcTemplate;
+
     private static final int DEFAULT_CASCADE_DEPTH = 3;
     /**
      * Set the JDBC DataSource to obtain connections from.
@@ -91,8 +93,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @return DataSource
      */
     public DataSource getDataSource() {
+        if (this.dataSource==null && this.jdbcTemplate != null)
+            this.dataSource = this.jdbcTemplate.getDataSource();
         return this.dataSource;
-        //return (this.jdbcTemplate != null ? this.jdbcTemplate.getDataSource() : null);
     }
 
     /**
