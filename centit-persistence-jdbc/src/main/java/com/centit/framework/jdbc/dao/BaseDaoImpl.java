@@ -107,7 +107,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     public DBType getDBtype() {
         return jdbcTemplate.execute(
-            (ConnectionCallback<DBType>) conn -> DBType.mapDBType(conn)
+            (ConnectionCallback<DBType>) DBType::mapDBType
         );
     }
 
