@@ -495,7 +495,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
 
     public static void buildFilterSqlPieces(TableInfo ti, String alias, Map<String, Object> filterMap,
             Map<String, LeftRightPair<Integer , StringBuilder>> filterGroup) {
-
+        //Map<String, Object> extParams = new HashMap<>();
         for (Map.Entry<String, Object> filterEnt : filterMap.entrySet()) {
             if(filterEnt.getValue()==null)
                 continue;
@@ -544,7 +544,10 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 dealSuffixSql(filterEnt, StringUtils.isBlank(alias) ? propName : alias+"."+propName,
                     optSuffix, currentBuild);
             }
-        }
+        }/*
+        if(!extParams.isEmpty()){
+            filterMap.putAll(extParams);
+        }*/
     }
 
     public static String buildFilterSql(TableInfo ti, String alias, Map<String, Object> filterMap) {
@@ -606,6 +609,23 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             case "_nk":
                 currentBuild.append(fieldName).append(" not like :").append(plCol);
                 break;
+            /*case "_mt": // match
+                {
+                    String[] words = StringUtils.split(StringBaseOpt.castObjectToString(filterEnt.getValue()));
+                    if(words!=null && words.length>0){
+                        String skey = plCol+0;
+                        currentBuild.append(fieldName).append(" like :").append(skey);
+                        extParams.put(skey, "%"+words[0]+"%");
+                        int ind = 1;
+                        while(ind<words.length){
+                            skey = plCol+ind;
+                            currentBuild.append(" and ").append(fieldName).append(" like :").append(skey);
+                            extParams.put(skey, "%"+words[ind]+"%");
+                            ind ++;
+                        }
+                    }
+                }
+                break;*/
             case "_ft": //full_text 只有mysql可以用
                 currentBuild.append("match(").append(fieldName).append(") against(:").append(plCol).append(")");
                 break;
