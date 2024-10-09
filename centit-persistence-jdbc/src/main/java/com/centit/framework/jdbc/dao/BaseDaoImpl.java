@@ -925,6 +925,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public T getObjectByProperties(Map<String, Object> properties) {
+        if(properties == null || properties.isEmpty()){
+            return null;
+        }
         return jdbcTemplate.execute(
             (ConnectionCallback<T>) conn ->
                 OrmDaoUtils.getObjectByProperties(conn, properties, (Class<T>) getPoClass()));

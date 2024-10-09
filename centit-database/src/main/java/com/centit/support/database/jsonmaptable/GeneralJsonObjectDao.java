@@ -551,8 +551,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
     }
 
     public static String buildFilterSql(TableInfo ti, String alias, Map<String, Object> filterMap) {
-        Map<String, LeftRightPair<Integer , StringBuilder>> filterGroup =
-            new HashMap<>();
+        Map<String, LeftRightPair<Integer , StringBuilder>> filterGroup = new HashMap<>();
         buildFilterSqlPieces(ti, alias,  filterMap, filterGroup);
         boolean needAppendAndSign = false;
 

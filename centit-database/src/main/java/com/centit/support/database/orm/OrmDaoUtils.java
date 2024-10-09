@@ -262,9 +262,13 @@ public abstract class OrmDaoUtils {
     public static <T> T getObjectByProperties(Connection connection, Map<String, Object> properties, Class<T> type)
         throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
+        String sqlFilter = GeneralJsonObjectDao.buildFilterSql(mapInfo, null, properties);
+        if(StringUtils.isBlank(sqlFilter)){
+            return null;
+        }
         Pair<String, TableField[]> q =
             GeneralJsonObjectDao.buildSelectSqlWithFields(mapInfo, null, false,
-                GeneralJsonObjectDao.buildFilterSql(mapInfo, null, properties), false, null);
+                sqlFilter, false, null);
 
         return queryNamedParamsSql(
             connection, new QueryAndNamedParams(q.getLeft(),
