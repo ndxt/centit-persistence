@@ -14,7 +14,7 @@ public enum DBType {
     DB2(true), Access(true), MySql(true),
     H2(true), PostgreSql(true), DM(true),
     KingBase(true), GBase(true), Oscar(true),
-    ClickHouse(false);
+    Sqlite(true), ClickHouse(false);
 
 
     protected static final Logger logger = LoggerFactory.getLogger(DBType.class);
@@ -53,6 +53,7 @@ public enum DBType {
             put(GBase, "com.gbasedbt.jdbc.IfxDriver");
             put(Oscar, "com.oscar.Driver");
             put(ClickHouse, "com.clickhouse.jdbc.ClickHouseDriver");
+            put(Sqlite, "org.sqlite.JDBC");
         }
     };
 

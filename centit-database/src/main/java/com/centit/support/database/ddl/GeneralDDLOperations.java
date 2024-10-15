@@ -51,6 +51,8 @@ public abstract class GeneralDDLOperations implements DDLOperations {
                 return new H2DDLOperations();
             case PostgreSql:
                 return new PostgreSqlDDLOperations();
+            case Sqlite:
+                return new SqliteDDLOperations();
             case Access:
             default:
                 throw new ObjectException("不支持的数据库类型：" + dbtype);

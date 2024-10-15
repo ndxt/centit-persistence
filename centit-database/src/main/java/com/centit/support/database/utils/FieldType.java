@@ -351,6 +351,7 @@ public abstract class FieldType {
                 return ft;
         }
     }
+
     public static String mapToClickHouseColumnType(String ft) {
         if (StringUtils.isBlank(ft))
             return ft;
@@ -748,5 +749,27 @@ public abstract class FieldType {
         }
 
         return FieldType.JSON_OBJECT;
+    }
+
+    public static String mapToSqliteColumnType(String javaType) {
+        switch (javaType){
+            case FieldType.INTEGER:
+            case FieldType.LONG:
+                return "INTEGER";
+            case FieldType.MONEY:
+                return "DECIMAL(20,4)";
+            case FieldType.DOUBLE:
+            case FieldType.FLOAT:
+                return "REAL";
+            case FieldType.TIMESTAMP:
+            case FieldType.DATE:
+                return "DATETIME";
+            case FieldType.BYTE_ARRAY:
+                return "BLOB";
+            case FieldType.STRING:
+            default:
+                return "TEXT";
+        }
+
     }
 }

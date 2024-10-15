@@ -160,6 +160,9 @@ public class SimpleTableInfo implements TableInfo {
      */
     @Override
     public SimpleTableField findFieldByName(String name) {
+        if(columns==null){
+            return null;
+        }
         for (SimpleTableField col : columns) {
             if (col.getPropertyName().equals(name))
                 return col;
