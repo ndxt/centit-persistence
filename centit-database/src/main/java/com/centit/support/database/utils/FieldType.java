@@ -741,13 +741,12 @@ public abstract class FieldType {
         }
 
         if (java.util.Date.class.isAssignableFrom(javaType)) {
-            return FieldType.DATE;
+            return FieldType.DATETIME;
         }
 
         if (byte[].class == javaType) {
             return FieldType.BYTE_ARRAY;
         }
-
         return FieldType.JSON_OBJECT;
     }
 
@@ -761,11 +760,12 @@ public abstract class FieldType {
             case FieldType.DOUBLE:
             case FieldType.FLOAT:
                 return "REAL";
-            case FieldType.TIMESTAMP:
-            case FieldType.DATE:
-                return "DATETIME";
             case FieldType.BYTE_ARRAY:
                 return "BLOB";
+            case FieldType.TIMESTAMP:
+            case FieldType.DATETIME:
+            case FieldType.DATE:
+            //    return "DATETIME"; // 全部设置为 TEXT
             case FieldType.STRING:
             default:
                 return "TEXT";
