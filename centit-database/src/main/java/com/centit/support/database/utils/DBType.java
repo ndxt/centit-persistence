@@ -10,18 +10,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 public enum DBType {
-    Unknown, SqlServer,Oracle,
-    DB2, Access,MySql,
-    H2, PostgreSql,DM,
-    KingBase, GBase, Oscar, ClickHouse;
+    Unknown, SqlServer, Oracle,
+    DB2, Access, MySql,
+    H2, PostgreSql, DM,
+    KingBase, GBase, Oscar,
+    Sqlite, ClickHouse;
 
     protected static final Logger logger = LoggerFactory.getLogger(DBType.class);
-    DBType(){
-    }
-
-    public boolean isRmdb(){
-        return !this.equals(Unknown);
-    }
 
     @Override
     public String toString() {
@@ -35,7 +30,7 @@ public enum DBType {
             || DBType.Oscar.equals(this);
     }
 
-    private static HashMap<DBType, String> dbDrivers = new HashMap<>() {
+    private static HashMap<DBType, String> dbDrivers = new HashMap<DBType, String>() {
         {
             put(Oracle, "oracle.jdbc.driver.OracleDriver");
             put(DB2, "com.ibm.db2.jcc.DB2Driver");
@@ -49,6 +44,7 @@ public enum DBType {
             put(GBase, "com.gbasedbt.jdbc.IfxDriver");
             put(Oscar, "com.oscar.Driver");
             put(ClickHouse, "com.clickhouse.jdbc.ClickHouseDriver");
+            put(Sqlite, "org.sqlite.JDBC");
         }
     };
 
@@ -82,6 +78,31 @@ public enum DBType {
                 return Unknown;
         }
     }
+    /*
+    public static DBType valueOf(String dbname) {
+        switch (dbname.toLowerCase()) {
+            case "sqlserver":
+                return SqlServer;
+            case "oracle":
+                return Oracle;
+            case "db2":
+                return DB2;
+            case "access":
+                return Access;
+            case "mysql":
+                return MySql;
+            case "h2":
+                return H2;
+            case "postgresql":
+                return PostgreSql;
+            case "dm":
+                return DM;
+            case "kingbase":
+                return KingBase;
+            default:
+                return Unknown;
+        }
+    }*/
 
     public static DBType mapDBType(String connurl) {
         if (StringUtils.isBlank(connurl))
@@ -246,7 +267,7 @@ public enum DBType {
             case PostgreSql:
                 return "select version()";
             case Access:
-                default:
+            default:
                 return null;
         }
     }

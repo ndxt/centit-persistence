@@ -351,6 +351,7 @@ public abstract class FieldType {
                 return ft;
         }
     }
+
     public static String mapToClickHouseColumnType(String ft) {
         if (StringUtils.isBlank(ft))
             return ft;
@@ -740,13 +741,35 @@ public abstract class FieldType {
         }
 
         if (java.util.Date.class.isAssignableFrom(javaType)) {
-            return FieldType.DATE;
+            return FieldType.DATETIME;
         }
 
         if (byte[].class == javaType) {
             return FieldType.BYTE_ARRAY;
         }
-
         return FieldType.JSON_OBJECT;
+    }
+
+    public static String mapToSqliteColumnType(String javaType) {
+        switch (javaType){
+            case FieldType.INTEGER:
+            case FieldType.LONG:
+                return "INTEGER";
+            case FieldType.MONEY:
+                return "DECIMAL(20,4)";
+            case FieldType.DOUBLE:
+            case FieldType.FLOAT:
+                return "REAL";
+            case FieldType.BYTE_ARRAY:
+                return "BLOB";
+            case FieldType.TIMESTAMP:
+            case FieldType.DATETIME:
+            case FieldType.DATE:
+            //    return "DATETIME"; // 全部设置为 TEXT
+            case FieldType.STRING:
+            default:
+                return "TEXT";
+        }
+
     }
 }

@@ -133,6 +133,7 @@ public abstract class QueryUtils {
      * 将属性名转换为字段名
      */
     public static final String SQL_PRETREAT_MAP_NAME_COLUMN = "NAMETOCOLUMN";
+
     /**
      * 将字符串 用,分割返回 String[];对于支持数组变量的spring jdbcTemplate
      * 或者hibernate中的hql用这个处理就可以了，先腾实现的jpa也支持数组参数
@@ -1404,8 +1405,7 @@ public abstract class QueryUtils {
                 return FieldType.humpNameToColumn(StringBaseOpt.objectToString(paramValue), true);
             case SQL_PRETREAT_STRING:
                 return StringBaseOpt.objectToString(paramValue);
-        /*case SQL_PRETREAT_SPLITFORIN:
-            return String.valueOf(paramValue).split(",");*/
+
             default:
                 return paramValue;
         }
@@ -1420,7 +1420,11 @@ public abstract class QueryUtils {
             String sValue = StringBaseOpt.objectToString(paramValue);
             if (sValue == null)
                 return null;
-            return sValue.split(",");
+            if(sValue.indexOf(',')>0)
+                return sValue.split(",");
+            if(sValue.indexOf('+')>0)
+                return sValue.split("\\+");
+            return StringUtils.split(sValue);
         }
         if (paramValue instanceof Collection) {
             Collection<?> valueList = (Collection<?>) paramValue;
@@ -1561,7 +1565,7 @@ public abstract class QueryUtils {
     }
 
     /**
-     * 通过参数数组 编译in语句
+     * 通过参数数组 编译重复语句
      *
      * @param paramAlias 参数别名
      * @param realParam  参数实际值
