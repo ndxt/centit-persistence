@@ -4,8 +4,9 @@ import com.centit.support.database.orm.GeneratorType;
 import com.centit.support.database.orm.ValueGenerator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.io.Serializable;
 import java.util.Date;
 

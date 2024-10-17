@@ -1,19 +1,16 @@
 package com.centit.support.test;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.centit.support.algorithm.DatetimeOpt;
 import com.centit.support.database.ddl.SqliteDDLOperations;
 import com.centit.support.database.jsonmaptable.SqliteJsonObjectDao;
-import com.centit.support.database.metadata.JdbcMetadata;
 import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.DatabaseAccess;
 
 import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class TestSqlite {
     public static void main(String[] args) {
