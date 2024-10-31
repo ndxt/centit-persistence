@@ -394,14 +394,16 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             String aWord = lexer.getAWord();
             while (StringUtils.isNotBlank(aWord)) {
                 if (StringUtils.equalsAnyIgnoreCase(aWord,
-                    ",", "(", ")", "order", "by", "desc", "asc", "nulls", "first", "last")) {
+                    ",", "order", "by", "desc", "asc", "nulls", "first", "last")) {
                     orderBuilder.append(aWord);
                 } else {
                     String orderField = GeneralJsonObjectDao.mapFieldToColumnPiece(querySql, aWord);
                     if (orderField != null) {
                         orderBuilder.append(orderField);
                     } else {
-                        orderBuilder.append(aWord);
+                        //orderBuilder.append(aWord); // 这个会引起sql注入
+                        throw new ObjectException(ObjectException.PARAMETER_NOT_CORRECT,
+                            "SQL语句中没有对应的排序字段: "+selfOrderBy+"，找不到对应的排序字段");
                     }
                 }
                 orderBuilder.append(" ");
