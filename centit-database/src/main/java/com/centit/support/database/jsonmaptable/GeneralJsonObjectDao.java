@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.centit.support.algorithm.*;
 import com.centit.support.common.LeftRightPair;
+import com.centit.support.common.ObjectException;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
@@ -432,16 +433,16 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             String aWord = lexer.getAWord();
             while (StringUtils.isNotBlank(aWord)) {
                 if (StringUtils.equalsAnyIgnoreCase(aWord,
-                    ",", "(", ")", "order", "by", "desc", "asc", "nulls", "first", "last")) {
+                    ",", "order", "by", "desc", "asc", "nulls", "first", "last")) {
                     orderBuilder.append(aWord);
                 } else {
                     TableField field = ti.findFieldByName(aWord);
                     if (field != null) {
                         orderBuilder.append(field.getColumnName());
                     } else {
-                        orderBuilder.append(aWord);
-                        //throw new RuntimeException("表"+ti.getTableName()
-                        //+"应用排序语句"+selfOrderBy+"出错，找不到对应的排序字段");
+                        //orderBuilder.append(aWord); // 这个会引起sql注入
+                        throw new ObjectException(ObjectException.PARAMETER_NOT_CORRECT,
+                            "表"+ti.getTableName() + "应用排序语句"+selfOrderBy+"出错，找不到对应的排序字段");
                     }
                 }
                 orderBuilder.append(" ");
