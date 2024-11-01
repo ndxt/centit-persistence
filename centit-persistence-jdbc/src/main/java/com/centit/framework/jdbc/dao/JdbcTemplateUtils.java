@@ -678,4 +678,8 @@ public abstract class JdbcTemplateUtils {
             });
     }
 
+    public static DBType doGetDBType(JdbcTemplate jdbcTemplate){
+        return jdbcTemplate.execute(
+            (ConnectionCallback<DBType>) conn -> DBType.mapDBType(conn));
+    }
 }

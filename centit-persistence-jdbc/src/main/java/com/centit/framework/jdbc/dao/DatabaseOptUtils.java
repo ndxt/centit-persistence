@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.TableMapInfo;
+import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.PageDesc;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -496,5 +497,9 @@ public abstract class DatabaseOptUtils {
         List<Map<String, Object>> newObjects){
         return JdbcTemplateUtils.replaceObjectsAsTabulation
             (baseDao.getJdbcTemplate(), type, oldDbObject, newObjects);
+    }
+
+    public static DBType doGetDBType(BaseDaoImpl<?, ?> baseDao){
+        return JdbcTemplateUtils.doGetDBType(baseDao.getJdbcTemplate());
     }
 }
