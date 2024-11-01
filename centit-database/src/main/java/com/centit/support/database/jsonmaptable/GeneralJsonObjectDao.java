@@ -342,7 +342,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                     orderSql.append(field.getColumnName());
                 }
                 aword = lexer.getAWord();
-                while(StringUtils.equalsAnyIgnoreCase(aword, "desc", "asc","nulls", "first", "last")){
+                while(StringUtils.equalsAnyIgnoreCase(aword, "desc", "asc", "nulls", "first", "last")){
                     if(field!=null){
                         orderSql.append(" ").append(aword);
                     }
@@ -394,7 +394,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             String aWord = lexer.getAWord();
             while (StringUtils.isNotBlank(aWord)) {
                 if (StringUtils.equalsAnyIgnoreCase(aWord,
-                    ",", "order", "by", "desc", "asc", "nulls", "first", "last")) {
+                    ",", "desc", "asc", "nulls", "first", "last")) {
                     orderBuilder.append(aWord);
                 } else {
                     String orderField = GeneralJsonObjectDao.mapFieldToColumnPiece(querySql, aWord);
@@ -435,7 +435,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             String aWord = lexer.getAWord();
             while (StringUtils.isNotBlank(aWord)) {
                 if (StringUtils.equalsAnyIgnoreCase(aWord,
-                    ",", "order", "by", "desc", "asc", "nulls", "first", "last")) {
+                    ",", "desc", "asc", "nulls", "first", "last")) {
                     orderBuilder.append(aWord);
                 } else {
                     TableField field = ti.findFieldByName(aWord);
