@@ -112,6 +112,16 @@ public class DDLOperationsWork implements DDLOperations {
     }
 
     @Override
+    public List<String> makeTableColumnComments(TableInfo tableInfo, int commentContent) {
+        try {
+            return getDDLOperations().makeTableColumnComments(tableInfo, commentContent);
+        } catch (SQLException e) {
+            logger.error(e.getMessage());
+            return null;
+        }
+    }
+
+    @Override
     public String makeDropTableSql(String tableCode) {
         try {
             return getDDLOperations().makeDropTableSql(tableCode);

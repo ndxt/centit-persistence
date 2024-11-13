@@ -221,6 +221,27 @@ public abstract class GeneralDDLOperations implements DDLOperations {
         return sbCreate.toString();
     }
 
+    @Override
+    public List<String> makeTableColumnComments(final TableInfo tableInfo, int commentContent){
+        List<String> comments = new ArrayList<>();
+        if(tableInfo.getColumns()==null)
+            return comments;
+        for (TableField field : tableInfo.getColumns()) {
+            StringBuilder sbComment = new StringBuilder("COMMENT ON COLUMN ");
+            sbComment.append(tableInfo.getTableName()).append(".")
+                    .append(field.getColumnName()).append(" IS ");
+            if(commentContent==1){
+                sbComment.append('\'').append(field.getFieldLabelName()).append('\'');
+            } else if(commentContent==2){
+                sbComment.append('\'').append(field.getColumnComment()).append('\'');
+            } else {
+                sbComment.append('\'').append(field.getFieldLabelName()).append(':').append(field.getColumnComment()).append('\'');
+            }
+            comments.add( sbComment.toString());
+        }
+        return comments;
+    }
+
     protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
         if (tableInfo.hasParmaryKey()) {
             sbCreate.append("  constraint ");

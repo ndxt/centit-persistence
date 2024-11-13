@@ -6,7 +6,6 @@ import com.centit.support.database.metadata.SimpleTableInfo;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.FieldType;
-import com.centit.support.file.FileType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;

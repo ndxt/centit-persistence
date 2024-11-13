@@ -11,8 +11,6 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.Resource;
-
 /**
  * Created by codefan on 2017/6/14.
  */

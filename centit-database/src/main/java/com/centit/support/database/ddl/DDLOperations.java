@@ -34,6 +34,14 @@ public interface DDLOperations {
     }
 
     /**
+     * 创建表 注释信息
+     *
+     * @param tableInfo 表
+     * @param commentContent  1: FieldLabelName 2: ColumnComment 3 both
+     * @return sql语句
+     */
+    List<String> makeTableColumnComments(final TableInfo tableInfo, int commentContent);
+    /**
      * 删除表
      *
      * @param tableCode 表
