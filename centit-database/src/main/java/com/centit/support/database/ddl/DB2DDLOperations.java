@@ -2,10 +2,13 @@ package com.centit.support.database.ddl;
 
 import com.centit.support.algorithm.GeneralAlgorithm;
 import com.centit.support.database.metadata.TableField;
+import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DB2DDLOperations extends GeneralDDLOperations {
 
@@ -15,6 +18,27 @@ public class DB2DDLOperations extends GeneralDDLOperations {
 
     public DB2DDLOperations(Connection conn) {
         super(conn);
+    }
+
+    @Override
+    public List<String> makeTableColumnComments(final TableInfo tableInfo, int commentContent){
+        List<String> comments = new ArrayList<>();
+        if(tableInfo.getColumns()==null)
+            return comments;
+        for (TableField field : tableInfo.getColumns()) {
+            StringBuilder sbComment = new StringBuilder("ALTER TABLE ");
+            sbComment.append(tableInfo.getTableName()).append(" ALTER COLUMN  ")
+                .append(field.getColumnName()).append(" SET NOTE ");
+            if(commentContent==1){
+                sbComment.append('\'').append(field.getFieldLabelName()).append('\'');
+            } else if(commentContent==2){
+                sbComment.append('\'').append(field.getColumnComment()).append('\'');
+            } else {
+                sbComment.append('\'').append(field.getFieldLabelName()).append(':').append(field.getColumnComment()).append('\'');
+            }
+            comments.add( sbComment.toString());
+        }
+        return comments;
     }
 
     @Override

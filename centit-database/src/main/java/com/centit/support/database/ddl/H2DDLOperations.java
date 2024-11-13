@@ -14,7 +14,6 @@ import java.sql.Connection;
  */
 public class H2DDLOperations extends MySqlDDLOperations {
 
-
     public H2DDLOperations() {
 
     }
@@ -22,7 +21,6 @@ public class H2DDLOperations extends MySqlDDLOperations {
     public H2DDLOperations(Connection conn) {
         super(conn);
     }
-
 
     @Override
     public String makeCreateSequenceSql(final String sequenceName) {

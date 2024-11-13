@@ -9,6 +9,7 @@ import com.centit.support.database.utils.FieldType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,11 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
 
     public SqliteDDLOperations(Connection conn) {
         super(conn);
+    }
+
+    @Override
+    public List<String> makeTableColumnComments(final TableInfo tableInfo, int commentContent){
+        return new ArrayList<>();
     }
 
     @Override
