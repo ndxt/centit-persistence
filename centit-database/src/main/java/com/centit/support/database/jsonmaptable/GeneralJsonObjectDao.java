@@ -403,7 +403,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                     } else {
                         //orderBuilder.append(aWord); // 这个会引起sql注入
                         throw new ObjectException(ObjectException.PARAMETER_NOT_CORRECT,
-                            "SQL语句中没有对应的排序字段: "+selfOrderBy+"，找不到对应的排序字段");
+                            "SQL语句中没有对应的排序字段: "+selfOrderBy+"，找不到对应的排序字段，或者有可能引起sql注入的函数或者字句。");
                     }
                 }
                 orderBuilder.append(" ");
@@ -444,7 +444,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                     } else {
                         //orderBuilder.append(aWord); // 这个会引起sql注入
                         throw new ObjectException(ObjectException.PARAMETER_NOT_CORRECT,
-                            "表"+ti.getTableName() + "应用排序语句"+selfOrderBy+"出错，找不到对应的排序字段");
+                            "表"+ti.getTableName() + "应用排序语句"+selfOrderBy+"出错，找不到对应的排序字段，或者有可能引起sql注入的函数或者字句。");
                     }
                 }
                 orderBuilder.append(" ");
