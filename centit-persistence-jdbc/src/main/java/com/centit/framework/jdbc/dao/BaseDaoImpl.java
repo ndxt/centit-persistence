@@ -217,6 +217,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         SimpleTableField col = mapInfo.findFieldByName(dataFilter.getFormule());
                         if (col != null) {
                             dataFilter.setFilterSql(col.getColumnName() + " like :" + dataFilter.getValueName() );
+                            if(StringUtils.isBlank(dataFilter.getPretreatment())){
+                                dataFilter.setPretreatment(QueryUtils.SQL_PRETREAT_LIKE);
+                            }
                             insideFieldFilter.put(dataFilter.getFormule() ,dataFilter);
                         }
                     } else if (dataFilter.getFilterSql().equalsIgnoreCase(CodeBook.IN_HQL_ID)) {
