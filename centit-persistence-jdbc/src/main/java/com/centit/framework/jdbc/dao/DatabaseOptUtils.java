@@ -398,7 +398,7 @@ public abstract class DatabaseOptUtils {
      * @return 保存任意对象数量
      */
     public static int batchSaveNewObjects(BaseDaoImpl<?, ?> baseDao,
-                                             Collection<? extends Object> objects) {
+                                             Collection<?> objects) {
         return JdbcTemplateUtils.batchSaveNewObjects(baseDao.getJdbcTemplate(),
                 objects);
     }
@@ -410,7 +410,7 @@ public abstract class DatabaseOptUtils {
      * @return 更新对象数量
      */
     public static int batchUpdateObjects(BaseDaoImpl<?, ?> baseDao,
-                                                Collection<? extends Object> objects) {
+                                                Collection<?> objects) {
         return JdbcTemplateUtils.batchUpdateObjects(baseDao.getJdbcTemplate(),
                 objects);
     }
@@ -423,7 +423,7 @@ public abstract class DatabaseOptUtils {
      * @return merge对象数量
      */
     public static int batchMergeObjects(BaseDaoImpl<?, ?> baseDao,
-                                               Collection<? extends Object> objects) {
+                                               Collection<?> objects) {
         return JdbcTemplateUtils.batchMergeObjects(baseDao.getJdbcTemplate(),
                 objects);
     }
@@ -435,7 +435,7 @@ public abstract class DatabaseOptUtils {
      * @return 批量删除对象数量
      */
     public static int batchDeleteObjects(BaseDaoImpl<?, ?> baseDao,
-                                              Collection<? extends Object> objects) {
+                                              Collection<?> objects) {
         return JdbcTemplateUtils.batchDeleteObjects(baseDao.getJdbcTemplate(),
                 objects);
     }
