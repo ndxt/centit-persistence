@@ -33,11 +33,11 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
     public String makeCreateTableSql(final TableInfo tableInfo, boolean fieldStartNewLine) {
         StringBuilder sbCreate = new StringBuilder("create table ");
         sbCreate.append(tableInfo.getTableName()).append(" (");
-        List<? extends TableField> pkColums = tableInfo.getPkFields();
-        int pkSum = pkColums.size();
+        List<? extends TableField> pkColumns = tableInfo.getPkFields();
+        int pkSum = pkColumns.size();
         TableField pkField;
         if(pkSum>0){
-            pkField = pkColums.get(0);
+            pkField = pkColumns.get(0);
         } else {
             pkField = new SimpleTableField();
         }
