@@ -51,7 +51,7 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
             }
             if(pkSum == 1 && StringUtils.equals(field.getColumnName(), pkField.getColumnName())){
                 sbCreate.append(" primary key ");
-                if(StringUtils.equalsIgnoreCase("id", pkField.getColumnName()) &&
+                if(// StringUtils.equalsIgnoreCase("id", pkField.getColumnName()) &&
                     StringUtils.equalsIgnoreCase(pkField.getColumnType(), FieldType.INTEGER)) {
                     sbCreate.append("AUTOINCREMENT ");
                 }
