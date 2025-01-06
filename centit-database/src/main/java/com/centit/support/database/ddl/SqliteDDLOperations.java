@@ -72,6 +72,9 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
             sbCreate.append("primary key ");
             appendPkColumnSql(tableInfo, sbCreate);
         }
+        if(fieldStartNewLine){
+            sbCreate.append("\r\n");
+        }
         sbCreate.append(")");
         return sbCreate.toString();
     }

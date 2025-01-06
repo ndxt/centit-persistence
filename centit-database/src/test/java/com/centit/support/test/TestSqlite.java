@@ -33,6 +33,7 @@ public class TestSqlite {
             object.put("id", 1375);
             jsonObjectDao.saveNewObject(object);
             object.put("id", 135);
+            object.put("userName", "wilbur");
             jsonObjectDao.saveNewObject(object);
             object.put("id", 13);
             jsonObjectDao.saveNewObject(object);
