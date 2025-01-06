@@ -30,12 +30,46 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
     }
 
     @Override
-    protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
-        if (tableInfo.hasParmaryKey()) {
-            sbCreate.append(" primary key ");
+    public String makeCreateTableSql(final TableInfo tableInfo, boolean fieldStartNewLine) {
+        StringBuilder sbCreate = new StringBuilder("create table ");
+        sbCreate.append(tableInfo.getTableName()).append(" (");
+        int pkSum = tableInfo.getPkFields().size();
+        TableField pkField = tableInfo.getPkFields().get(0);
+
+        boolean first = true;
+        for (TableField field : tableInfo.getColumns()) {
+            if(!first){
+                sbCreate.append(",");
+            }
+            first = false;
+            if(fieldStartNewLine){
+                sbCreate.append("\r\n");
+            }
+            appendColumnSQL(field, sbCreate);
+            if (StringUtils.isNotBlank(field.getDefaultValue())) {
+                sbCreate.append(" default ").append(field.getDefaultValue());
+            }
+            if(pkSum == 1 && StringUtils.equals(field.getColumnName(), pkField.getColumnName())){
+                sbCreate.append(" primary key ");
+                if(StringUtils.equalsIgnoreCase("id", pkField.getColumnName()) &&
+                    StringUtils.equalsIgnoreCase(pkField.getColumnType(), FieldType.INTEGER)) {
+                    sbCreate.append("AUTOINCREMENT ");
+                }
+            }
+
+        }
+        if(pkSum>1) {
+            sbCreate.append(", ");
+            if(fieldStartNewLine){
+                sbCreate.append("\r\n");
+            }
+            sbCreate.append("primary key ");
             appendPkColumnSql(tableInfo, sbCreate);
         }
+        sbCreate.append(")");
+        return sbCreate.toString();
     }
+
 
     @Override
     public String makeModifyColumnSql(String tableCode, TableField oldColumn, TableField column) {
