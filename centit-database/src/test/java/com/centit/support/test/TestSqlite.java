@@ -19,9 +19,9 @@ public class TestSqlite {
         // 连接到SQLite数据库（如果数据库不存在，会自动创建）
         try {
             Class.forName(DBType.getDbDriver(DBType.Sqlite));// 这个好像不是必须的
-            connection = DriverManager.getConnection("jdbc:sqlite:/Users/codefan/projects/RunData/temp/test.db");
+            connection = DriverManager.getConnection("jdbc:sqlite:/Users/codefan/projects/RunData/temp/testInc.db");
             JSONObject object = new JSONObject();
-            object.put("id", 1);
+            object.put("id", 137);
             object.put("userName", "codefan");
             object.put("createTime", DatetimeOpt.currentUtilDate());
             SimpleTableInfo tableInfo = SqliteDDLOperations.mapTableInfo(object, "user_info");
@@ -30,6 +30,19 @@ public class TestSqlite {
             DatabaseAccess.doExecuteSql(connection, operations.makeCreateTableSql(tableInfo));
             SqliteJsonObjectDao jsonObjectDao = new SqliteJsonObjectDao(connection, tableInfo);
             jsonObjectDao.saveNewObject(object);
+            object.put("id", 1375);
+            jsonObjectDao.saveNewObject(object);
+            object.put("id", 135);
+            jsonObjectDao.saveNewObject(object);
+            object.put("id", 13);
+            jsonObjectDao.saveNewObject(object);
+
+            tableInfo = SqliteDDLOperations.mapTableInfo(object, "user_info2");
+            tableInfo.setColumnAsPrimaryKey("userName");
+            DatabaseAccess.doExecuteSql(connection, operations.makeCreateTableSql(tableInfo));
+            jsonObjectDao = new SqliteJsonObjectDao(connection, tableInfo);
+            jsonObjectDao.saveNewObject(object);
+
             /*JdbcMetadata metadata = new JdbcMetadata();
             metadata.setDBConfig(connection);
             List<SimpleTableInfo> tableInfos = metadata.listTables(true, null);
