@@ -24,10 +24,8 @@ public class MySqlDDLOperations extends GeneralDDLOperations {
 
     @Override
     protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
-        if (tableInfo.hasParmaryKey()) {
-            sbCreate.append(", primary key ");
-            appendPkColumnSql(tableInfo, sbCreate);
-        }
+        sbCreate.append("primary key ");
+        appendPkColumnSql(tableInfo, sbCreate);
     }
 
     @Override

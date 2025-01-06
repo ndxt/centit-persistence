@@ -208,13 +208,31 @@ public abstract class GeneralDDLOperations implements DDLOperations {
             + " VALUES (" + QueryUtils.buildStringForQuery(sequenceName) + ", 0, 1)";
     }
 
+    protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
+        sbCreate.append("constraint ");
+        if (StringUtils.isBlank(tableInfo.getPkName())) {
+            sbCreate.append("pk_" + tableInfo.getTableName());
+        } else {
+            sbCreate.append(tableInfo.getPkName());
+        }
+        sbCreate.append(" primary key ");
+        appendPkColumnSql(tableInfo, sbCreate);
+    }
     @Override
     public String makeCreateTableSql(final TableInfo tableInfo, boolean fieldStartNewLine) {
         StringBuilder sbCreate = new StringBuilder("create table ");
         sbCreate.append(tableInfo.getTableName()).append(" (");
-
         appendColumnsSQL(tableInfo, sbCreate, fieldStartNewLine);
-        appendPkSql(tableInfo, sbCreate);
+        if (tableInfo.hasParmaryKey()) {
+            sbCreate.append(",");
+            if (fieldStartNewLine) {
+                sbCreate.append("\r\n");
+            }
+            appendPkSql(tableInfo, sbCreate);
+        }
+        if (fieldStartNewLine) {
+            sbCreate.append("\r\n");
+        }
         sbCreate.append(")");
         return sbCreate.toString();
     }
@@ -238,19 +256,6 @@ public abstract class GeneralDDLOperations implements DDLOperations {
             comments.add( sbComment.toString());
         }
         return comments;
-    }
-
-    protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
-        if (tableInfo.hasParmaryKey()) {
-            sbCreate.append(", constraint ");
-            if (StringUtils.isBlank(tableInfo.getPkName())) {
-                sbCreate.append("pk_" + tableInfo.getTableName());
-            } else {
-                sbCreate.append(tableInfo.getPkName());
-            }
-            sbCreate.append(" primary key ");
-            appendPkColumnSql(tableInfo, sbCreate);
-        }
     }
 
     protected void appendPkColumnSql(final TableInfo tableInfo, StringBuilder sbCreate) {
