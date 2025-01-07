@@ -106,21 +106,22 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
         }
     }
 
-    private static SimpleTableInfo checkTablePrimaryKey(SimpleTableInfo tableInfo){
-        for (SimpleTableField field : tableInfo.getColumns()) {
-            if (field.isPrimaryKey() && // 不能用浮点数做主键
-                StringUtils.equalsAny(field.getFieldType(), FieldType.MONEY, FieldType.DOUBLE, FieldType.FLOAT ) ){
+    public static void setTablePrimaryKey(SimpleTableInfo tableInfo, String pkName, boolean allowFloat){
+        SimpleTableField field = tableInfo.findFieldByName(pkName);
+        if (field != null) {
+            field.setPrimaryKey(true);
+            // 不能用浮点数做主键
+            if(!allowFloat && StringUtils.equalsAny(field.getFieldType(), FieldType.MONEY, FieldType.DOUBLE, FieldType.FLOAT ) ){
                 field.setFieldType(FieldType.INTEGER);
             }
         }
-        return tableInfo;
     }
 
     public static SimpleTableInfo mapTableInfo(Map<String, Object> object, String tableName){
         SimpleTableInfo tableInfo = new SimpleTableInfo();
         tableInfo.setTableName(tableName);
         appendTableInfo(tableInfo, object);
-        return checkTablePrimaryKey(tableInfo);
+        return tableInfo;
     }
 
     public static SimpleTableInfo mapTableInfo(List<Map<String, Object>> objList, String tableName){
@@ -129,7 +130,7 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
         for(Map<String, Object> objectMap : objList) {
             appendTableInfo(tableInfo, objectMap);
         }
-        return checkTablePrimaryKey(tableInfo);
+        return tableInfo;
     }
 
     public static SimpleTableInfo mapTableInfo(JSONArray objArray, String tableName){
@@ -140,7 +141,7 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
                 appendTableInfo(tableInfo, (Map<String, Object>)obj);
             }
         }
-        return checkTablePrimaryKey(tableInfo);
+        return tableInfo;
     }
 
 }
