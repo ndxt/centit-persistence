@@ -78,7 +78,6 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
         return sbCreate.toString();
     }
 
-
     @Override
     public String makeModifyColumnSql(String tableCode, TableField oldColumn, TableField column) {
         return null;
@@ -107,11 +106,21 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
         }
     }
 
+    private static SimpleTableInfo checkTablePrimaryKey(SimpleTableInfo tableInfo){
+        for (SimpleTableField field : tableInfo.getColumns()) {
+            if (field.isPrimaryKey() && // 不能用浮点数做主键
+                StringUtils.equalsAny(field.getFieldType(), FieldType.MONEY, FieldType.DOUBLE, FieldType.FLOAT ) ){
+                field.setFieldType(FieldType.INTEGER);
+            }
+        }
+        return tableInfo;
+    }
+
     public static SimpleTableInfo mapTableInfo(Map<String, Object> object, String tableName){
         SimpleTableInfo tableInfo = new SimpleTableInfo();
         tableInfo.setTableName(tableName);
         appendTableInfo(tableInfo, object);
-        return tableInfo;
+        return checkTablePrimaryKey(tableInfo);
     }
 
     public static SimpleTableInfo mapTableInfo(List<Map<String, Object>> objList, String tableName){
@@ -120,7 +129,7 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
         for(Map<String, Object> objectMap : objList) {
             appendTableInfo(tableInfo, objectMap);
         }
-        return tableInfo;
+        return checkTablePrimaryKey(tableInfo);
     }
 
     public static SimpleTableInfo mapTableInfo(JSONArray objArray, String tableName){
@@ -131,7 +140,7 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
                 appendTableInfo(tableInfo, (Map<String, Object>)obj);
             }
         }
-        return tableInfo;
+        return checkTablePrimaryKey(tableInfo);
     }
 
 }
