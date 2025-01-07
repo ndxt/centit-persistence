@@ -113,6 +113,7 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
             // 不能用浮点数做主键
             if(!allowFloat && StringUtils.equalsAny(field.getFieldType(), FieldType.MONEY, FieldType.DOUBLE, FieldType.FLOAT ) ){
                 field.setFieldType(FieldType.INTEGER);
+                field.setColumnType(FieldType.mapToSqliteColumnType(FieldType.INTEGER));
             }
         }
     }
