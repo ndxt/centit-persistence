@@ -754,8 +754,9 @@ public abstract class FieldType {
         switch (javaType){
             case FieldType.INTEGER:
             case FieldType.LONG:
-            case FieldType.MONEY:
                 return "INTEGER";
+            case FieldType.MONEY:
+                return "DECIMAL(20,4)";
             case FieldType.DOUBLE:
             case FieldType.FLOAT:
                 return "REAL";

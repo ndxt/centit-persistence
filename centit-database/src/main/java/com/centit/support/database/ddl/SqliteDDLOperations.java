@@ -62,7 +62,6 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
                     sbCreate.append("AUTOINCREMENT ");
                 }
             }
-
         }
         if(pkSum>1) {
             sbCreate.append(", ");
