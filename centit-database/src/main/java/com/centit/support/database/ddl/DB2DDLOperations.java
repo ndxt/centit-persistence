@@ -43,7 +43,7 @@ public class DB2DDLOperations extends GeneralDDLOperations {
 
     @Override
     public String makeCreateSequenceSql(final String sequenceName) {
-        return "CREATE SEQUENCE " + QueryUtils.cleanSqlStatement(sequenceName) +
+        return "CREATE SEQUENCE " + QueryUtils.trimSqlIdentifier(sequenceName) +
             " AS INTEGER START WITH 1 INCREMENT BY 1";
     }
 

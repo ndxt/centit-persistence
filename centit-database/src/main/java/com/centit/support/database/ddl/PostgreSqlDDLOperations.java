@@ -19,7 +19,7 @@ public class PostgreSqlDDLOperations extends GeneralDDLOperations {
 
     @Override
     public String makeCreateSequenceSql(final String sequenceName) {
-        return "create sequence " + QueryUtils.cleanSqlStatement(sequenceName);
+        return "create sequence " + QueryUtils.trimSqlIdentifier(sequenceName);
     }
 
     /**
