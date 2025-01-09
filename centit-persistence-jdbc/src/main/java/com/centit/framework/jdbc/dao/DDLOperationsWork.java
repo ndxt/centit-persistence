@@ -18,11 +18,9 @@ public class DDLOperationsWork implements DDLOperations {
     private BaseDaoImpl<?, ?> baseDao;
 
     public DDLOperationsWork(){
-
     }
 
     public DDLOperationsWork(BaseDaoImpl<?, ?> baseDao){
-
         this.baseDao = baseDao;
     }
 
@@ -89,7 +87,6 @@ public class DDLOperationsWork implements DDLOperations {
         getDDLOperations().
             reconfigurationColumn(tableCode,columnCode,column);
     }
-
 
     @Override
     public String makeCreateSequenceSql(String sequenceName) {
