@@ -1644,7 +1644,7 @@ public abstract class QueryUtils {
 
     /**
      * 去掉 分号 ； 和  单行注释   / * 注释保留 * /
-     *
+     * 用于 in-place 操作指令，不符合规范直接抛出异常
      * @param fieldsSql paramString
      * @return String
      */
