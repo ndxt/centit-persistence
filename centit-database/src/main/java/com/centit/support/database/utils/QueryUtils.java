@@ -1662,7 +1662,7 @@ public abstract class QueryUtils {
                 throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR,
                     "非法的SQL参数："+ fieldsSql);
             }
-            if(pos>1) fieldSb.append(' ');
+            if(pos>0) fieldSb.append(' ');
             fieldSb.append(aWord);
             pos ++;
             aWord = lex.getAWord();
