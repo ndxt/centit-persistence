@@ -373,7 +373,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
     }
 
     private static final String[] orderLegalWords = {
-        ",","=","+","-","*","/",">",">=","=","<","<=","and","or","(",")",
+        ",","=","+","-","*","/",">",">=","<>","<","<=","and","or","(",")",
         "to_char","to_number","to_date","sysdate",
         "cast","convert","as","int","varchar",
         "case","when","else","then", "end", "desc", "asc", "nulls", "first", "last"};
