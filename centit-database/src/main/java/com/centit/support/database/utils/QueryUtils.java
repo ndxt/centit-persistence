@@ -1658,7 +1658,9 @@ public abstract class QueryUtils {
         int pos = 0;
         while (StringUtils.isNotBlank(aWord)) {
             if (StringUtils.equalsAnyIgnoreCase(aWord,
-                "select", "delete", "update", "insert", "into", ";", "from", "where")) {
+                ";", "select", "delete", "update", "insert", "into", "from", "where",
+                            "truncate", "drop", "create", "alter", "merge",
+                            "grant", "revoke", "explain", "transaction")) {
                 throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR,
                     "非法的SQL参数："+ fieldsSql);
             }
