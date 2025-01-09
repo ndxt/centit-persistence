@@ -372,7 +372,11 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         return null;
     }
 
-
+    private static final String[] orderLegalWords = {
+        ",","=","+","-","*","/",">",">=","=","<","<=","and","or","(",")",
+        "to_char","to_number","to_date","sysdate",
+        "cast","convert","as","int","varchar",
+        "case","when","else","then", "end", "desc", "asc", "nulls", "first", "last"};
     /**
      * querySql 用户检查order by 中的字段属性 对应的查询标识 比如，
      * select a+b as ab from table
@@ -393,8 +397,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             StringBuilder orderBuilder = new StringBuilder();
             String aWord = lexer.getAWord();
             while (StringUtils.isNotBlank(aWord)) {
-                if (StringUtils.equalsAnyIgnoreCase(aWord,
-                    ",", "desc", "asc", "nulls", "first", "last")) {
+                if (StringUtils.equalsAnyIgnoreCase(aWord, orderLegalWords)) {
                     orderBuilder.append(aWord);
                 } else {
                     String orderField = GeneralJsonObjectDao.mapFieldToColumnPiece(querySql, aWord);
@@ -434,8 +437,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             StringBuilder orderBuilder = new StringBuilder();
             String aWord = lexer.getAWord();
             while (StringUtils.isNotBlank(aWord)) {
-                if (StringUtils.equalsAnyIgnoreCase(aWord,
-                    ",", "desc", "asc", "nulls", "first", "last")) {
+                if (StringUtils.equalsAnyIgnoreCase(aWord, orderLegalWords)) {
                     orderBuilder.append(aWord);
                 } else {
                     TableField field = ti.findFieldByName(aWord);
