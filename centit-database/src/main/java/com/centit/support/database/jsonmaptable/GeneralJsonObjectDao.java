@@ -374,8 +374,8 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
 
     private static final String[] orderLegalWords = {
         ",","=","+","-","*","/",">",">=","<>","<","<=","and","or","(",")",
-        "to_char","to_number","to_date","sysdate",
-        "cast","convert","as","int","varchar",
+        "to_char","to_number","to_date","sysdate","current_date","current_time","now",
+        "cast","convert","as","int","varchar", "length","","substring",
         "case","when","else","then", "end", "desc", "asc", "nulls", "first", "last"};
     /**
      * querySql 用户检查order by 中的字段属性 对应的查询标识 比如，
@@ -398,6 +398,8 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             String aWord = lexer.getAWord();
             while (StringUtils.isNotBlank(aWord)) {
                 if (StringUtils.equalsAnyIgnoreCase(aWord, orderLegalWords)) {
+                    orderBuilder.append(aWord);
+                } else if(Lexer.isConstValue(aWord)){
                     orderBuilder.append(aWord);
                 } else {
                     String orderField = GeneralJsonObjectDao.mapFieldToColumnPiece(querySql, aWord);
@@ -438,6 +440,8 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             String aWord = lexer.getAWord();
             while (StringUtils.isNotBlank(aWord)) {
                 if (StringUtils.equalsAnyIgnoreCase(aWord, orderLegalWords)) {
+                    orderBuilder.append(aWord);
+                } else if(Lexer.isConstValue(aWord)){
                     orderBuilder.append(aWord);
                 } else {
                     TableField field = ti.findFieldByName(aWord);
