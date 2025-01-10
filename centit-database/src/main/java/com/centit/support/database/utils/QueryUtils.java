@@ -1698,7 +1698,7 @@ public abstract class QueryUtils {
 
     public static boolean hasPretreatment(String pretreatStr, String onePretreat) {
         if (pretreatStr == null) return false;
-        return pretreatStr.toUpperCase().indexOf(onePretreat) >= 0;
+        return pretreatStr.toUpperCase().contains(onePretreat);
     }
 
     /**

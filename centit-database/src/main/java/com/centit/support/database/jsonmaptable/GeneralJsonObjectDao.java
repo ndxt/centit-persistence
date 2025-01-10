@@ -373,10 +373,10 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
     }
 
     private static final String[] orderLegalWords = {
-        ",","=","+","-","*","/",">",">=","<>","<","<=","and","or","(",")",
-        "to_char","to_number","to_date","sysdate","current_date","current_time","now",
-        "cast","convert","as","int","varchar", "length","substr","substring",
-        "case","when","else","then", "end", "desc", "asc", "nulls", "first", "last"};
+        ",", "=", "+", "-", "*", "/", ">", ">=", "<>", "<", "<=", "and", "or", "(", ")",
+        "to_char", "to_number", "to_date", "sysdate", "current_date", "current_time", "now",
+        "cast", "convert", "as", "int", "varchar", "length", "substr", "substring",
+        "case", "when", "else", "then", "end", "desc", "asc", "nulls", "first", "last"};
     /**
      * querySql 用户检查order by 中的字段属性 对应的查询标识 比如，
      * select a+b as ab from table
@@ -389,7 +389,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
     public static String fetchSelfOrderSql(String querySql, Map<String, Object> filterMap) {
         String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.SELF_ORDER_BY));
         if (StringUtils.isBlank(selfOrderBy)) {
-            StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.SELF_ORDER_BY2));
+            selfOrderBy = StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.SELF_ORDER_BY2));
         }
 
         if (StringUtils.isNotBlank(selfOrderBy)) {
@@ -474,12 +474,15 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         }
         return ti.getOrderBy();
     }
+
     public static String buildFilterSqlByPk(TableInfo ti, String alias) {
         return buildFilterSqlByPk(ti,alias,true);
     }
+
     public static String buildFilterSqlByPkUseColumnName(TableInfo ti, String alias) {
         return buildFilterSqlByPk(ti,alias,false);
     }
+
     private static String buildFilterSqlByPk(TableInfo ti, String alias,boolean usePropertyName) {
         StringBuilder sBuilder = new StringBuilder();
         int i = 0;
@@ -928,9 +931,9 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         }
         return null;
     }
+
     /**
      * 更改部分属性
-     *
      * @param fields 更改部分属性 属性名 集合，应为有的Map 不允许 值为null，这样这些属性 用map就无法修改为 null
      * @param object Map
      * @return int
