@@ -95,7 +95,10 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
                 if(ent.getValue()!=null) {
                     field.setFieldType(FieldType.mapToFieldType(ent.getValue().getClass()));
                     field.setColumnType(FieldType.mapToSqliteColumnType(field.getFieldType()));
-                }
+                } /*else {
+                    field.setFieldType(FieldType.STRING);
+                    field.setColumnType(FieldType.mapToSqliteColumnType(FieldType.STRING));
+                }*/
                 tableInfo.addColumn(field);
             } else {
                 if(StringUtils.isBlank(field.getColumnType()) && ent.getValue()!=null) {
@@ -118,10 +121,20 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
         }
     }
 
+    private static void fixTableFields(SimpleTableInfo tableInfo){
+        for(SimpleTableField field : tableInfo.getColumns()){
+            if(StringUtils.isBlank(field.getColumnType())) {
+                field.setFieldType(FieldType.STRING);
+                field.setColumnType(FieldType.mapToSqliteColumnType(FieldType.STRING));
+            }
+        }
+    }
+
     public static SimpleTableInfo mapTableInfo(Map<String, Object> object, String tableName){
         SimpleTableInfo tableInfo = new SimpleTableInfo();
         tableInfo.setTableName(tableName);
         appendTableInfo(tableInfo, object);
+        fixTableFields(tableInfo);
         return tableInfo;
     }
 
@@ -131,6 +144,7 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
         for(Map<String, Object> objectMap : objList) {
             appendTableInfo(tableInfo, objectMap);
         }
+        fixTableFields(tableInfo);
         return tableInfo;
     }
 
@@ -142,6 +156,7 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
                 appendTableInfo(tableInfo, (Map<String, Object>)obj);
             }
         }
+        fixTableFields(tableInfo);
         return tableInfo;
     }
 
