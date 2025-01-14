@@ -83,6 +83,13 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
         return null;
     }
 
+    private static String mapPropertyNameToColumnName(String propertyName) {
+        if(propertyName.indexOf('_')>=0){
+            return propertyName.toUpperCase();// : propertyName;
+        }
+        return FieldType.humpNameToColumn(propertyName, true);
+    }
+
     private static void appendTableInfo(SimpleTableInfo tableInfo, Map<String, Object> object){
         if(object == null) return;
         for(Map.Entry<String, Object> ent : object.entrySet()) {
@@ -91,7 +98,7 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
                 field = new SimpleTableField();
                 field.setPropertyName(ent.getKey());
                 field.setFieldLabelName(ent.getKey());
-                field.setColumnName(FieldType.humpNameToColumn(ent.getKey(), true));
+                field.setColumnName(mapPropertyNameToColumnName(ent.getKey()));
                 if(ent.getValue()!=null) {
                     field.setFieldType(FieldType.mapToFieldType(ent.getValue().getClass()));
                     field.setColumnType(FieldType.mapToSqliteColumnType(field.getFieldType()));
