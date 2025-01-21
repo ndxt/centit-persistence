@@ -86,6 +86,8 @@ public class JdbcMetadata implements DatabaseMetadata {
                 field.setScale(rs.getInt("DECIMAL_DIGITS"));
                 field.setNullEnable(rs.getString("NULLABLE"));
                 field.setColumnComment(rs.getString("REMARKS"));
+                field.setFieldLabelName(
+                    StringUtils.substring(field.getColumnComment(),0, 64));
                 field.mapToMetadata();
                 tab.addColumn(field);
             }
