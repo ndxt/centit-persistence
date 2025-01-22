@@ -54,7 +54,9 @@ public class JdbcMetadata implements DatabaseMetadata {
                     tab.setSchema(dbSechema.toUpperCase());
                 }
                 tab.setTableName(rs.getString("TABLE_NAME"));
-                tab.setTableLabelName(rs.getString("REMARKS"));
+                tab.setTableComment(rs.getString("REMARKS"));
+                tab.setTableLabelName(
+                    StringUtils.substring(tab.getTableComment(),0, 80));
                 String tt = rs.getString("TABLE_TYPE");
                 if ("view".equalsIgnoreCase(tt) || "table".equalsIgnoreCase(tt)) {
                     if (withColumn) {
@@ -87,7 +89,7 @@ public class JdbcMetadata implements DatabaseMetadata {
                 field.setNullEnable(rs.getString("NULLABLE"));
                 field.setColumnComment(rs.getString("REMARKS"));
                 field.setFieldLabelName(
-                    StringUtils.substring(field.getColumnComment(),0, 64));
+                    StringUtils.substring(field.getColumnComment(),0, 80));
                 field.mapToMetadata();
                 tab.addColumn(field);
             }
