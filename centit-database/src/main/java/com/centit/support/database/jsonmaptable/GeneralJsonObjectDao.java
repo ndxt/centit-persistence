@@ -89,6 +89,8 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 return new MySqlJsonObjectDao(conn, tableInfo);
             case H2:
                 return new H2JsonObjectDao(conn, tableInfo);
+            case Sqlite:
+                return new SqliteJsonObjectDao(conn, tableInfo);
             case PostgreSql:
                 return new PostgreSqlJsonObjectDao(conn, tableInfo);
             case Access:
@@ -115,6 +117,8 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 return new MySqlJsonObjectDao(conn);
             case H2:
                 return new H2JsonObjectDao(conn);
+            case Sqlite:
+                return new SqliteJsonObjectDao(conn);
             case PostgreSql:
                 return new PostgreSqlJsonObjectDao(conn);
             case Access:
