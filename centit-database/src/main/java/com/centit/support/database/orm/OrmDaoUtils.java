@@ -278,7 +278,6 @@ public abstract class OrmDaoUtils {
 
     public static <T> T getObjectById(Connection connection, Object id, final Class<T> type)
         throws ObjectException {
-
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         //Pair<String,String[]> q = GeneralJsonObjectDao.buildGetObjectSqlByPk(mapInfo, false);
         Pair<String, TableField[]> q =
@@ -341,7 +340,6 @@ public abstract class OrmDaoUtils {
 
     public static <T> T getObjectWithReferences(Connection connection, Object id, final Class<T> type)
         throws ObjectException {
-
         T object = getObjectById(connection, id, type);
         fetchObjectReferences(connection, object);
         return object;
@@ -349,7 +347,6 @@ public abstract class OrmDaoUtils {
 
     public static <T> T getObjectCascadeById(Connection connection, Object id, final Class<T> type, int depth)
         throws ObjectException {
-
         T object = getObjectById(connection, id, type);
         fetchObjectReferencesCascade(connection, object, type, depth);
         return object;
