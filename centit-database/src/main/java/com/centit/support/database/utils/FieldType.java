@@ -676,7 +676,8 @@ public abstract class FieldType {
             "UINT64".equalsIgnoreCase(columnType) ||
             "SERIAL".equalsIgnoreCase(columnType)) {
             return FieldType.LONG;
-        } else if ("INT".equalsIgnoreCase(columnType) ||
+        } else if ("BIT".equalsIgnoreCase(columnType) || // SQL Server 有这个类型
+            "INT".equalsIgnoreCase(columnType) ||
             "INT4".equalsIgnoreCase(columnType) ||
             "INT8".equalsIgnoreCase(columnType) ||
             "INT16".equalsIgnoreCase(columnType) ||
