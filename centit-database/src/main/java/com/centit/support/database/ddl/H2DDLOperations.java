@@ -14,7 +14,6 @@ import java.sql.Connection;
  */
 public class H2DDLOperations extends MySqlDDLOperations {
 
-
     public H2DDLOperations() {
 
     }
@@ -23,10 +22,9 @@ public class H2DDLOperations extends MySqlDDLOperations {
         super(conn);
     }
 
-
     @Override
     public String makeCreateSequenceSql(final String sequenceName) {
-        return "create sequence " + QueryUtils.cleanSqlStatement(sequenceName);
+        return "create sequence " + QueryUtils.trimSqlIdentifier(sequenceName);
     }
 
 }

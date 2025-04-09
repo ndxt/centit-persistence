@@ -18,11 +18,9 @@ public class DDLOperationsWork implements DDLOperations {
     private BaseDaoImpl<?, ?> baseDao;
 
     public DDLOperationsWork(){
-
     }
 
     public DDLOperationsWork(BaseDaoImpl<?, ?> baseDao){
-
         this.baseDao = baseDao;
     }
 
@@ -90,7 +88,6 @@ public class DDLOperationsWork implements DDLOperations {
             reconfigurationColumn(tableCode,columnCode,column);
     }
 
-
     @Override
     public String makeCreateSequenceSql(String sequenceName) {
         try {
@@ -105,6 +102,16 @@ public class DDLOperationsWork implements DDLOperations {
     public String makeCreateTableSql(TableInfo tableInfo, boolean fieldStartNewLine) {
         try {
             return getDDLOperations().makeCreateTableSql(tableInfo, fieldStartNewLine);
+        } catch (SQLException e) {
+            logger.error(e.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public List<String> makeTableColumnComments(TableInfo tableInfo, int commentContent) {
+        try {
+            return getDDLOperations().makeTableColumnComments(tableInfo, commentContent);
         } catch (SQLException e) {
             logger.error(e.getMessage());
             return null;

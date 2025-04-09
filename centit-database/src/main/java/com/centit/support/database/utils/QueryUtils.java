@@ -1644,7 +1644,7 @@ public abstract class QueryUtils {
 
     /**
      * 去掉 分号 ； 和  单行注释   / * 注释保留 * /
-     *
+     * 用于 in-place 操作指令，不符合规范直接抛出异常
      * @param fieldsSql paramString
      * @return String
      */
@@ -1652,27 +1652,24 @@ public abstract class QueryUtils {
         if (StringUtils.isBlank(fieldsSql))
             return fieldsSql;
         Lexer lex = new Lexer(fieldsSql, Lexer.LANG_TYPE_SQL);
-        String aWord = lex.getARegularWord();
-        int prePos = 0;
-        while (aWord != null && !"".equals(aWord)) {
-            if (aWord.equals(";")) {
-                int currPos = lex.getCurrPos();
-                return fieldsSql.substring(0, currPos - 1);
-            } else if (aWord.equals("--")) {
-                int currPos = lex.getCurrPos();
-                return fieldsSql.substring(0, currPos - 2);
-            } else if (aWord.equals("/*")) {
-                int currPos = lex.getCurrPos();
-                lex.seekToAnnotateEnd();
-                int currPos2 = lex.getCurrPos();
-                if (!"*/".equals(fieldsSql.substring(currPos2 - 2, currPos2))) {
-                    return fieldsSql.substring(0, currPos - 2);
-                }
+        StringBuilder fieldSb = new StringBuilder();
+
+        String aWord = lex.getAWord();
+        int pos = 0;
+        while (StringUtils.isNotBlank(aWord)) {
+            if (StringUtils.equalsAnyIgnoreCase(aWord,
+                ";", "select", "delete", "update", "insert", "into", "from", "where",
+                            "truncate", "drop", "create", "alter", "merge",
+                            "grant", "revoke", "explain", "transaction")) {
+                throw new ObjectException(ObjectException.DATA_VALIDATE_ERROR,
+                    "非法的SQL参数："+ fieldsSql);
             }
-            prePos = lex.getCurrPos();
-            aWord = lex.getARegularWord();
+            if(pos>0) fieldSb.append(' ');
+            fieldSb.append(aWord);
+            pos ++;
+            aWord = lex.getAWord();
         }
-        return fieldsSql.substring(0, prePos);
+        return fieldSb.toString();
     }
 
     public static String replaceParamAsSqlString(String sql, String paramAlias, String paramSqlString) {
@@ -1701,7 +1698,7 @@ public abstract class QueryUtils {
 
     public static boolean hasPretreatment(String pretreatStr, String onePretreat) {
         if (pretreatStr == null) return false;
-        return pretreatStr.toUpperCase().indexOf(onePretreat) >= 0;
+        return pretreatStr.toUpperCase().contains(onePretreat);
     }
 
     /**

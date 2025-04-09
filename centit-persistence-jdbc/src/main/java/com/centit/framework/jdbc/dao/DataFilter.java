@@ -24,7 +24,7 @@ class DataFilter {
      * @param pretreatmentSql 表达式：(预处理,预处理2,......)参数名称
      * return new ImmutableTriple<>(paramName, paramAlias, paramPretreatment);
      */
-    public void setPretreatmentSql(String pretreatmentSql) {
+    private void setPretreatmentSql(String pretreatmentSql) {
         ImmutableTriple<String, String, String> paramDesc = QueryUtils.parseParameter(pretreatmentSql);
         this.pretreatment = paramDesc.getRight();
         this.valueName = paramDesc.getMiddle();
@@ -42,6 +42,10 @@ class DataFilter {
 
     public String getPretreatment() {
         return pretreatment;
+    }
+
+    public void setPretreatment(String pretreatment) {
+        this.pretreatment = pretreatment;
     }
 
     public String getValueName() {

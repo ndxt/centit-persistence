@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.centit.support.algorithm.*;
 import com.centit.support.common.LeftRightPair;
+import com.centit.support.common.ObjectException;
 import com.centit.support.compiler.Lexer;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
@@ -88,6 +89,8 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 return new MySqlJsonObjectDao(conn, tableInfo);
             case H2:
                 return new H2JsonObjectDao(conn, tableInfo);
+            case Sqlite:
+                return new SqliteJsonObjectDao(conn, tableInfo);
             case PostgreSql:
                 return new PostgreSqlJsonObjectDao(conn, tableInfo);
             case Access:
@@ -114,6 +117,8 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                 return new MySqlJsonObjectDao(conn);
             case H2:
                 return new H2JsonObjectDao(conn);
+            case Sqlite:
+                return new SqliteJsonObjectDao(conn);
             case PostgreSql:
                 return new PostgreSqlJsonObjectDao(conn);
             case Access:
@@ -341,7 +346,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
                     orderSql.append(field.getColumnName());
                 }
                 aword = lexer.getAWord();
-                while(StringUtils.equalsAnyIgnoreCase(aword, "desc", "asc","nulls", "first", "last")){
+                while(StringUtils.equalsAnyIgnoreCase(aword, "desc", "asc", "nulls", "first", "last")){
                     if(field!=null){
                         orderSql.append(" ").append(aword);
                     }
@@ -371,7 +376,11 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         return null;
     }
 
-
+    private static final String[] orderLegalWords = {
+        ",", "=", "+", "-", "*", "/", ">", ">=", "<>", "<", "<=", "and", "or", "(", ")",
+        "to_char", "to_number", "to_date", "sysdate", "current_date", "current_time", "now",
+        "cast", "convert", "as", "int", "varchar", "length", "substr", "substring",
+        "case", "when", "else", "then", "end", "desc", "asc", "nulls", "first", "last"};
     /**
      * querySql 用户检查order by 中的字段属性 对应的查询标识 比如，
      * select a+b as ab from table
@@ -384,7 +393,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
     public static String fetchSelfOrderSql(String querySql, Map<String, Object> filterMap) {
         String selfOrderBy = StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.SELF_ORDER_BY));
         if (StringUtils.isBlank(selfOrderBy)) {
-            StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.SELF_ORDER_BY2));
+            selfOrderBy = StringBaseOpt.objectToString(filterMap.get(GeneralJsonObjectDao.SELF_ORDER_BY2));
         }
 
         if (StringUtils.isNotBlank(selfOrderBy)) {
@@ -392,15 +401,18 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             StringBuilder orderBuilder = new StringBuilder();
             String aWord = lexer.getAWord();
             while (StringUtils.isNotBlank(aWord)) {
-                if (StringUtils.equalsAnyIgnoreCase(aWord,
-                    ",", "(", ")", "order", "by", "desc", "asc", "nulls", "first", "last")) {
+                if (StringUtils.equalsAnyIgnoreCase(aWord, orderLegalWords)) {
+                    orderBuilder.append(aWord);
+                } else if(Lexer.isConstValue(aWord)){
                     orderBuilder.append(aWord);
                 } else {
                     String orderField = GeneralJsonObjectDao.mapFieldToColumnPiece(querySql, aWord);
                     if (orderField != null) {
                         orderBuilder.append(orderField);
                     } else {
-                        orderBuilder.append(aWord);
+                        //orderBuilder.append(aWord); // 这个会引起sql注入
+                        throw new ObjectException(ObjectException.PARAMETER_NOT_CORRECT,
+                            "SQL语句中没有对应的排序字段: "+selfOrderBy+"，找不到对应的排序字段，或者有可能引起sql注入的函数或者字句。");
                     }
                 }
                 orderBuilder.append(" ");
@@ -431,17 +443,18 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
             StringBuilder orderBuilder = new StringBuilder();
             String aWord = lexer.getAWord();
             while (StringUtils.isNotBlank(aWord)) {
-                if (StringUtils.equalsAnyIgnoreCase(aWord,
-                    ",", "(", ")", "order", "by", "desc", "asc", "nulls", "first", "last")) {
+                if (StringUtils.equalsAnyIgnoreCase(aWord, orderLegalWords)) {
+                    orderBuilder.append(aWord);
+                } else if(Lexer.isConstValue(aWord)){
                     orderBuilder.append(aWord);
                 } else {
                     TableField field = ti.findFieldByName(aWord);
                     if (field != null) {
                         orderBuilder.append(field.getColumnName());
                     } else {
-                        orderBuilder.append(aWord);
-                        //throw new RuntimeException("表"+ti.getTableName()
-                        //+"应用排序语句"+selfOrderBy+"出错，找不到对应的排序字段");
+                        //orderBuilder.append(aWord); // 这个会引起sql注入
+                        throw new ObjectException(ObjectException.PARAMETER_NOT_CORRECT,
+                            "表"+ti.getTableName() + "应用排序语句"+selfOrderBy+"出错，找不到对应的排序字段，或者有可能引起sql注入的函数或者字句。");
                     }
                 }
                 orderBuilder.append(" ");
@@ -465,12 +478,15 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         }
         return ti.getOrderBy();
     }
+
     public static String buildFilterSqlByPk(TableInfo ti, String alias) {
         return buildFilterSqlByPk(ti,alias,true);
     }
+
     public static String buildFilterSqlByPkUseColumnName(TableInfo ti, String alias) {
         return buildFilterSqlByPk(ti,alias,false);
     }
+
     private static String buildFilterSqlByPk(TableInfo ti, String alias,boolean usePropertyName) {
         StringBuilder sBuilder = new StringBuilder();
         int i = 0;
@@ -923,9 +939,9 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         }
         return null;
     }
+
     /**
      * 更改部分属性
-     *
      * @param fields 更改部分属性 属性名 集合，应为有的Map 不允许 值为null，这样这些属性 用map就无法修改为 null
      * @param object Map
      * @return int

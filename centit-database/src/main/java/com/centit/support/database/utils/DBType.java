@@ -73,36 +73,13 @@ public enum DBType {
             case 11:
                 return Oscar;
             case 12:
+                return Sqlite;
+            case 13:
                 return ClickHouse;
             default:
                 return Unknown;
         }
     }
-    /*
-    public static DBType valueOf(String dbname) {
-        switch (dbname.toLowerCase()) {
-            case "sqlserver":
-                return SqlServer;
-            case "oracle":
-                return Oracle;
-            case "db2":
-                return DB2;
-            case "access":
-                return Access;
-            case "mysql":
-                return MySql;
-            case "h2":
-                return H2;
-            case "postgresql":
-                return PostgreSql;
-            case "dm":
-                return DM;
-            case "kingbase":
-                return KingBase;
-            default:
-                return Unknown;
-        }
-    }*/
 
     public static DBType mapDBType(String connurl) {
         if (StringUtils.isBlank(connurl))
@@ -119,6 +96,9 @@ public enum DBType {
         if (connurl.startsWith("jdbc:h2")
             || "h2".equalsIgnoreCase(connurl))
             return H2;
+        if (connurl.startsWith("jdbc:sqlite")
+            || "sqlite".equalsIgnoreCase(connurl))
+            return Sqlite;
         if (connurl.startsWith("jdbc:mysql")
             || "mysql".equalsIgnoreCase(connurl))
             return MySql;
@@ -176,6 +156,8 @@ public enum DBType {
             return Access;
         if (dialectName.contains("H2"))
             return H2;
+        if (dialectName.contains("Sqlite"))
+            return Sqlite;
         if (dialectName.contains("PostgreSQL"))
             return PostgreSql;
         if (dialectName.contains("Dm"))
@@ -205,6 +187,7 @@ public enum DBType {
         dbtypes.add(KingBase);
         dbtypes.add(GBase);
         dbtypes.add(Oscar);
+        dbtypes.add(Sqlite);
         dbtypes.add(ClickHouse);
         return dbtypes;
     }
@@ -232,6 +215,8 @@ public enum DBType {
                 return "mysql";
             case H2:
                 return "h2";
+            case Sqlite:
+                return "sqlite";
             case PostgreSql:
                 return "postgresql";
             case DM:
@@ -263,6 +248,7 @@ public enum DBType {
             case H2:
             case SqlServer:
             case ClickHouse:
+            case Sqlite:
                 return "select 1";
             case PostgreSql:
                 return "select version()";

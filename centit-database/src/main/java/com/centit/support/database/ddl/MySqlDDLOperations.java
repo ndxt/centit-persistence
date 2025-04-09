@@ -24,10 +24,8 @@ public class MySqlDDLOperations extends GeneralDDLOperations {
 
     @Override
     protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
-        if (tableInfo.hasParmaryKey()) {
-            sbCreate.append(" primary key ");
-            appendPkColumnSql(tableInfo, sbCreate);
-        }
+        sbCreate.append("primary key ");
+        appendPkColumnSql(tableInfo, sbCreate);
     }
 
     @Override
@@ -40,6 +38,12 @@ public class MySqlDDLOperations extends GeneralDDLOperations {
         }
         sbCreate.append(" comment \'"+ field.getFieldLabelName()+"\'");
     }
+
+    @Override
+    public List<String> makeTableColumnComments(final TableInfo tableInfo, int commentContent){
+        return new ArrayList<>();
+    }
+
     @Override
     public String makeModifyColumnSql(final String tableCode, final TableField oldColumn, final TableField column) {
         StringBuilder sbsql = new StringBuilder("alter table ");

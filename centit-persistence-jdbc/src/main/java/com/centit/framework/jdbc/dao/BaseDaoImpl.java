@@ -222,6 +222,9 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
                         SimpleTableField col = mapInfo.findFieldByName(dataFilter.getFormule());
                         if (col != null) {
                             dataFilter.setFilterSql(col.getColumnName() + " like :" + dataFilter.getValueName() );
+                            if(StringUtils.isBlank(dataFilter.getPretreatment())){
+                                dataFilter.setPretreatment(QueryUtils.SQL_PRETREAT_LIKE);
+                            }
                             insideFieldFilter.put(dataFilter.getFormule() ,dataFilter);
                         }
                     } else if (dataFilter.getFilterSql().equalsIgnoreCase(CodeBook.IN_HQL_ID)) {
@@ -365,7 +368,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     private void innerSaveNewObject(Object o) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
-
         if (o instanceof EntityWithVersionTag) {
             EntityWithVersionTag ewvto = (EntityWithVersionTag) o;
             SimpleTableField field = mapInfo.findFieldByColumn(ewvto.obtainVersionProperty());
@@ -424,6 +426,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if (o instanceof EntityWithVersionTag) {
             return deleteObjectWithVersion(o);
         } else {
+            if(o == null) return 0;
             /* Integer execute = */
             return jdbcTemplate.execute(
                     (ConnectionCallback<Integer>) conn ->
@@ -436,6 +439,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public int deleteObjectForceById(Object id) {
+        if(id == null) return 0;
         return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.deleteObjectById(conn, id, getPoClass()));
@@ -567,6 +571,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     public T getObjectById(Object id) {
+        if(id==null) return null;
         return jdbcTemplate.execute(
                 (ConnectionCallback<T>) conn ->
                         OrmDaoUtils.getObjectById(conn, id, (Class<T>) getPoClass()));

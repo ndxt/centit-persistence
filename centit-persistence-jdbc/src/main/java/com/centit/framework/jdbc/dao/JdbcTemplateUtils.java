@@ -542,7 +542,7 @@ public abstract class JdbcTemplateUtils {
      * @return 保存任意对象数量
      */
     public static int batchSaveNewObjects(JdbcTemplate jdbcTemplate,
-                                             Collection<? extends Object> objects) {
+                                             Collection<?> objects) {
 
         return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn -> {
@@ -561,7 +561,7 @@ public abstract class JdbcTemplateUtils {
      * @return 更新对象数量
      */
     public static int batchUpdateObjects(JdbcTemplate jdbcTemplate,
-                                                Collection<? extends Object> objects) {
+                                                Collection<?> objects) {
 
         return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn -> {
@@ -581,7 +581,7 @@ public abstract class JdbcTemplateUtils {
      * @return merge对象数量
      */
     public static int batchMergeObjects(JdbcTemplate jdbcTemplate,
-                                               Collection<? extends Object> objects) {
+                                               Collection<?> objects) {
 
         return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn -> {
@@ -600,7 +600,7 @@ public abstract class JdbcTemplateUtils {
      * @return 批量删除对象数量
      */
     public static int batchDeleteObjects(JdbcTemplate jdbcTemplate,
-                                              Collection<? extends Object> objects) {
+                                              Collection<?> objects) {
 
         return jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn -> {
@@ -678,4 +678,8 @@ public abstract class JdbcTemplateUtils {
             });
     }
 
+    public static DBType doGetDBType(JdbcTemplate jdbcTemplate){
+        return jdbcTemplate.execute(
+            (ConnectionCallback<DBType>) conn -> DBType.mapDBType(conn));
+    }
 }

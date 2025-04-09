@@ -208,30 +208,54 @@ public abstract class GeneralDDLOperations implements DDLOperations {
             + " VALUES (" + QueryUtils.buildStringForQuery(sequenceName) + ", 0, 1)";
     }
 
+    protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
+        sbCreate.append("constraint ");
+        if (StringUtils.isBlank(tableInfo.getPkName())) {
+            sbCreate.append("pk_" + tableInfo.getTableName());
+        } else {
+            sbCreate.append(tableInfo.getPkName());
+        }
+        sbCreate.append(" primary key ");
+        appendPkColumnSql(tableInfo, sbCreate);
+    }
     @Override
     public String makeCreateTableSql(final TableInfo tableInfo, boolean fieldStartNewLine) {
         StringBuilder sbCreate = new StringBuilder("create table ");
         sbCreate.append(tableInfo.getTableName()).append(" (");
-        if(fieldStartNewLine){
+        appendColumnsSQL(tableInfo, sbCreate, fieldStartNewLine);
+        if (tableInfo.hasParmaryKey()) {
+            sbCreate.append(",");
+            if (fieldStartNewLine) {
+                sbCreate.append("\r\n");
+            }
+            appendPkSql(tableInfo, sbCreate);
+        }
+        if (fieldStartNewLine) {
             sbCreate.append("\r\n");
         }
-        appendColumnsSQL(tableInfo, sbCreate, fieldStartNewLine);
-        appendPkSql(tableInfo, sbCreate);
         sbCreate.append(")");
         return sbCreate.toString();
     }
 
-    protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
-        if (tableInfo.hasParmaryKey()) {
-            sbCreate.append("  constraint ");
-            if (StringUtils.isBlank(tableInfo.getPkName())) {
-                sbCreate.append("pk_" + tableInfo.getTableName());
+    @Override
+    public List<String> makeTableColumnComments(final TableInfo tableInfo, int commentContent){
+        List<String> comments = new ArrayList<>();
+        if(tableInfo.getColumns()==null)
+            return comments;
+        for (TableField field : tableInfo.getColumns()) {
+            StringBuilder sbComment = new StringBuilder("COMMENT ON COLUMN ");
+            sbComment.append(tableInfo.getTableName()).append(".")
+                    .append(field.getColumnName()).append(" IS ");
+            if(commentContent==1){
+                sbComment.append('\'').append(field.getFieldLabelName()).append('\'');
+            } else if(commentContent==2){
+                sbComment.append('\'').append(field.getColumnComment()).append('\'');
             } else {
-                sbCreate.append(tableInfo.getPkName());
+                sbComment.append('\'').append(field.getFieldLabelName()).append(':').append(field.getColumnComment()).append('\'');
             }
-            sbCreate.append(" primary key ");
-            appendPkColumnSql(tableInfo, sbCreate);
+            comments.add( sbComment.toString());
         }
+        return comments;
     }
 
     protected void appendPkColumnSql(final TableInfo tableInfo, StringBuilder sbCreate) {
@@ -250,14 +274,18 @@ public abstract class GeneralDDLOperations implements DDLOperations {
     protected void appendColumnsSQL(final TableInfo tableInfo, StringBuilder sbCreate, boolean fieldStartNewLine) {
         if(tableInfo.getColumns()==null)
             return;
+        boolean first = true;
         for (TableField field : tableInfo.getColumns()) {
+            if(!first){
+                sbCreate.append(",");
+            }
+            first = false;
+            if(fieldStartNewLine){
+                sbCreate.append("\r\n");
+            }
             appendColumnSQL(field, sbCreate);
             if (StringUtils.isNotBlank(field.getDefaultValue())) {
                 sbCreate.append(" default ").append(field.getDefaultValue());
-            }
-            sbCreate.append(",");
-            if(fieldStartNewLine){
-                sbCreate.append("\r\n");
             }
         }
     }
