@@ -4,7 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
-import java.sql.Date;
+import java.util.Date;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.HashMap;
