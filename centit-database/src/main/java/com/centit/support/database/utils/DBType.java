@@ -40,7 +40,7 @@ public enum DBType {
             put(H2, "org.h2.Driver");
             put(PostgreSql, "org.postgresql.Driver");
             put(DM, "dm.jdbc.driver.DmDriver");
-            put(KingBase, "com.kingbase.Driver");
+            put(KingBase, "com.kingbase8.Driver");
             put(GBase, "com.gbasedbt.jdbc.IfxDriver");
             put(Oscar, "com.oscar.Driver");
             put(ClickHouse, "com.clickhouse.jdbc.ClickHouseDriver");

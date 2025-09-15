@@ -74,7 +74,7 @@ public class TableMapInfo extends SimpleTableInfo {
             orderBySql = orderBy;
         }
 
-        if (StringUtils.isBlank(this.getOrderBy())) {
+        if (StringUtils.isBlank(super.getOrderBy())) {
             super.setOrderBy(orderBySql);
         } else {
             super.setOrderBy(super.getOrderBy() + ", " + orderBySql);
