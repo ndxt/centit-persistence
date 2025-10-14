@@ -33,6 +33,7 @@
         <module>centit-persistence-dynamic-datasource</module>
         <module>centit-persistence-flyway-plugin</module>
         <module>centit-persistence-redis-config</module>
+        <module>centit-persistence-extend</module>
     </modules>
 
     <licenses>
