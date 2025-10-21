@@ -31,7 +31,7 @@ public abstract class DbcpConnectPools {
         ds.setConnectionTimeout(dsDesc.getMaxWaitMillis());
         ds.setMaximumPoolSize(dsDesc.getMaxTotal());
         ds.setMaxLifetime(1800000);
-        ds.setIdleTimeout(6000);
+        ds.setIdleTimeout(600000);
         ds.setValidationTimeout(5000);
         ds.setMinimumIdle(dsDesc.getMinIdle());
 
