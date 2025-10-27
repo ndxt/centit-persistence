@@ -13,8 +13,6 @@ public interface IDatabaseInfo {
 
     String getDatabaseName();
 
-    String getOsId();
-
     String getDatabaseUrl();
 
     String getUsername();
