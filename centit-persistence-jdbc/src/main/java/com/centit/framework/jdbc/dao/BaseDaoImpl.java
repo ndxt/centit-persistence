@@ -181,7 +181,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         //QueryUtils.hasOrderBy(filterQuery)
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         String fieldsSql =
-                ((fields != null && fields.size()>0)
+                ((fields != null && !fields.isEmpty())
                     ? GeneralJsonObjectDao.buildPartFieldSql(mapInfo, fields, tableAlias, true)
                     : GeneralJsonObjectDao.buildFieldSql(mapInfo, tableAlias, 1));
         return encapsulateFilterToSql(fieldsSql, filterQuery, tableAlias, mapInfo.getOrderBy(), withExtFilter);
@@ -261,7 +261,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
 
-        Pair<String, TableField[]> q = ((fields != null && fields.size()>0)
+        Pair<String, TableField[]> q = ((fields != null && !fields.isEmpty())
             ? GeneralJsonObjectDao.buildPartFieldSqlWithFields(mapInfo, fields, null, true)
             : GeneralJsonObjectDao.buildFieldSqlWithFields(mapInfo, null, true));
 
@@ -277,7 +277,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
 
-        String sql = ((fields != null && fields.size()>0)
+        String sql = ((fields != null && !fields.isEmpty())
             ? GeneralJsonObjectDao.buildPartFieldSql(mapInfo, fields, null, true)
             : GeneralJsonObjectDao.buildFieldSql(mapInfo, null, 1));
 
@@ -334,13 +334,13 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             leftFilterMap = filterMap;
         }
 
-        if(leftFilterMap.size()>0) {
+        if(!leftFilterMap.isEmpty()) {
             GeneralJsonObjectDao.buildFilterSqlPieces(mapInfo, null, leftFilterMap, filterGroup);
             queryParams.putAll(leftFilterMap);
         }
         StringBuilder filterQuery = new StringBuilder();
         //外部条件，一般是权限引擎的表达式
-        if(extentFilters!=null && extentFilters.size()>0) {
+        if(extentFilters!=null && !extentFilters.isEmpty()) {
             QueryUtils.IFilterTranslate translater = powerTranslater !=null ?
                 powerTranslater : new QueryUtils.SimpleFilterTranslate(filterMap);
             Map<String, String> tableAlias = new HashMap<>(2);
@@ -614,7 +614,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     private List<?> innerFetchObjectReference(T object, SimpleTableReference ref ){
-        if(object==null || ref==null || ref.getReferenceColumns().size()<1)
+        if(object==null || ref==null || ref.getReferenceColumns().isEmpty())
             return null;
 
         Class<?> refType = ref.getTargetEntityType();
@@ -634,14 +634,15 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         Class<?> refType = ref.getTargetEntityType();
         List<?> refs = innerFetchObjectReference(object, ref);
 
-        if(refs!=null && refs.size()>0) {
+        if(refs!=null && !refs.isEmpty()) {
             if (//ref.getReferenceFieldType().equals(refType) /*||
                     ref.getReferenceFieldType().isAssignableFrom(refType) ){
                 if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
-                    for(Object refObject : refs)
-                    if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
-                        ref.setObjectFieldValue(object,refObject);
-                        break;
+                    for(Object refObject : refs) {
+                        if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
+                            ref.setObjectFieldValue(object,refObject);
+                            break;
+                        }
                     }
                 } else {
                     ref.setObjectFieldValue(object, refs.get(0));
@@ -690,7 +691,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
         List<?> refs = innerFetchObjectReference(object, ref);
 
-        if(refs!=null && refs.size()>0){
+        if(refs!=null && !refs.isEmpty()){
             for(Object refObject : refs) {
                 innerDeleteObject(refObject);
             }
@@ -714,7 +715,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         SimpleTableReference ref = mapInfo.findReference(columnName);
         List<?> refs = innerFetchObjectReference(object, ref);
 
-        if(refs!=null && refs.size()>0){
+        if(refs!=null && !refs.isEmpty()){
             for(Object refObject : refs) {
                 innerDeleteObjectForce(refObject);
             }
@@ -736,7 +737,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public int saveObjectReference(T object, String columnName) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         SimpleTableReference ref = mapInfo.findReference(columnName);
-        if(ref==null || ref.getReferenceColumns().size()<1)
+        if(ref==null || ref.getReferenceColumns().isEmpty())
             return 0;
 
         Class<?> refType = ref.getTargetEntityType();
@@ -747,7 +748,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         List<?> refs = innerFetchObjectReference(object, ref);
         Object newObj = ref.getObjectFieldValue(object);
         if(newObj == null){ // delete all
-            if(refs!=null && refs.size()>0){
+            if(refs!=null && !refs.isEmpty()){
                 for(Object refObject : refs) {
                     innerDeleteObject(refObject);
                 }
@@ -755,7 +756,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             return 1;
         }
 
-        OrmDaoUtils.OrmObjectComparator refObjComparator = new OrmDaoUtils.OrmObjectComparator(refMapInfo);
+        OrmDaoUtils.OrmObjectComparator<Object> refObjComparator = new OrmDaoUtils.OrmObjectComparator<>(refMapInfo);
         if (//ref.getReferenceFieldType().equals(refType) || oneToOne
                 ref.getReferenceFieldType().isAssignableFrom(refType) ){
 
@@ -765,7 +766,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
             }
 
             boolean haveSaved = false;
-            if(refs!=null && refs.size()>0) {
+            if(refs!=null && !refs.isEmpty()) {
                 for (Object refObject : refs) {
                     if (refObjComparator.compare(refObject, newObj) == 0) {
                         //找到相同的对象 更新
