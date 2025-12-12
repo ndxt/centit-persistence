@@ -43,9 +43,7 @@ public abstract class DatabaseOptUtils {
             if(values==null)
                 continue;
             Object paramValue = values.length==1 ? values[0] : values;
-            String pretreatmentSql = key;
-
-            ImmutableTriple<String, String, String> paramDesc = QueryUtils.parseParameter(pretreatmentSql);
+            ImmutableTriple<String, String, String> paramDesc = QueryUtils.parseParameter(key);
             String pretreatment = paramDesc.getRight();
             String valueName = StringUtils.isBlank(paramDesc.getMiddle()) ? paramDesc.getLeft() : paramDesc.getMiddle();
 
@@ -77,7 +75,7 @@ public abstract class DatabaseOptUtils {
         List<String> filedNames = extraPoAllFieldNames(poClass);
         if(filedNames==null)
             return null;
-        return filedNames.toArray(new String[filedNames.size()]);
+        return filedNames.toArray(new String[0]);
     }
 
     /**
@@ -94,25 +92,25 @@ public abstract class DatabaseOptUtils {
                                         sqlType, paramObjs);
     }
 
-    public final static boolean callProcedure(BaseDaoImpl<?, ?> baseDao, String procName, Object... paramObjs){
+    public static boolean callProcedure(BaseDaoImpl<?, ?> baseDao, String procName, Object... paramObjs){
         return JdbcTemplateUtils.callProcedure(baseDao.getJdbcTemplate(), procName, paramObjs);
     }
 
-    public final static boolean doExecuteSql(BaseDaoImpl<?, ?> baseDao, String sSql) throws DataAccessException {
+    public static boolean doExecuteSql(BaseDaoImpl<?, ?> baseDao, String sSql) throws DataAccessException {
         return JdbcTemplateUtils.doExecuteSql(baseDao.getJdbcTemplate(), sSql);
     }
 
     /*
      * 直接运行行带参数的 SQL,update delete insert
      */
-    public final static int doExecuteSql(BaseDaoImpl<?, ?> baseDao, String sSql, Object[] values) throws DataAccessException {
+    public static int doExecuteSql(BaseDaoImpl<?, ?> baseDao, String sSql, Object[] values) throws DataAccessException {
         return JdbcTemplateUtils.doExecuteSql(baseDao.getJdbcTemplate(), sSql, values);
     }
 
     /*
      * 执行一个带命名参数的sql语句
      */
-    public final static int doExecuteNamedSql(BaseDaoImpl<?, ?> baseDao, String sSql, Map<String, Object> values)
+    public static int doExecuteNamedSql(BaseDaoImpl<?, ?> baseDao, String sSql, Map<String, Object> values)
             throws DataAccessException {
         return JdbcTemplateUtils.doExecuteNamedSql(baseDao.getJdbcTemplate(), sSql, values);
     }

@@ -50,17 +50,17 @@ public abstract class JdbcTemplateUtils {
         }
     }
 
-    public final static boolean callProcedure(JdbcTemplate jdbcTemplate, String procName, Object... paramObjs){
+    public static boolean callProcedure(JdbcTemplate jdbcTemplate, String procName, Object... paramObjs){
         try {
-            return jdbcTemplate.execute(
-                    (ConnectionCallback<Boolean>) conn ->
-                            DatabaseAccess.callProcedure(conn, procName, paramObjs));
+            return Boolean.TRUE.equals(jdbcTemplate.execute(
+                (ConnectionCallback<Boolean>) conn ->
+                    DatabaseAccess.callProcedure(conn, procName, paramObjs)));
         } catch (DataAccessException e){
             throw new ObjectException(ObjectException.DATABASE_SQL_EXCEPTION, e);
         }
     }
 
-    public final static boolean doExecuteSql(JdbcTemplate jdbcTemplate, String sSql) throws DataAccessException {
+    public static boolean doExecuteSql(JdbcTemplate jdbcTemplate, String sSql) throws DataAccessException {
         jdbcTemplate.execute(sSql);
         return true;
         /*try {
@@ -75,22 +75,18 @@ public abstract class JdbcTemplateUtils {
     /*
      * 直接运行行带参数的 SQL,update delete insert
      */
-    public final static int doExecuteSql(JdbcTemplate jdbcTemplate, String sSql, Object[] values) throws DataAccessException {
+    public static int doExecuteSql(JdbcTemplate jdbcTemplate, String sSql, Object[] values) throws DataAccessException {
+        return jdbcTemplate.update(sSql, values);
+        /*return NumberBaseOpt.castObjectToInteger(jdbcTemplate.execute(
+                (ConnectionCallback<Integer>) conn ->
+                        DatabaseAccess.doExecuteSql(conn, sSql, values)), 0);*/
 
-        return jdbcTemplate.update(sSql,values);
-        /*try {
-            return jdbcTemplate.execute(
-                    (ConnectionCallback<Integer>) conn ->
-                            DatabaseAccess.doExecuteSql(conn, sSql, values));
-        } catch (DataAccessException e){
-            throw new ObjectException(ObjectException.DATABASE_SQL_EXCEPTION, e);
-        }*/
     }
 
     /*
      * 执行一个带命名参数的sql语句
      */
-    public final static int doExecuteNamedSql(JdbcTemplate jdbcTemplate, String sSql, Map<String, Object> values)
+    public static int doExecuteNamedSql(JdbcTemplate jdbcTemplate, String sSql, Map<String, Object> values)
             throws DataAccessException {
         QueryAndParams qap = QueryAndParams.createFromQueryAndNamedParams(new QueryAndNamedParams(sSql, values));
         return doExecuteSql(jdbcTemplate, qap.getQuery(), qap.getParams());
@@ -543,15 +539,14 @@ public abstract class JdbcTemplateUtils {
      */
     public static int batchSaveNewObjects(JdbcTemplate jdbcTemplate,
                                              Collection<?> objects) {
-
-        return jdbcTemplate.execute(
+        return NumberBaseOpt.castObjectToInteger(jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn -> {
                     int successSaved=0;
                     for(Object o : objects) {
                         successSaved += OrmDaoUtils.saveNewObject(conn, o);
                     }
                     return successSaved;
-                });
+                }), 0);
     }
 
     /**
@@ -563,14 +558,14 @@ public abstract class JdbcTemplateUtils {
     public static int batchUpdateObjects(JdbcTemplate jdbcTemplate,
                                                 Collection<?> objects) {
 
-        return jdbcTemplate.execute(
+        return NumberBaseOpt.castObjectToInteger(jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn -> {
                     int successUpdated=0;
                     for(Object o : objects) {
                         successUpdated += OrmDaoUtils.updateObject(conn, o);
                     }
                     return successUpdated;
-                });
+                }), 0);
     }
 
 
@@ -583,14 +578,14 @@ public abstract class JdbcTemplateUtils {
     public static int batchMergeObjects(JdbcTemplate jdbcTemplate,
                                                Collection<?> objects) {
 
-        return jdbcTemplate.execute(
+        return NumberBaseOpt.castObjectToInteger(jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn -> {
                     int successMerged=0;
                     for(Object o : objects) {
                         successMerged += OrmDaoUtils.mergeObject(conn, o);
                     }
                     return successMerged;
-                });
+                }), 0);
     }
 
     /**
@@ -602,14 +597,14 @@ public abstract class JdbcTemplateUtils {
     public static int batchDeleteObjects(JdbcTemplate jdbcTemplate,
                                               Collection<?> objects) {
 
-        return jdbcTemplate.execute(
+        return NumberBaseOpt.castObjectToInteger(jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn -> {
                     int successDeleted=0;
                     for(Object o : objects) {
                         successDeleted += OrmDaoUtils.deleteObject(conn, o);
                     }
                     return successDeleted;
-                });
+                }), 0);
     }
 
     /**
@@ -680,6 +675,6 @@ public abstract class JdbcTemplateUtils {
 
     public static DBType doGetDBType(JdbcTemplate jdbcTemplate){
         return jdbcTemplate.execute(
-            (ConnectionCallback<DBType>) conn -> DBType.mapDBType(conn));
+            (ConnectionCallback<DBType>) DBType::mapDBType);
     }
 }

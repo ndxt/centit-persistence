@@ -63,10 +63,9 @@ public class JsonObjectWork implements JsonObjectDao {
         try{
             JsonObjectDao currentDao = GeneralJsonObjectDao.createJsonObjectDao(
                     conn, tableInfo);
-            T relRet = realWork.execute(currentDao);
-            return relRet;
+            return realWork.execute(currentDao);
         } catch (SQLException e){
-            logger.error("error code :" + e.getSQLState() + e.getLocalizedMessage(),e);
+            logger.error("error code :{}, {}", e.getSQLState(), e.getLocalizedMessage(), e);
             throw e;
         } finally {
             baseDao.releaseConnection(conn);

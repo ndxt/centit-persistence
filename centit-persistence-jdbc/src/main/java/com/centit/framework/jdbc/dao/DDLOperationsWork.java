@@ -46,7 +46,7 @@ public class DDLOperationsWork implements DDLOperations {
         try {
             return getDDLOperations().makeCreateViewSql(selectSql, viewName);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Make create view sql raise：{}", e.getMessage(), e);
             return null;
         }
     }

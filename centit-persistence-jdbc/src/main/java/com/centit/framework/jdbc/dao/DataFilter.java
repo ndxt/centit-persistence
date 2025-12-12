@@ -4,12 +4,9 @@ import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 
-class DataFilter {
-    public DataFilter(){
+public class DataFilter {
 
-    }
-
-    private String formule;
+    private String formula;
     private String pretreatment;
 
     private String valueName;
@@ -28,16 +25,16 @@ class DataFilter {
         ImmutableTriple<String, String, String> paramDesc = QueryUtils.parseParameter(pretreatmentSql);
         this.pretreatment = paramDesc.getRight();
         this.valueName = paramDesc.getMiddle();
-        this.formule = paramDesc.getLeft();
-        if(StringUtils.isBlank(formule)){
-            formule = valueName;
+        this.formula = paramDesc.getLeft();
+        if(StringUtils.isBlank(formula)){
+            formula = valueName;
         } else if(StringUtils.isBlank(valueName)){
-            valueName = formule;
+            valueName = formula;
         }
     }
 
-    public String getFormule() {
-        return formule;
+    public String getFormula() {
+        return formula;
     }
 
     public String getPretreatment() {

@@ -100,7 +100,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @throws CannotGetJdbcConnectionException if the attempt to get a Connection failed
      * @see org.springframework.jdbc.datasource.DataSourceUtils
      */
-    @Deprecated
     public Connection getConnection() throws CannotGetJdbcConnectionException {
         return DataSourceUtils.getConnection(getDataSource());
     }
@@ -118,7 +117,6 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param con Connection to close
      * @see org.springframework.jdbc.datasource.DataSourceUtils#releaseConnection
      */
-    @Deprecated
     public void releaseConnection(Connection con) {
         DataSourceUtils.releaseConnection(con, getDataSource());
     }
@@ -208,35 +206,35 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         if(insideFieldFilter==null) {
             insideFieldFilter = new HashMap<>();
             Map<String, String> filters = getFilterField();
-            if(filters!=null && filters.size()>0){
+            if(filters!=null && !filters.isEmpty()){
                 for(Map.Entry<String, String> ent : filters.entrySet()) {
                     DataFilter dataFilter = new DataFilter(ent.getKey(), ent.getValue());
 
                     if (dataFilter.getFilterSql().equalsIgnoreCase(CodeBook.EQUAL_HQL_ID)) {
-                        SimpleTableField col = mapInfo.findFieldByName(dataFilter.getFormule());
+                        SimpleTableField col = mapInfo.findFieldByName(dataFilter.getFormula());
                         if (col != null) {
                             dataFilter.setFilterSql(col.getColumnName() + " = :" + dataFilter.getValueName());
-                            insideFieldFilter.put(dataFilter.getFormule() ,dataFilter);
+                            insideFieldFilter.put(dataFilter.getFormula() ,dataFilter);
                         }
                     } else if (dataFilter.getFilterSql().equalsIgnoreCase(CodeBook.LIKE_HQL_ID)) {
-                        SimpleTableField col = mapInfo.findFieldByName(dataFilter.getFormule());
+                        SimpleTableField col = mapInfo.findFieldByName(dataFilter.getFormula());
                         if (col != null) {
                             dataFilter.setFilterSql(col.getColumnName() + " like :" + dataFilter.getValueName() );
                             if(StringUtils.isBlank(dataFilter.getPretreatment())){
                                 dataFilter.setPretreatment(QueryUtils.SQL_PRETREAT_LIKE);
                             }
-                            insideFieldFilter.put(dataFilter.getFormule() ,dataFilter);
+                            insideFieldFilter.put(dataFilter.getFormula() ,dataFilter);
                         }
                     } else if (dataFilter.getFilterSql().equalsIgnoreCase(CodeBook.IN_HQL_ID)) {
-                        SimpleTableField col = mapInfo.findFieldByName(dataFilter.getFormule());
+                        SimpleTableField col = mapInfo.findFieldByName(dataFilter.getFormula());
                         if (col != null) {
                             dataFilter.setFilterSql(col.getColumnName() + " in (:" + dataFilter.getValueName() +")" );
-                            insideFieldFilter.put(dataFilter.getFormule() ,dataFilter);
+                            insideFieldFilter.put(dataFilter.getFormula() ,dataFilter);
                         }
                     } else {
                         dataFilter.setFilterSql(
                             JpaMetadata.translateSqlPropertyToColumn(mapInfo, dataFilter.getFilterSql(), null));
-                        insideFieldFilter.put(dataFilter.getFormule() ,dataFilter);
+                        insideFieldFilter.put(dataFilter.getFormula() ,dataFilter);
                     }
                 }// for
             }
