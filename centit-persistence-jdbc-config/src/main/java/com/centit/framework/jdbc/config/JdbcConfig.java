@@ -1,6 +1,5 @@
 package com.centit.framework.jdbc.config;
 
-import com.centit.framework.core.dao.ExtendedQueryPool;
 import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.NumberBaseOpt;
 import com.centit.support.algorithm.StringRegularOpt;
@@ -9,7 +8,6 @@ import com.centit.support.database.utils.QueryLogUtils;
 import com.centit.support.security.SecurityOptUtils;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.lang3.StringUtils;
-import org.dom4j.DocumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +20,6 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 
 @EnableTransactionManagement(proxyTargetClass = true)//启用注解事物管理
 public class JdbcConfig implements EnvironmentAware {
@@ -67,18 +64,6 @@ public class JdbcConfig implements EnvironmentAware {
         }
         if (StringRegularOpt.isTrue(env.getProperty("jdbc.show.sql"))) {
             QueryLogUtils.setJdbcShowSql(true);
-        }
-
-        try {
-            ExtendedQueryPool.loadResourceExtendedSqlMap(dbType);
-        } catch (DocumentException e) {
-            logger.error(e.getMessage());
-        }
-        try {
-            ExtendedQueryPool.loadExtendedSqlMaps(
-                env.getProperty("app.home", ".") + "/sqlscript", dbType);
-        } catch (DocumentException | IOException e) {
-            logger.error(e.getMessage());
         }
         return ds;
     }
