@@ -366,8 +366,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
 
     private void innerSaveNewObject(Object o) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
-        if (o instanceof EntityWithVersionTag) {
-            EntityWithVersionTag ewvto = (EntityWithVersionTag) o;
+        if (o instanceof EntityWithVersionTag ewvto) {
             SimpleTableField field = mapInfo.findFieldByColumn(ewvto.obtainVersionProperty());
             Object obj = mapInfo.getObjectFieldValue(o, field);
             if(obj == null){
