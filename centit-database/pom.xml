@@ -26,8 +26,6 @@
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
         </dependency>
 
         <!--<dependency>
