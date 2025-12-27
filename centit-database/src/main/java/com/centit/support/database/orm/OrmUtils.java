@@ -31,6 +31,7 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public abstract class OrmUtils {
     private static final String DNS1123 = "0123456789qwertyuiopasdfghjklzxcvbnm";
+    private static final String BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     private static Snowflake SNOW_FLAKE_INSTANCE = null;
     public static Snowflake getDefaultSnowFlakeInstance(){
@@ -176,7 +177,7 @@ public abstract class OrmUtils {
                                             "主键生成规则RANDOM_ID只能用于单主键表中！");
                                     }*/
                                     for (int i = 0; i < 100; i++) {
-                                        String no = prefix + UuidOpt.getUuidAsString22().substring(0, len);
+                                        String no = prefix + RandomStringUtils.random(len, BASE62);
                                         //检查唯一属性是否冲突
                                         if(NumberBaseOpt.castObjectToInteger(
                                             DatabaseAccess.fetchScalarObject(
