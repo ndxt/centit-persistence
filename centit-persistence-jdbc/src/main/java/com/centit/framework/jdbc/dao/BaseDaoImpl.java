@@ -30,7 +30,6 @@ import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -49,7 +48,6 @@ import java.util.*;
  * @param <PK> po主键类型 ; 对多个字段联合主键的可以使用Map《String, Object》类型
  */
 @SuppressWarnings({"unused", "unchecked"})
-@Repository
 public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializable> {
     protected static Logger logger = LoggerFactory.getLogger(BaseDaoImpl.class);
     private Class<?> poClass = null;
@@ -69,7 +67,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
      * @param dataSource 数据源
      */
     @Autowired
-    public void setDataSource(@Autowired DataSource dataSource) {
+    public void setDataSource(DataSource dataSource) {
         if (this.jdbcTemplate == null || dataSource != this.jdbcTemplate.getDataSource()) {
             this.jdbcTemplate = new JdbcTemplate(dataSource);
         }

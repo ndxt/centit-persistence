@@ -1,17 +1,10 @@
 package com.centit.support.database.utils;
 
 import com.centit.support.algorithm.NumberBaseOpt;
-import com.centit.support.algorithm.StringRegularOpt;
 import com.centit.support.database.metadata.IDatabaseInfo;
-import com.centit.support.xml.IgnoreDTDEntityResolver;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -57,7 +50,7 @@ public final class DataSourceDescription implements Serializable {
         this.password = pswd;
     }
 
-    public static boolean testConntect(DataSourceDescription dsDesc) {
+    public static boolean testConnect(DataSourceDescription dsDesc) {
         boolean connOk = false;
         try {
             Connection conn = DbcpConnectPools.getDbcpConnect(dsDesc);
@@ -201,47 +194,7 @@ public final class DataSourceDescription implements Serializable {
         return result;
     }
 
-    public void loadHibernateConfig(String sConfFile, String sDbBeanName) {
-        SAXReader builder = new SAXReader(false);
-        builder.setValidation(false);
-        builder.setEntityResolver(new IgnoreDTDEntityResolver());
-        Document doc;
-        Element bean;
-        try {
-            if (sConfFile.indexOf(':') >= 0) {
-                if (sConfFile.startsWith("classpath:")) {
-                    doc = builder.read(this.getClass().getResourceAsStream(sConfFile.substring(10)));
-                } else
-                    doc = builder.read(new File(sConfFile));
-            } else
-                doc = builder.read(this.getClass().getResourceAsStream(sConfFile));
-            Element root = doc.getRootElement();//获取根元素
-            bean = (Element) root.selectSingleNode("bean[@id=" +
-                StringRegularOpt.quotedString(sDbBeanName) + "]");
-            if (bean != null) { //
-                Element property;
-
-                property = (Element) bean.selectSingleNode("property[@name=\"url\"]");
-                if (property != null)
-                    connUrl = property.attributeValue("value");
-                property = (Element) bean.selectSingleNode("property[@name=\"driverClassName\"]");
-                if (property != null)
-                    driver = property.attributeValue("value");
-                property = (Element) bean.selectSingleNode("property[@name=\"username\"]");
-                if (property != null)
-                    username = property.attributeValue("value");
-                property = (Element) bean.selectSingleNode("property[@name=\"password\"]");
-                if (property != null)
-                    password = property.attributeValue("value");
-            }
-        } catch (DocumentException e) {
-            logger.error(e.getMessage(), e);//e.printStackTrace();
-        }
-
-        dbType = DBType.mapDBType(connUrl);
-    }
-
-    public boolean testConntect() {
-        return DataSourceDescription.testConntect(this);
+    public boolean testConnect() {
+        return DataSourceDescription.testConnect(this);
     }
 }

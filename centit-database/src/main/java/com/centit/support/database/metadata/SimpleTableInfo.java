@@ -2,14 +2,9 @@ package com.centit.support.database.metadata;
 
 import com.centit.support.database.utils.FieldType;
 import org.apache.commons.lang3.StringUtils;
-import org.dom4j.Document;
-import org.dom4j.io.XMLWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,18 +62,6 @@ public class SimpleTableInfo implements TableInfo {
     public SimpleTableInfo(String tabname) {
         this.tableType = "T";
         setTableName(tabname);
-    }
-
-    protected static void writerXMLFile(Document doc, String xmlFile) {
-        XMLWriter output;
-        try {
-            output = new XMLWriter(
-                new FileWriter(new File(xmlFile)));
-            output.write(doc);
-            output.close();
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);//e.printStackTrace();
-        }
     }
 
     /**
