@@ -1005,9 +1005,8 @@ public abstract class OrmDaoUtils {
                 "select count(*) as checkExists from " + mapInfo.getTableName()
                         + " where " + GeneralJsonObjectDao.buildFilterSqlByPk(mapInfo, null);
         try {
-            Long checkExists = NumberBaseOpt.castObjectToLong(
-                    DatabaseAccess.getScalarObjectQuery(connection, sql, objectMap));
-            return checkExists == null ? 0 : checkExists.intValue();
+            return NumberBaseOpt.castObjectToInteger(
+                    DatabaseAccess.getScalarObjectQuery(connection, sql, objectMap), 0);
         } catch (SQLException e) {
             throw new ObjectException(sql, e);
         } catch (IOException e) {
