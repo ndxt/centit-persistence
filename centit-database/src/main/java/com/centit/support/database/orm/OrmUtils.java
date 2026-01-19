@@ -16,7 +16,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -279,14 +278,7 @@ public abstract class OrmUtils {
         if (object instanceof Map) {
             return (Map<String, Object>) object;
         }
-        // 这个地方为什么 不用 JsonObject.toJSONObject
-        Field[] objFields = object.getClass().getDeclaredFields();
-        Map<String, Object> fields = new HashMap<>(objFields.length * 2);
-        for (Field field : objFields) {
-            Object value = ReflectionOpt.forceGetFieldValue(object, field);
-            fields.put(field.getName(), value);
-        }
-        return fields;
+        return JSONObject.from(object);
     }
 
     public static Map<String, Object> fetchObjectDatabaseField(Object object, TableMapInfo tableInfo) {
