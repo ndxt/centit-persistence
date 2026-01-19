@@ -991,7 +991,12 @@ public abstract class OrmDaoUtils {
             throws ObjectException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(type);
         Map<String, Object> objectMap;
-        if(type.isAssignableFrom(id.getClass())) {
+        if (ReflectionOpt.isScalarType(id.getClass())) {
+            if (mapInfo.countPkColumn() != 1)
+                throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION,
+                    "表" + mapInfo.getTableName() + "不是单主键表，这个方法不适用。");
+            objectMap = CollectionsOpt.createHashMap(mapInfo.getPkFields().get(0).getPropertyName(), id);
+        } else if(type.isAssignableFrom(id.getClass())) {
             objectMap = OrmUtils.fetchObjectDatabaseField(id, mapInfo);
         }else{
             objectMap = OrmUtils.fetchObjectField(id);
