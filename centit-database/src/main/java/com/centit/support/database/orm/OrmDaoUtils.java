@@ -540,7 +540,7 @@ public abstract class OrmDaoUtils {
                                                            TableMapInfo mapInfo, int depth)
         throws ObjectException {
 
-        if (ref == null || ref.getReferenceColumns().size() < 1)
+        if (ref == null || ref.getReferenceColumns().isEmpty())
             return object;
 
         Class<?> refType = ref.getTargetEntityType();
@@ -619,7 +619,7 @@ public abstract class OrmDaoUtils {
     public static <T> int deleteObjectReference(Connection connection, T object, SimpleTableReference ref)
         throws ObjectException {
 
-        if (ref == null || ref.getReferenceColumns().size() < 1)
+        if (ref == null || ref.getReferenceColumns().isEmpty())
             return 0;
         Class<?> refType = ref.getTargetEntityType();
         Map<String, Object> properties = ref.fetchChildFk(object);
@@ -924,7 +924,7 @@ public abstract class OrmDaoUtils {
                                                              SimpleTableReference ref, TableMapInfo mapInfo, int depth)
         throws ObjectException {
 
-        if (ref == null || ref.getReferenceColumns().size() < 1)
+        if (ref == null || ref.getReferenceColumns().isEmpty())
             return 0;
 
         Object newObj = ref.getObjectFieldValue(object);

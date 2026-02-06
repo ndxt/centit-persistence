@@ -611,7 +611,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     }
 
     private List<?> innerFetchObjectReference(T object, SimpleTableReference ref ){
-        if(object==null || ref==null || ref.getReferenceColumns().size()<1)
+        if(object==null || ref==null || ref.getReferenceColumns().isEmpty())
             return null;
 
         Class<?> refType = ref.getTargetEntityType();
@@ -628,16 +628,21 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public T fetchObjectReference(T object, String columnName) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         SimpleTableReference ref = mapInfo.findReference(columnName);
+        if(ref==null || ref.getReferenceColumns().isEmpty()){
+            return object;
+        }
         Class<?> refType = ref.getTargetEntityType();
         List<?> refs = innerFetchObjectReference(object, ref);
 
-        if(refs!=null && refs.size()>0) {
+        if(refs!=null && !refs.isEmpty()) {
             if (//ref.getReferenceFieldType().equals(refType) /*||
                     ref.getReferenceFieldType().isAssignableFrom(refType) ){
                 if( EntityWithDeleteTag.class.isAssignableFrom(refType)){
-                    for(Object refObject : refs)
-                    if( ! ((EntityWithDeleteTag)refObject).isDeleted()){
-                        ref.setObjectFieldValue(object,refObject);
+                    for(Object refObject : refs) {
+                        if (((EntityWithDeleteTag) refObject).isDeleted()) {
+                            continue;
+                        }
+                        ref.setObjectFieldValue(object, refObject);
                         break;
                     }
                 } else {
@@ -733,7 +738,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public int saveObjectReference(T object, String columnName) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         SimpleTableReference ref = mapInfo.findReference(columnName);
-        if(ref==null || ref.getReferenceColumns().size()<1)
+        if(ref==null || ref.getReferenceColumns().isEmpty())
             return 0;
 
         Class<?> refType = ref.getTargetEntityType();
@@ -744,7 +749,7 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
         List<?> refs = innerFetchObjectReference(object, ref);
         Object newObj = ref.getObjectFieldValue(object);
         if(newObj == null){ // delete all
-            if(refs!=null && refs.size()>0){
+            if(refs!=null && !refs.isEmpty()){
                 for(Object refObject : refs) {
                     innerDeleteObject(refObject);
                 }
