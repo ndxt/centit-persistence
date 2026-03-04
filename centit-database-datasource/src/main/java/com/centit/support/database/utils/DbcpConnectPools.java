@@ -30,9 +30,10 @@ public abstract class DbcpConnectPools {
         ds.setJdbcUrl(dsDesc.getConnUrl());
         ds.setConnectionTimeout(dsDesc.getMaxWaitMillis());
         ds.setMaximumPoolSize(dsDesc.getMaxTotal());
-        ds.setMaxLifetime(1800000);
+        ds.setMaxLifetime(7200000);
         ds.setIdleTimeout(600000);
         ds.setValidationTimeout(5000);
+        ds.setKeepaliveTime(300000);
         ds.setMinimumIdle(dsDesc.getMinIdle());
 
         String validationQuery = DBType.getDBValidationQuery(dsDesc.getDbType());
