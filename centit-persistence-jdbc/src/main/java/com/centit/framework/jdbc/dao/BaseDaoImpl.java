@@ -628,6 +628,8 @@ public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializabl
     public T fetchObjectReference(T object, String columnName) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         SimpleTableReference ref = mapInfo.findReference(columnName);
+        if(ref==null || ref.getReferenceColumns().isEmpty())
+            return object;
         Class<?> refType = ref.getTargetEntityType();
         List<?> refs = innerFetchObjectReference(object, ref);
 
