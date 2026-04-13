@@ -4,14 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>centit-persistence</artifactId>
-        <groupId>com.centit.framework</groupId>
+        <groupId>com.centit.support</groupId>
         <version>JDK21-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>centit-persistence-jdbc</artifactId>
-
-    <name>com.centit.framework:centit-persistence-jdbc</name>
+    <name>com.centit.support:centit-persistence-jdbc</name>
     <packaging>jar</packaging>
     <description>南大先腾自己的Orm框架，借用spring-jdbc管理链接和事物</description>
 

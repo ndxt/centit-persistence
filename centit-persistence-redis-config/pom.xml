@@ -5,12 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>centit-persistence</artifactId>
-        <groupId>com.centit.framework</groupId>
+        <groupId>com.centit.support</groupId>
         <version>JDK21-SNAPSHOT</version>
     </parent>
     <artifactId>centit-persistence-redis-config</artifactId>
-
-    <name>com.centit.framework:centit-persistence-redis-config</name>
+    <name>com.centit.support:centit-persistence-redis-config</name>
     <packaging>jar</packaging>
     <description>redis配置</description>
 
