@@ -1957,7 +1957,7 @@ public abstract class QueryUtils {
         return hqlAndParams;
     }
 
-    /*
+    /**
      * 这个函数是为了满足 根据前端查询表单中的参数填写情况动态拼接查询语句条件的的需求而设计的。
      * 传统的办法是用if语句一个一个的判断，这样是可以工作的，但是这样query语句非常零碎，容易出错。
      *
