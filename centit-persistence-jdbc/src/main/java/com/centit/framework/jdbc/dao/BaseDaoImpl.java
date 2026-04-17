@@ -33,7 +33,6 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.Connection;
@@ -48,7 +47,7 @@ import java.util.*;
  * @param <PK> po主键类型 ; 对多个字段联合主键的可以使用Map《String, Object》类型
  */
 @SuppressWarnings({"unused", "unchecked"})
-public abstract class BaseDaoImpl<T extends Serializable, PK extends Serializable> {
+public abstract class BaseDaoImpl<T, PK> {
     protected static Logger logger = LoggerFactory.getLogger(BaseDaoImpl.class);
     private Class<?> poClass = null;
     private Class<?> pkClass = null;
