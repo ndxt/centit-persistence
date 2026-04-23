@@ -8,10 +8,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class JdbcMetadata implements DatabaseMetadata {
@@ -31,22 +28,16 @@ public class JdbcMetadata implements DatabaseMetadata {
             String dbCatalog = this.getDBCatalog();
 
             DatabaseMetaData dbmd = dbc.getMetaData();
-            //dbmd.getTables()
-            ResultSet rs = dbmd.getTables(dbCatalog, dbSechema, null, null);
-            boolean canAddTable;
-            while (rs.next()) {
-                canAddTable = false;
-                if (tableNames == null) {
-                    canAddTable = true;
-                } else {
-                    for (String tabName : tableNames) {
-                        if (tabName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
-                            canAddTable = true;
-                            break;
-                        }
-                    }
+            Set<String> tableNameSet = null;
+            if (tableNames != null) {
+                tableNameSet = new HashSet<>(tableNames.length * 2);
+                for (String name : tableNames) {
+                    tableNameSet.add(name.toUpperCase());
                 }
-                if (!canAddTable) {
+            }
+            ResultSet rs = dbmd.getTables(dbCatalog, dbSechema, null, null);
+            while (rs.next()) {
+                if (tableNameSet != null && !tableNameSet.contains(rs.getString("TABLE_NAME").toUpperCase())) {
                     continue;
                 }
                 SimpleTableInfo tab = new SimpleTableInfo();
