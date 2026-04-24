@@ -5,6 +5,7 @@ import com.centit.support.database.utils.DBType;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 @SuppressWarnings("unused")
 public interface DatabaseMetadata {
@@ -38,5 +39,7 @@ public interface DatabaseMetadata {
     String getDBSchema();
 
     void setDBSchema(String schema);
+
+    List<SimpleTableInfo> listTables(boolean withColumn, String[] tableNames);
 
 }

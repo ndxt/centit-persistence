@@ -24,6 +24,7 @@ public class JdbcMetadata implements DatabaseMetadata {
         this.dbc = dbc;
     }
 
+    @Override
     public List<SimpleTableInfo> listTables(boolean withColumn, String[] tableNames) {
         List<SimpleTableInfo> tables = new ArrayList<>(100);
         try {

@@ -7,7 +7,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 
 public class SqlSvrMetadata implements DatabaseMetadata {
@@ -66,6 +68,11 @@ public class SqlSvrMetadata implements DatabaseMetadata {
 
     public void setDBSchema(String schema) {
         sDBSchema = schema;
+    }
+
+    @Override
+    public List<SimpleTableInfo> listTables(boolean withColumn, String[] tableNames) {
+        return Collections.emptyList();
     }
 
     public SimpleTableInfo getTableMetadata(String tabName) {
