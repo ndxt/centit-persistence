@@ -1,5 +1,6 @@
 package com.centit.support.database.metadata;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,7 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DB2Metadata implements DatabaseMetadata {
@@ -56,16 +57,54 @@ public class DB2Metadata implements DatabaseMetadata {
 
     @Override
     public List<SimpleTableInfo> listTables(boolean withColumn, String[] tableNames) {
-        return Collections.emptyList();
+        List<SimpleTableInfo> tables = new ArrayList<>(100);
+        String sql = "SELECT NAME, TYPE, REMARKS FROM sysibm.systables WHERE CREATOR=? AND TYPE IN ('T', 'V')";
+        try (PreparedStatement pStmt = dbc.prepareStatement(sql)) {
+            pStmt.setString(1, sDBSchema);
+            try (ResultSet rs = pStmt.executeQuery()) {
+                while (rs.next()) {
+                    String tableName = rs.getString("NAME");
+                    boolean canAddTable = false;
+                    if (tableNames == null) {
+                        canAddTable = true;
+                    } else {
+                        for (String tabName : tableNames) {
+                            if (tabName.equalsIgnoreCase(tableName)) {
+                                canAddTable = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!canAddTable) {
+                        continue;
+                    }
+                    SimpleTableInfo tab = new SimpleTableInfo();
+                    if (sDBSchema != null) {
+                        tab.setSchema(sDBSchema.toUpperCase());
+                    }
+                    tab.setTableName(tableName);
+                    tab.setTableComment(rs.getString("REMARKS"));
+                    tab.setTableLabelName(
+                        StringUtils.substring(rs.getString("REMARKS"), 0, 80));
+                    String tt = rs.getString("TYPE");
+                    tab.setTableType("V".equalsIgnoreCase(tt) ? "V" : "T");
+                    if (withColumn) {
+                        fetchTableDetail(tab);
+                    }
+                    tables.add(tab);
+                }
+            }
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return tables;
     }
 
-    public SimpleTableInfo getTableMetadata(String tabName) {
-        SimpleTableInfo tab = new SimpleTableInfo(tabName);
-
+    private void fetchTableDetail(SimpleTableInfo tab) {
+        String tabName = tab.getTableName();
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlGetTabColumns)) {
             pStmt.setString(1, sDBSchema);
             pStmt.setString(2, tabName);
-            tab.setSchema(dbc.getSchema().toUpperCase());
             try (ResultSet rs = pStmt.executeQuery()) {
                 while (rs.next()) {
                     SimpleTableField field = new SimpleTableField();
@@ -75,16 +114,11 @@ public class DB2Metadata implements DatabaseMetadata {
                     field.setScale(rs.getInt("scale"));
                     field.setNullEnable(rs.getString("nulls"));
                     field.mapToMetadata();
-
                     tab.addColumn(field);
                 }
             }
         } catch (SQLException e) {
             logger.error(e.getLocalizedMessage(), e);
-        }
-
-        if(tab.getColumns().size()==0){
-            return null;
         }
 
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlPKInfo)) {
@@ -96,10 +130,13 @@ public class DB2Metadata implements DatabaseMetadata {
                     tab.setColumnAsPrimaryKey(rs.getString("colname"));
                 }
             }
-        } catch (SQLException e1) {
-            logger.error(e1.getLocalizedMessage(), e1);
+        } catch (SQLException e) {
+            logger.error(e.getLocalizedMessage(), e);
         }
-        // get reference info
+
+        if (tab.getPkName() == null) {
+            return;
+        }
 
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlFKInfo)) {
             pStmt.setString(1, tab.getPkName());
@@ -115,7 +152,7 @@ public class DB2Metadata implements DatabaseMetadata {
                     String sPColNames = rs.getString("pkcolnames").trim();
                     String[] pK = sPColNames.split("\\s+");
                     if (nColCount != p.length) {
-                        System.out.println("外键" + ref.getReferenceCode() + "字段分隔出错！");
+                        logger.warn("外键{}字段分隔出错！", ref.getReferenceCode());
                     }
                     for (int i = 0; i < p.length; i++) {
                         if (i < pK.length)
@@ -124,10 +161,24 @@ public class DB2Metadata implements DatabaseMetadata {
                     tab.addReference(ref);
                 }
             }
-        } catch (SQLException e1) {
-            logger.error(e1.getLocalizedMessage(), e1);
+        } catch (SQLException e) {
+            logger.error(e.getLocalizedMessage(), e);
+        }
+    }
+
+    public SimpleTableInfo getTableMetadata(String tabName) {
+        SimpleTableInfo tab = new SimpleTableInfo(tabName);
+        try {
+            tab.setSchema(dbc.getSchema().toUpperCase());
+        } catch (SQLException e) {
+            logger.error(e.getLocalizedMessage(), e);
         }
 
+        fetchTableDetail(tab);
+
+        if (tab.getColumns().isEmpty()) {
+            return null;
+        }
         return tab;
     }
 

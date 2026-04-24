@@ -1,5 +1,6 @@
 package com.centit.support.database.metadata;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,8 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 
 public class OracleMetadata implements DatabaseMetadata {
@@ -61,14 +61,55 @@ public class OracleMetadata implements DatabaseMetadata {
 
     @Override
     public List<SimpleTableInfo> listTables(boolean withColumn, String[] tableNames) {
-        return Collections.emptyList();
+        List<SimpleTableInfo> tables = new ArrayList<>(100);
+        String sql = "SELECT TABLE_NAME, TABLE_TYPE, COMMENTS FROM user_tab_comments WHERE TABLE_TYPE IN ('TABLE', 'VIEW')";
+        try (PreparedStatement pStmt = dbc.prepareStatement(sql);
+             ResultSet rs = pStmt.executeQuery()) {
+            String dbSchema = null;
+            try {
+                dbSchema = dbc.getSchema();
+            } catch (SQLException ignored) {
+            }
+            while (rs.next()) {
+                String tableName = rs.getString("TABLE_NAME");
+                boolean canAddTable = false;
+                if (tableNames == null) {
+                    canAddTable = true;
+                } else {
+                    for (String tabName : tableNames) {
+                        if (tabName.equalsIgnoreCase(tableName)) {
+                            canAddTable = true;
+                            break;
+                        }
+                    }
+                }
+                if (!canAddTable) {
+                    continue;
+                }
+                SimpleTableInfo tab = new SimpleTableInfo();
+                if (dbSchema != null) {
+                    tab.setSchema(dbSchema.toUpperCase());
+                }
+                tab.setTableName(tableName);
+                tab.setTableComment(rs.getString("COMMENTS"));
+                tab.setTableLabelName(
+                    StringUtils.substring(rs.getString("COMMENTS"), 0, 80));
+                String tt = rs.getString("TABLE_TYPE");
+                tab.setTableType("VIEW".equalsIgnoreCase(tt) ? "V" : "T");
+                if (withColumn) {
+                    fetchTableDetail(tab);
+                }
+                tables.add(tab);
+            }
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return tables;
     }
 
-    public SimpleTableInfo getTableMetadata(String tabName) {
-        SimpleTableInfo tab = new SimpleTableInfo(tabName);
-
+    private void fetchTableDetail(SimpleTableInfo tab) {
+        String tabName = tab.getTableName();
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlGetTabColumns)) {
-            tab.setSchema(dbc.getSchema().toUpperCase());
             pStmt.setString(1, tabName);
             try (ResultSet rs = pStmt.executeQuery()) {
                 while (rs.next()) {
@@ -77,22 +118,16 @@ public class OracleMetadata implements DatabaseMetadata {
                     field.setColumnType(rs.getString("DATA_TYPE"));
                     int l = rs.getInt("DATA_LENGTH");
                     int p = rs.getInt("DATA_PRECISION");
-                    field.setMaxLength(p >0 ? p : l);
+                    field.setMaxLength(p > 0 ? p : l);
                     field.setScale(rs.getInt("DATA_SCALE"));
                     field.setNullEnable(rs.getString("NULLABLE"));
                     field.mapToMetadata();
-
                     tab.addColumn(field);
                 }
             }
         } catch (SQLException e) {
             logger.error(e.getLocalizedMessage(), e);
         }
-
-        if(tab.getColumns().size()==0){
-            return null;
-        }
-        // get primary key
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlPKName)) {
             pStmt.setString(1, tabName);
             try (ResultSet rs = pStmt.executeQuery()) {
@@ -102,6 +137,9 @@ public class OracleMetadata implements DatabaseMetadata {
             }
         } catch (SQLException e) {
             logger.error(e.getLocalizedMessage(), e);
+        }
+        if (tab.getPkName() == null) {
+            return;
         }
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlPKColumns)) {
             pStmt.setString(1, tab.getPkName());
@@ -113,7 +151,7 @@ public class OracleMetadata implements DatabaseMetadata {
         } catch (SQLException e) {
             logger.error(e.getLocalizedMessage(), e);
         }
-        // get reference info
+
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlFKNames)) {
             pStmt.setString(1, tab.getPkName());
             try (ResultSet rs = pStmt.executeQuery()) {
@@ -128,9 +166,8 @@ public class OracleMetadata implements DatabaseMetadata {
         } catch (SQLException e) {
             logger.error(e.getLocalizedMessage(), e);
         }
-        // get reference detail
-        for (Iterator<SimpleTableReference> it = tab.getReferences().iterator(); it.hasNext(); ) {
-            SimpleTableReference ref = it.next();
+
+        for (SimpleTableReference ref : tab.getReferences()) {
             try (PreparedStatement pStmt = dbc.prepareStatement(sqlFKColumns)) {
                 pStmt.setString(1, ref.getReferenceCode());
                 try (ResultSet rs = pStmt.executeQuery()) {
@@ -142,6 +179,19 @@ public class OracleMetadata implements DatabaseMetadata {
             } catch (SQLException e) {
                 logger.error(e.getLocalizedMessage(), e);
             }
+        }
+    }
+
+    public SimpleTableInfo getTableMetadata(String tabName) {
+        SimpleTableInfo tab = new SimpleTableInfo(tabName);
+        try {
+            tab.setSchema(dbc.getSchema().toUpperCase());
+        } catch (SQLException e) {
+            logger.error(e.getLocalizedMessage(), e);
+        }
+        fetchTableDetail(tab);
+        if (tab.getColumns().isEmpty()) {
+            return null;
         }
         return tab;
     }
