@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class PdmReader implements DatabaseMetadata {
@@ -20,7 +21,6 @@ public class PdmReader implements DatabaseMetadata {
 
     private Document doc = null;
     private String sDBSchema = null;
-    private List<String> pkColumnIDs;
 
     public boolean loadPdmFile(String sPath) {
         boolean b = false;
@@ -32,12 +32,10 @@ public class PdmReader implements DatabaseMetadata {
             //Attribute attr;
             doc = builder.read(is);
             b = true;
-        } catch (DocumentException e) {
-            logger.error(e.getMessage(), e);//e.printStackTrace();
-        } catch (IOException e) {
+        } catch (DocumentException | IOException e) {
             logger.error(e.getMessage(), e);//e.printStackTrace();
         }
-        return b;
+        return !b;
     }
 
     private QName getPdmQName(String sPreFix, String sName) {
@@ -49,15 +47,6 @@ public class PdmReader implements DatabaseMetadata {
             uri = "object";
         return new QName(sName, Namespace.get(sPreFix, uri), sPreFix + ':' + sName);
     }
-
-/*    @SuppressWarnings("unused")
-    private QName getPdmQName(String sQName)
-    {
-        int nPos = sQName.indexOf(':');
-        String sPreFix = sQName.substring(0,nPos);
-        String sName = sQName.substring(nPos+1);
-        return getPdmQName( sPreFix, sName);
-    }*/
 
     private String getElementText(Element e, String sPreFix, String sName) {
         if (e == null)
@@ -83,7 +72,7 @@ public class PdmReader implements DatabaseMetadata {
      */
     public List<Pair<String, String>> getAllTableCode() {
         List<Pair<String, String>> tabNames = new ArrayList<>();
-        List<Node> tabNodes = (List<Node>) doc.selectNodes("//c:Tables/o:Table");
+        List<Node> tabNodes = doc.selectNodes("//c:Tables/o:Table");
         for (Node tNode : tabNodes) {
             tabNames.add(new ImmutablePair<String, String>(
                 getElementText((Element) tNode, "a", "Code"),
@@ -93,7 +82,7 @@ public class PdmReader implements DatabaseMetadata {
     }
 
     public SimpleTableInfo getTableMetadata(String tabName) {
-        pkColumnIDs = new ArrayList<>();
+        List<String> pkColumnIDs = new ArrayList<>();
         if (doc == null)
             return null;
         SimpleTableInfo tab = new SimpleTableInfo(tabName.toUpperCase());
@@ -105,7 +94,6 @@ public class PdmReader implements DatabaseMetadata {
             return null;
         //System.out.println(nTab.asXML());
         Element eTab = (Element) nTab;
-
         tab.setTableLabelName(getElementText(eTab, "a", "Name"));
         tab.setTableComment(getElementText(eTab, "a", "Comment"));
         //System.out.println(getElementText(eTab.element("a:Name")));
@@ -113,7 +101,7 @@ public class PdmReader implements DatabaseMetadata {
         if (elColumns == null)
             return tab;
         //获取 表的字段列表
-        List<Element> columns = (List<Element>) elColumns.elements(getPdmQName("o", "Column"));///o:Column
+        List<Element> columns = elColumns.elements(getPdmQName("o", "Column"));///o:Column
         for (Element col : columns) {
             SimpleTableField field = new SimpleTableField();
             field.setColumnName(getElementText(col, "a", "Code"));
@@ -214,16 +202,52 @@ public class PdmReader implements DatabaseMetadata {
             sDBSchema = schema.toUpperCase();
     }
 
-    /*
-        public static void main(String[] args) {
-            PdmReader reader = new PdmReader();
-            reader.loadPdmFile("E:\\temp\\BS开发框架.xml");
-            reader.getTableMetadata("TEST_REF");
-        }
-    */
     @Override
     public void setDBConfig(Connection dbc) {
         // not needed
+    }
+
+    @Override
+    public List<SimpleTableInfo> listTables(boolean withColumn, String[] tableNames) {
+        if (doc == null)
+            return Collections.emptyList();
+        List<SimpleTableInfo> tables = new ArrayList<>();
+        List<Node> tabNodes = doc.selectNodes("//c:Tables/o:Table");
+        for (Node tNode : tabNodes) {
+            Element eTab = (Element) tNode;
+            String tableCode = getElementText(eTab, "a", "Code");
+            if (tableCode == null)
+                continue;
+            boolean canAddTable = false;
+            if (tableNames == null) {
+                canAddTable = true;
+            } else {
+                for (String tabName : tableNames) {
+                    if (tabName.equalsIgnoreCase(tableCode)) {
+                        canAddTable = true;
+                        break;
+                    }
+                }
+            }
+            if (!canAddTable)
+                continue;
+            if (withColumn) {
+                SimpleTableInfo tab = getTableMetadata(tableCode);
+                if (tab != null) {
+                    tab.setTableType("T");
+                    tables.add(tab);
+                }
+            } else {
+                SimpleTableInfo tab = new SimpleTableInfo(tableCode.toUpperCase());
+                if (sDBSchema != null)
+                    tab.setSchema(sDBSchema);
+                tab.setTableLabelName(getElementText(eTab, "a", "Name"));
+                tab.setTableComment(getElementText(eTab, "a", "Comment"));
+                tab.setTableType("T");
+                tables.add(tab);
+            }
+        }
+        return tables;
     }
 
 }
