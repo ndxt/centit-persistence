@@ -23,7 +23,6 @@ public class PdmReader implements DatabaseMetadata {
     private String sDBSchema = null;
 
     public boolean loadPdmFile(String sPath) {
-        boolean b = false;
         try (FileInputStream is = new FileInputStream(new File(sPath))) {
             //InputStream is = getClass().getResourceAsStream(sPath + sHbmFile);
             SAXReader builder = new SAXReader(false);
@@ -31,11 +30,12 @@ public class PdmReader implements DatabaseMetadata {
             builder.setEntityResolver(new IgnoreDTDEntityResolver());
             //Attribute attr;
             doc = builder.read(is);
-            b = true;
+            return true;
         } catch (DocumentException | IOException e) {
             logger.error(e.getMessage(), e);//e.printStackTrace();
+            return false;
         }
-        return !b;
+
     }
 
     private QName getPdmQName(String sPreFix, String sName) {
