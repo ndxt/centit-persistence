@@ -33,7 +33,7 @@ public class JdbcMetadata implements DatabaseMetadata {
 
             DatabaseMetaData dbmd = dbc.getMetaData();
             //dbmd.getTables()
-            ResultSet rs = dbmd.getTables(dbCatalog, dbSechema, null, null);
+            ResultSet rs = dbmd.getTables(dbCatalog, dbSechema, null, new String[]{"TABLE", "VIEW"});
             boolean canAddTable;
             while (rs.next()) {
                 canAddTable = false;
