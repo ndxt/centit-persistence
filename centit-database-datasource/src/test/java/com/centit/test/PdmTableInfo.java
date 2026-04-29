@@ -21,17 +21,16 @@ public class PdmTableInfo {
 
     public static List<Pair<String, String>> listTablesInPdm(String pdmFilePath) {
         PdmReader pdmReader = new PdmReader();
-        if (!pdmReader.loadPdmFile(pdmFilePath))
-            return null;
-
-        return pdmReader.getAllTableCode();
+        if (pdmReader.loadPdmFile(pdmFilePath))
+            return pdmReader.getAllTableCode();
+        return null;
     }
 
     public static SimpleTableInfo importTableFromPdm(String pdmFilePath, String tableCode) {
         PdmReader pdmReader = new PdmReader();
-        if (!pdmReader.loadPdmFile(pdmFilePath))
-            return null;
-        return pdmReader.getTableMetadata(tableCode);
+        if (pdmReader.loadPdmFile(pdmFilePath))
+            return pdmReader.getTableMetadata(tableCode);
+        return null;
     }
 
 }

@@ -462,8 +462,8 @@ public abstract class BaseDaoImpl<T, PK> {
         return 0;
     }
 
-    private int updateObjectWithVersion(final Object o, Collection<String> fields){
-        return jdbcTemplate.execute(
+    private int updateObjectWithVersion(Collection<String> fields, final Object o){
+        Integer result = jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn -> {
                     TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(o.getClass());
                     JsonObjectDao sqlDialect = GeneralJsonObjectDao.createJsonObjectDao(conn, mapInfo);
@@ -479,12 +479,11 @@ public abstract class BaseDaoImpl<T, PK> {
                     //设置新版本
                     mapInfo.setObjectFieldValue(o, field, ewvto.calcNextVersion());
                     Map<String, Object> objMap = OrmUtils.fetchObjectDatabaseField(o, mapInfo);
-
-                    if (!GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, objMap)) {
+                    if (objMap== null || !GeneralJsonObjectDao.checkHasAllPkColumns(mapInfo, objMap)) {
                         throw new SQLException("缺少主键对应的属性。");
                     }
                     String sql = GeneralJsonObjectDao.buildUpdateSql(mapInfo,
-                            fields==null? objMap.keySet():fields);
+                            fields==null? objMap.keySet() : fields);
                     if(sql==null) { // 没有需要更新的内容
                         return 0;
                     }
@@ -493,15 +492,17 @@ public abstract class BaseDaoImpl<T, PK> {
                     objMap.put("_oldVersion", oleVsersion);
                     return DatabaseAccess.doExecuteNamedSql(conn, sql, objMap);
                 });
+        return result==null?0:result;
     }
 
     private int innerUpdateObject(final Object o) {
         if (o instanceof EntityWithVersionTag) {
-            return updateObjectWithVersion(o, null);
+            return updateObjectWithVersion(null, o);
         }
-        return jdbcTemplate.execute(
+        Integer result = jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.updateObject(conn, o));
+        return result==null?0:result;
     }
 
     public int updateObject(final T o) {
@@ -517,11 +518,12 @@ public abstract class BaseDaoImpl<T, PK> {
     public int updateObject(Collection<String> fields, T object)
             throws ObjectException {
         if (object instanceof EntityWithVersionTag) {
-            return updateObjectWithVersion(object, fields);
+            return updateObjectWithVersion(fields, object);
         }
-        return jdbcTemplate.execute(
+        Integer result = jdbcTemplate.execute(
                 (ConnectionCallback<Integer>) conn ->
                         OrmDaoUtils.updateObject(conn, fields, object));
+        return result==null?0:result;
     }
 
     /**
@@ -533,9 +535,6 @@ public abstract class BaseDaoImpl<T, PK> {
      */
     public int updateObject(String[] fields, T object)
             throws ObjectException {
-        if (object instanceof EntityWithVersionTag) {
-            return updateObjectWithVersion(object, CollectionsOpt.arrayToList(fields));
-        }
         return  updateObject(CollectionsOpt.arrayToList(fields), object);
     }
 
@@ -627,8 +626,9 @@ public abstract class BaseDaoImpl<T, PK> {
     public T fetchObjectReference(T object, String columnName) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         SimpleTableReference ref = mapInfo.findReference(columnName);
-        if(ref==null || ref.getReferenceColumns().isEmpty())
+        if(ref==null || ref.getReferenceColumns().isEmpty()){
             return object;
+        }
         Class<?> refType = ref.getTargetEntityType();
         List<?> refs = innerFetchObjectReference(object, ref);
 

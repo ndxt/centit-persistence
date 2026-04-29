@@ -1,5 +1,6 @@
 package com.centit.support.database.metadata;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,7 +8,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class SqlSvrMetadata implements DatabaseMetadata {
@@ -68,50 +70,97 @@ public class SqlSvrMetadata implements DatabaseMetadata {
         sDBSchema = schema;
     }
 
-    public SimpleTableInfo getTableMetadata(String tabName) {
-        SimpleTableInfo tab = new SimpleTableInfo(tabName);
+    @Override
+    public List<SimpleTableInfo> listTables(boolean withColumn, String[] tableNames) {
+        List<SimpleTableInfo> tables = new ArrayList<>(100);
+        String sql = "SELECT a.name AS TABLE_NAME, a.xtype AS TABLE_TYPE, " +
+            "CAST(p.value AS NVARCHAR(MAX)) AS COMMENTS " +
+            "FROM sysobjects a " +
+            "LEFT JOIN sys.extended_properties p ON p.major_id = a.id AND p.minor_id = 0 AND p.name = 'MS_Description' " +
+            "WHERE a.xtype IN ('U ', 'V ')";
+        try (PreparedStatement pStmt = dbc.prepareStatement(sql);
+             ResultSet rs = pStmt.executeQuery()) {
+            String dbSchema = null;
+            try {
+                dbSchema = dbc.getSchema();
+            } catch (SQLException ignored) {
+            }
+            while (rs.next()) {
+                String tableName = rs.getString("TABLE_NAME");
+                boolean canAddTable = false;
+                if (tableNames == null) {
+                    canAddTable = true;
+                } else {
+                    for (String tabName : tableNames) {
+                        if (tabName.equalsIgnoreCase(tableName)) {
+                            canAddTable = true;
+                            break;
+                        }
+                    }
+                }
+                if (!canAddTable) {
+                    continue;
+                }
+                SimpleTableInfo tab = new SimpleTableInfo();
+                if (dbSchema != null) {
+                    tab.setSchema(dbSchema.toUpperCase());
+                }
+                tab.setTableName(tableName);
+                tab.setTableComment(rs.getString("COMMENTS"));
+                tab.setTableLabelName(
+                    StringUtils.substring(rs.getString("COMMENTS"), 0, 80));
+                String tt = rs.getString("TABLE_TYPE").trim();
+                tab.setTableType("V".equalsIgnoreCase(tt) ? "V" : "T");
+                if (withColumn) {
+                    fetchTableDetail(tab);
+                }
+                tables.add(tab);
+            }
+        } catch (SQLException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return tables;
+    }
+
+    private void fetchTableDetail(SimpleTableInfo tab) {
+        String tabName = tab.getTableName();
         int tableId = 0, pkIndId = 0;
 
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlGetTabColumns)) {
-            tab.setSchema(dbc.getSchema().toUpperCase());
-            // get columns
             pStmt.setString(1, tabName);
             try (ResultSet rs = pStmt.executeQuery()) {
                 while (rs.next()) {
-                    // a.name, c.name AS typename, a.length , a.xprec, a.xscale, isnullable
                     SimpleTableField field = new SimpleTableField();
                     field.setColumnName(rs.getString("name"));
                     field.setColumnType(rs.getString("typename"));
                     int l = rs.getInt("length");
                     int p = rs.getInt("xprec");
-                    field.setMaxLength(p >0 ? p : l);
+                    field.setMaxLength(p > 0 ? p : l);
                     field.setScale(rs.getInt("xscale"));
                     field.setNullEnable(rs.getString("isnullable"));
                     field.mapToMetadata();
-
                     tab.addColumn(field);
                 }
             }
-        } catch (SQLException e1) {
-            logger.error(e1.getLocalizedMessage(), e1);
+        } catch (SQLException e) {
+            logger.error(e.getLocalizedMessage(), e);
         }
 
-        if(tab.getColumns().size()==0){
-            return null;
-        }
-        // get primary key
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlPKName)) {
             pStmt.setString(1, tabName);
             try (ResultSet rs = pStmt.executeQuery()) {
                 if (rs.next()) {
                     tab.setPkName(rs.getString("name"));
                     tableId = rs.getInt("parent_object_id");
-                    //pk_id = rs.getInt("object_id");
                     pkIndId = rs.getInt("unique_index_id");
                 }
             }
-        } catch (SQLException e1) {
-            logger.error(e1.getLocalizedMessage(), e1);
+        } catch (SQLException e) {
+            logger.error(e.getLocalizedMessage(), e);
+        }
+
+        if (tableId == 0) {
+            return;
         }
 
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlPKColumns)) {
@@ -122,41 +171,53 @@ public class SqlSvrMetadata implements DatabaseMetadata {
                     tab.setColumnAsPrimaryKey(rs.getString("name"));
                 }
             }
-        } catch (SQLException e1) {
-            logger.error(e1.getLocalizedMessage(), e1);
+        } catch (SQLException e) {
+            logger.error(e.getLocalizedMessage(), e);
         }
-        // get reference info
+
         try (PreparedStatement pStmt = dbc.prepareStatement(sqlFKNames)) {
             pStmt.setInt(1, tableId);
             try (ResultSet rs = pStmt.executeQuery()) {
                 while (rs.next()) {
                     SimpleTableReference ref = new SimpleTableReference();
                     ref.setParentTableName(tabName);
-                    //"select a.name,a.object_id,a.parent_object_id , b.name as tabname "+
                     ref.setTableName(rs.getString("tabname"));
                     ref.setReferenceCode(rs.getString("name"));
                     ref.setObjectId(rs.getInt("object_id"));
                     tab.addReference(ref);
                 }
             }
-        } catch (SQLException e1) {
-            logger.error(e1.getLocalizedMessage(), e1);
+        } catch (SQLException e) {
+            logger.error(e.getLocalizedMessage(), e);
         }
-        // get reference detail
-        for (Iterator<SimpleTableReference> it = tab.getReferences().iterator(); it.hasNext(); ) {
-            SimpleTableReference ref = it.next();
+
+        for (SimpleTableReference ref : tab.getReferences()) {
             try (PreparedStatement pStmt = dbc.prepareStatement(sqlFKColumns)) {
                 pStmt.setInt(1, ref.getObjectId());
                 try (ResultSet rs = pStmt.executeQuery()) {
                     while (rs.next()) {
-                        //"select a.name,a.object_id,a.parent_object_id , b.name as tabname "+
                         String columnName = rs.getString("name");
                         ref.addReferenceColumn(columnName, columnName);
                     }
                 }
-            } catch (SQLException e1) {
-                logger.error(e1.getLocalizedMessage(), e1);
+            } catch (SQLException e) {
+                logger.error(e.getLocalizedMessage(), e);
             }
+        }
+    }
+
+    public SimpleTableInfo getTableMetadata(String tabName) {
+        SimpleTableInfo tab = new SimpleTableInfo(tabName);
+        try {
+            tab.setSchema(dbc.getSchema().toUpperCase());
+        } catch (SQLException e) {
+            logger.error(e.getLocalizedMessage(), e);
+        }
+
+        fetchTableDetail(tab);
+
+        if (tab.getColumns().isEmpty()) {
+            return null;
         }
         return tab;
     }

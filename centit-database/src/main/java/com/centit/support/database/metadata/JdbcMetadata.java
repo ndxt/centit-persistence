@@ -21,12 +21,12 @@ public class JdbcMetadata implements DatabaseMetadata {
         this.dbc = dbc;
     }
 
+    @Override
     public List<SimpleTableInfo> listTables(boolean withColumn, String[] tableNames) {
         List<SimpleTableInfo> tables = new ArrayList<>(100);
+        String dbSechema = this.getDBSchema();
+        String dbCatalog = this.getDBCatalog();
         try {
-            String dbSechema = this.getDBSchema();
-            String dbCatalog = this.getDBCatalog();
-
             DatabaseMetaData dbmd = dbc.getMetaData();
             Set<String> tableNameSet = null;
             if (tableNames != null) {
@@ -35,30 +35,30 @@ public class JdbcMetadata implements DatabaseMetadata {
                     tableNameSet.add(name.toUpperCase());
                 }
             }
-            ResultSet rs = dbmd.getTables(dbCatalog, dbSechema, null, null);
-            while (rs.next()) {
-                if (tableNameSet != null && !tableNameSet.contains(rs.getString("TABLE_NAME").toUpperCase())) {
-                    continue;
-                }
-                SimpleTableInfo tab = new SimpleTableInfo();
-                if (dbSechema != null) {
-                    tab.setSchema(dbSechema.toUpperCase());
-                }
-                tab.setTableName(rs.getString("TABLE_NAME"));
-                tab.setTableComment(rs.getString("REMARKS"));
-                tab.setTableLabelName(
-                    StringUtils.substring(tab.getTableComment(),0, 80));
-                String tt = rs.getString("TABLE_TYPE");
-                if ("view".equalsIgnoreCase(tt) || "table".equalsIgnoreCase(tt)) {
-                    if (withColumn) {
-                        fetchTableDetail(tab, dbmd);
+            try (ResultSet rs = dbmd.getTables(dbCatalog, dbSechema, null, new String[]{"TABLE", "VIEW"})) {
+                while (rs.next()) {
+                    if (tableNameSet != null && !tableNameSet.contains(rs.getString("TABLE_NAME").toUpperCase())) {
+                        continue;
                     }
-                    tab.setTableType("view".equalsIgnoreCase(tt) ? "V" : "T");
-                    tables.add(tab);
+                    SimpleTableInfo tab = new SimpleTableInfo();
+                    if (dbSechema != null) {
+                        tab.setSchema(dbSechema.toUpperCase());
+                    }
+                    tab.setTableName(rs.getString("TABLE_NAME"));
+                    tab.setTableComment(rs.getString("REMARKS"));
+                    tab.setTableLabelName(
+                        StringUtils.substring(tab.getTableComment(), 0, 80));
+                    String tt = rs.getString("TABLE_TYPE");
+                    if ("view".equalsIgnoreCase(tt) || "table".equalsIgnoreCase(tt)) {
+                        if (withColumn) {
+                            fetchTableDetail(tab, dbmd);
+                        }
+                        tab.setTableType("view".equalsIgnoreCase(tt) ? "V" : "T");
+                        tables.add(tab);
+                    }
                 }
             }
-            rs.close();
-        } catch (SQLException e) {
+        }catch (SQLException e) {
             logger.error(e.getMessage(), e);
         }
         return tables;

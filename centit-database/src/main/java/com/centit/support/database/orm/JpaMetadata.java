@@ -280,7 +280,7 @@ public abstract class JpaMetadata {
         //先 注册一下，避免 交叉引用时 死循环
         ORM_JPA_METADATA_CLASSPATH.put(objClass.getName(), mapInfo);
         // 整理 引用字段 ; 如果引用是字段名 就整理为 属性名
-        if (mapInfo.getReferences() != null && mapInfo.getReferences().size() > 0) {
+        if (mapInfo.getReferences() != null && !mapInfo.getReferences().isEmpty()) {
             Set<SimpleTableReference> errorRef = new HashSet<>(mapInfo.getReferences().size());
             for (SimpleTableReference reference : mapInfo.getReferences()) {
                 TableMapInfo refTalbeInfo = fetchTableMapInfo(reference.getTargetEntityType());
@@ -304,7 +304,7 @@ public abstract class JpaMetadata {
                 }
             }
 
-            if (errorRef.size() > 0) {
+            if (!errorRef.isEmpty()) {
                 mapInfo.getReferences().removeAll(errorRef);
             }
         }
