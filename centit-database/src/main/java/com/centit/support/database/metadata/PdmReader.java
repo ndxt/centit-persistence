@@ -1,16 +1,17 @@
 package com.centit.support.database.metadata;
 
-import com.centit.support.xml.IgnoreDTDEntityResolver;
+import com.centit.support.algorithm.NumberBaseOpt;
+import com.centit.support.xml.XMLObject;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dom4j.*;
-import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,21 +22,23 @@ public class PdmReader implements DatabaseMetadata {
 
     private Document doc = null;
     private String sDBSchema = null;
-
-    public boolean loadPdmFile(String sPath) {
-        try (FileInputStream is = new FileInputStream(new File(sPath))) {
-            //InputStream is = getClass().getResourceAsStream(sPath + sHbmFile);
-            SAXReader builder = new SAXReader(false);
-            builder.setValidation(false);
-            builder.setEntityResolver(new IgnoreDTDEntityResolver());
-            //Attribute attr;
-            doc = builder.read(is);
+    public boolean loadPdmFile(InputStream xmlStream) {
+        try{
+            doc = XMLObject.parseXmlStreamIgnoreDtd(xmlStream);
             return true;
-        } catch (DocumentException | IOException e) {
+        } catch (DocumentException e) {
             logger.error(e.getMessage(), e);//e.printStackTrace();
             return false;
         }
+    }
 
+    public boolean loadPdmFile(String sPath) {
+        try (FileInputStream is = new FileInputStream(new File(sPath))) {
+            return loadPdmFile(is);
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);//e.printStackTrace();
+            return false;
+        }
     }
 
     private QName getPdmQName(String sPreFix, String sName) {
@@ -110,7 +113,7 @@ public class PdmReader implements DatabaseMetadata {
             field.setColumnType(getElementText(col, "a", "DataType"));
             String stemp = getElementText(col, "a", "Length");
             if (stemp != null) {
-                field.setMaxLength(Integer.valueOf(stemp));
+                field.setMaxLength(NumberBaseOpt.castObjectToInteger(stemp, -1));
             }
             //PDM 中的这个定义和数据库中的好像不一致
             stemp = getElementText(col, "a", "Precision");

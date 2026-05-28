@@ -64,7 +64,7 @@ public class SimpleTableReference implements TableReference {
     }
 
     public boolean containColumn(String sCol) {
-        if (sCol == null || referenceColumns == null || referenceColumns.size() == 0)
+        if (sCol == null || referenceColumns == null || referenceColumns.isEmpty())
             return false;
         return referenceColumns.containsKey(sCol);
     }
@@ -158,12 +158,12 @@ public class SimpleTableReference implements TableReference {
         }*/
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(parentObject.getClass());
         Map<String, Object> fk = new HashMap<>(8);
-        for (Map.Entry<String, String> end : referenceColumns.entrySet()) {
-            Object fkValue = mapInfo.getObjectFieldValue(parentObject, end.getKey());
+        for (Map.Entry<String, String> ent : referenceColumns.entrySet()) {
+            Object fkValue = mapInfo.getObjectFieldValue(parentObject, ent.getKey());
             if (fkValue == null) {
                 return null;
             }
-            fk.put(end.getValue(), fkValue);
+            fk.put(ent.getValue(), fkValue);
         }
         return fk;
     }
@@ -171,12 +171,12 @@ public class SimpleTableReference implements TableReference {
     public Map<String, Object> fetchParentPk(Object childObject) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(childObject.getClass());
         Map<String, Object> pk = new HashMap<>(8);
-        for (Map.Entry<String, String> end : referenceColumns.entrySet()) {
-            Object fkValue = mapInfo.getObjectFieldValue(childObject, end.getValue());
+        for (Map.Entry<String, String> ent : referenceColumns.entrySet()) {
+            Object fkValue = mapInfo.getObjectFieldValue(childObject, ent.getValue());
             if (fkValue == null) {
                 return null;
             }
-            pk.put(end.getKey(), fkValue);
+            pk.put(ent.getKey(), fkValue);
         }
         return pk;
     }

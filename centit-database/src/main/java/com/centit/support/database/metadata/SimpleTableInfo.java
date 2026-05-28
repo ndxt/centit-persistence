@@ -173,7 +173,7 @@ public class SimpleTableInfo implements TableInfo {
         }
 
         for (SimpleTableField col : columns) {
-            if (StringUtils.equals(col.getPropertyName(), name))
+            if (col.getPropertyName().equals(name))
                 return col;
         }
 
@@ -215,7 +215,7 @@ public class SimpleTableInfo implements TableInfo {
     }
 
     public boolean hasReferences() {
-        return references != null && references.size() > 0;
+        return references != null && !references.isEmpty();
     }
 
     public void addReference(SimpleTableReference reference) {
