@@ -183,7 +183,7 @@ public abstract class FieldType {
             return ft;
         switch (ft) {
             case STRING:
-                return "varchar";
+                return "lvarchar"; //南大通用 GBase 8s  varchar 最多支持255 个字符，保险起见用这个
             case INTEGER:
                 return "int";
             case IDENTITY:
@@ -203,7 +203,7 @@ public abstract class FieldType {
                 return "datatime";
             case TEXT:
             case JSON_OBJECT:
-                return "clob";//长文本
+                return  "TEXT"; // "clob"也可以 TEXT < 2GB , CLOB < 4TB 感觉没有必要
             case BYTE_ARRAY:
             case FILE:
                 return "blob";//大字段
@@ -498,6 +498,8 @@ public abstract class FieldType {
             "VARCHAR2".equalsIgnoreCase(columnType) ||
             "NCHAR".equalsIgnoreCase(columnType) ||
             "NVARCHAR".equalsIgnoreCase(columnType) ||
+            "LVARCHAR".equalsIgnoreCase(columnType) ||
+            "CHARACTER VARYING".equalsIgnoreCase(columnType) ||
             "CHARACTER".equalsIgnoreCase(columnType) ||
             "NATIVE_CHARACTER".equalsIgnoreCase(columnType) ||
             "CLOB".equalsIgnoreCase(columnType) ||
@@ -538,6 +540,8 @@ public abstract class FieldType {
             FieldType.INTEGER.equalsIgnoreCase(columnType)) {
             return Integer.class;
         } else if ("Float64".equalsIgnoreCase(columnType) ||
+            "REAL".equalsIgnoreCase(columnType) ||
+            "DOUBLE PRECISION".equalsIgnoreCase(columnType) ||
             FieldType.DOUBLE.equalsIgnoreCase(columnType)) {
             return Double.class;
         } else if ("BIGINT".equalsIgnoreCase(columnType) ||
@@ -658,7 +662,9 @@ public abstract class FieldType {
             "VARCHAR2".equalsIgnoreCase(columnType) ||
             "NCHAR".equalsIgnoreCase(columnType) ||
             "NVARCHAR".equalsIgnoreCase(columnType) ||
+            "LVARCHAR".equalsIgnoreCase(columnType) ||
             "CHARACTER".equalsIgnoreCase(columnType) ||
+            "CHARACTER VARYING".equalsIgnoreCase(columnType) ||
             "NATIVE_CHARACTER".equalsIgnoreCase(columnType)) {
             return FieldType.STRING;
         } else if ("DATE".equalsIgnoreCase(columnType) ||
@@ -678,7 +684,9 @@ public abstract class FieldType {
             return FieldType.BYTE_ARRAY;
         } else if ("FLOAT".equalsIgnoreCase(columnType)) {
             return FieldType.FLOAT;
-        } else if ("DOUBLE".equalsIgnoreCase(columnType)) {
+        } else if ("DOUBLE".equalsIgnoreCase(columnType)  ||
+             "REAL".equalsIgnoreCase(columnType) ||
+             "DOUBLE PRECISION".equalsIgnoreCase(columnType)) {
             return FieldType.DOUBLE;
         } else  if ("BIGINT".equalsIgnoreCase(columnType) ||
             "INT64".equalsIgnoreCase(columnType) ||
