@@ -183,7 +183,7 @@ public abstract class FieldType {
             return ft;
         switch (ft) {
             case STRING:
-                return "lvarchar";
+                return "varchar";
             case INTEGER:
                 return "int";
             case IDENTITY:
@@ -486,6 +486,7 @@ public abstract class FieldType {
 
     public static Class<?> mapToJavaType(String columnType, int scale) {
         if ("NUMBER".equalsIgnoreCase(columnType) ||
+            "NUMERIC".equalsIgnoreCase(columnType) ||
             "DECIMAL".equalsIgnoreCase(columnType)) {
             if (scale > 0) {
                 return BigDecimal.class;
@@ -495,6 +496,10 @@ public abstract class FieldType {
         } else if ("CHAR".equalsIgnoreCase(columnType) ||
             "VARCHAR".equalsIgnoreCase(columnType) ||
             "VARCHAR2".equalsIgnoreCase(columnType) ||
+            "NCHAR".equalsIgnoreCase(columnType) ||
+            "NVARCHAR".equalsIgnoreCase(columnType) ||
+            "CHARACTER".equalsIgnoreCase(columnType) ||
+            "NATIVE_CHARACTER".equalsIgnoreCase(columnType) ||
             "CLOB".equalsIgnoreCase(columnType) ||
             "TEXT".equalsIgnoreCase(columnType) ||
             "FixedString".equalsIgnoreCase(columnType) ||
@@ -650,7 +655,11 @@ public abstract class FieldType {
             }
         } else if ("CHAR".equalsIgnoreCase(columnType) ||
             "VARCHAR".equalsIgnoreCase(columnType) ||
-            "VARCHAR2".equalsIgnoreCase(columnType)) {
+            "VARCHAR2".equalsIgnoreCase(columnType) ||
+            "NCHAR".equalsIgnoreCase(columnType) ||
+            "NVARCHAR".equalsIgnoreCase(columnType) ||
+            "CHARACTER".equalsIgnoreCase(columnType) ||
+            "NATIVE_CHARACTER".equalsIgnoreCase(columnType)) {
             return FieldType.STRING;
         } else if ("DATE".equalsIgnoreCase(columnType) ||
             "SQLDATE".equalsIgnoreCase(columnType) ){
