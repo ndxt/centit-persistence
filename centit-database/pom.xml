@@ -35,6 +35,13 @@
             <artifactId>sqlite-jdbc</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.dm</groupId>
+            <artifactId>dmjdbc7</artifactId>
+            <version>${dmjdbc.version}</version>
+            <scope>test</scope>
+        </dependency>
         <!--<dependency>
             <groupId>commons-dbutils</groupId>
             <artifactId>commons-dbutils</artifactId>

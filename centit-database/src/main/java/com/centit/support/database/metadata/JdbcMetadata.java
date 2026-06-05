@@ -30,7 +30,6 @@ public class JdbcMetadata implements DatabaseMetadata {
         try {
             String dbSechema = this.getDBSchema();
             String dbCatalog = this.getDBCatalog();
-
             DatabaseMetaData dbmd = dbc.getMetaData();
             //dbmd.getTables()
             ResultSet rs = dbmd.getTables(dbCatalog, dbSechema, null, new String[]{"TABLE", "VIEW"});
@@ -103,10 +102,10 @@ public class JdbcMetadata implements DatabaseMetadata {
             rs.close();
 
             rs = dbmd.getExportedKeys(dbCatalog, dbSchema, tabName);
-            Map<String, SimpleTableReference> refs = new HashMap<String, SimpleTableReference>();
+            Map<String, SimpleTableReference> referenceHashMap = new HashMap<>();
             while (rs.next()) {
                 String fkTableName = rs.getString("FKTABLE_NAME");
-                SimpleTableReference ref = refs.get(fkTableName);
+                SimpleTableReference ref = referenceHashMap.get(fkTableName);
                 if (ref == null) {
                     ref = new SimpleTableReference();
                     ref.setTableName(fkTableName);
@@ -115,10 +114,11 @@ public class JdbcMetadata implements DatabaseMetadata {
                 }
                 ref.addReferenceColumn(rs.getString("PKCOLUMN_NAME"),
                     rs.getString("FKCOLUMN_NAME"));
+                referenceHashMap.put(fkTableName, ref);
             }
             rs.close();
 
-            for (Map.Entry<String, SimpleTableReference> entry : refs.entrySet()) {
+            for (Map.Entry<String, SimpleTableReference> entry : referenceHashMap.entrySet()) {
                 tab.addReference(entry.getValue());
             }
 
@@ -126,7 +126,7 @@ public class JdbcMetadata implements DatabaseMetadata {
             logger.error(e.getMessage(), e);//e.printStackTrace();
         }
     }
-
+    // 这段通过jdbc获取数据库表结构（元数据）的代码 通用吗？是否兼容国产达梦数据库，特别是 数据长度 和 精度部分？
     /**
      * 没有获取外键
      */
