@@ -73,7 +73,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
      * @param tableInfo 表
      * @return Pair
      */
-    public static final Pair<Integer, String> checkTableWellDefined(final TableInfo tableInfo) {
+    public static Pair<Integer, String> checkTableWellDefined(final TableInfo tableInfo) {
         if (!Lexer.isLabel(tableInfo.getTableName())) {
             return new ImmutablePair<>(-1, "表名" + tableInfo.getTableName() + "格式不正确！");
         }
@@ -96,14 +96,14 @@ public abstract class GeneralDDLOperations implements DDLOperations {
         return new ImmutablePair<>(0, "ok！");
     }
 
-    public static final Pair<Integer, String> checkViewWellDefined(final TableInfo tableInfo) {
+    public static Pair<Integer, String> checkViewWellDefined(final TableInfo tableInfo) {
         if (!Lexer.isLabel(tableInfo.getTableName())) {
             return new ImmutablePair<>(-1, "视图名" + tableInfo.getTableName() + "格式不正确！");
         }
         return new ImmutablePair<>(0, "ok！");
     }
 
-    public static final SimpleTableInfo parseDDL(final String createSql) {
+    public static SimpleTableInfo parseDDL(final String createSql) {
         SimpleTableInfo tableInfo = new SimpleTableInfo();
         Lexer sql = new Lexer(createSql);
         String aWrod = sql.getAWord();
@@ -211,7 +211,7 @@ public abstract class GeneralDDLOperations implements DDLOperations {
     protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
         sbCreate.append("constraint ");
         if (StringUtils.isBlank(tableInfo.getPkName())) {
-            sbCreate.append("pk_" + tableInfo.getTableName());
+            sbCreate.append("pk_").append(tableInfo.getTableName());
         } else {
             sbCreate.append(tableInfo.getPkName());
         }
@@ -292,14 +292,21 @@ public abstract class GeneralDDLOperations implements DDLOperations {
 
     protected void appendColumnTypeSQL(final TableField field, StringBuilder sbCreate) {
         sbCreate.append(field.getColumnType());
+        String uppercaseColumnType = field.getColumnType().toUpperCase();
         //StringUtils.equalsIgnoreCase(str1, str2)
-        if ("varchar".equalsIgnoreCase(field.getColumnType()) || "varchar2".equalsIgnoreCase(field.getColumnType())) {
+        if (uppercaseColumnType.contains("VARCHAR") || uppercaseColumnType.contains("VARYING")) {
             if (field.getMaxLength() > 0) {
                 sbCreate.append("(").append(field.getMaxLength()).append(")");
             } else {
                 sbCreate.append("(64)");
             }
-        } else if ("number".equalsIgnoreCase(field.getColumnType()) || "decimal".equalsIgnoreCase(field.getColumnType())) {
+        } else if (uppercaseColumnType.contains("CHAR")) {
+            if (field.getMaxLength() > 0) {
+                sbCreate.append("(").append(field.getMaxLength()).append(")");
+            } else {
+                sbCreate.append("(1)");
+            }
+        } else if (StringUtils.equalsAny(uppercaseColumnType,"NUMBER", "NUMERIC", "DECIMAL")) {
             if (field.getMaxLength() > 0) {
                 sbCreate.append("(").append(field.getMaxLength());
             } else {
@@ -309,12 +316,6 @@ public abstract class GeneralDDLOperations implements DDLOperations {
                 sbCreate.append(",").append(field.getScale());
             }
             sbCreate.append(")");
-        } else if ("char".equalsIgnoreCase(field.getColumnType())) {
-            if (field.getMaxLength() > 0) {
-                sbCreate.append("(").append(field.getMaxLength()).append(")");
-            } else {
-                sbCreate.append("(1)");
-            }
         }
     }
 
@@ -349,25 +350,23 @@ public abstract class GeneralDDLOperations implements DDLOperations {
 
     @Override
     public String makeRenameColumnSql(final String tableCode, final String columnCode, TableField column) {
-        StringBuilder sbsql = new StringBuilder("alter table ");
-        sbsql.append(tableCode);
-        sbsql.append(" rename COLUMN ");
-        sbsql.append(columnCode);
-        sbsql.append(" to ");
-        sbsql.append(column.getColumnName());
-        return sbsql.toString();
+        return "alter table " + tableCode +
+            " rename COLUMN " +
+            columnCode +
+            " to " +
+            column.getColumnName();
     }
 
     @Override
     public List<String> makeReconfigurationColumnSqls(final String tableCode, final String columnCode, final TableField column) {
-        List<String> sqls = new ArrayList<String>();
+        List<String> sqlList = new ArrayList<>();
         SimpleTableField tempColumn = new SimpleTableField();
         tempColumn.setColumnName(columnCode + "_1");
-        sqls.add(makeRenameColumnSql(tableCode, columnCode, tempColumn));
-        sqls.add(makeAddColumnSql(tableCode, column));
-        sqls.add("update tableCode set " + column.getColumnName() + " = " + columnCode);
-        sqls.add(makeDropColumnSql(tableCode, columnCode + "_1"));
-        return sqls;
+        sqlList.add(makeRenameColumnSql(tableCode, columnCode, tempColumn));
+        sqlList.add(makeAddColumnSql(tableCode, column));
+        sqlList.add("update tableCode set " + column.getColumnName() + " = " + columnCode);
+        sqlList.add(makeDropColumnSql(tableCode, columnCode + "_1"));
+        return sqlList;
     }
 
     @Override

@@ -4,9 +4,9 @@ import com.alibaba.fastjson2.JSON;
 import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,6 +20,7 @@ public abstract class FieldType {
     public static final String IDENTITY = "identity";
     public static final String STRING = "string";
     public static final String INTEGER = "integer";
+    public static final String NUMBER = "decimal";
     public static final String FLOAT = "float";
     /**
      * 要考虑 定点数，用于存储金钱
@@ -149,6 +150,7 @@ public abstract class FieldType {
                 return "number(12,0)";
             case FLOAT:
             case DOUBLE:
+            case NUMBER:
                 return "number";
             case MONEY:
                 return "number(30,4)";
@@ -187,6 +189,7 @@ public abstract class FieldType {
                 return "bigint";
             case FLOAT:
             case DOUBLE:
+            case NUMBER:
                 return "decimal";
             case MONEY:
                 return "decimal(30,4)";
@@ -232,6 +235,7 @@ public abstract class FieldType {
                 return "bigint";
             case DOUBLE:
             case FLOAT:
+            case NUMBER:
                 return "decimal";
             case MONEY:
                 return "decimal(30,4)";
@@ -276,6 +280,7 @@ public abstract class FieldType {
                 return "INTEGER";
             case DOUBLE:
             case FLOAT:
+            case NUMBER:
                 return "DECIMAL";
             case MONEY:
                 return "DECIMAL(30,4)";
@@ -325,6 +330,8 @@ public abstract class FieldType {
                 return "FLOAT";
             case DOUBLE:
                 return "DOUBLE";
+            case NUMBER:
+                return "DECIMAL";
             case BOOLEAN:
                 return "varchar(1)";
             case DATE:
@@ -359,6 +366,8 @@ public abstract class FieldType {
             case IDENTITY:
             case LONG:
                 return "Int64";
+            case NUMBER:
+                return "DECIMAL";
             case MONEY:
                 return "Decimal32(4)";
             case FLOAT:
@@ -403,6 +412,7 @@ public abstract class FieldType {
                 return "money";
             case FLOAT:
             case DOUBLE:
+            case NUMBER:
                 return "decimal";
             case BOOLEAN:
                 return "char(1)";
@@ -462,6 +472,7 @@ public abstract class FieldType {
         Map<String, String> fts = new HashMap<>();
         fts.put(FieldType.STRING, "字符串");
         fts.put(FieldType.INTEGER, "整型");
+        fts.put(FieldType.NUMBER, "定点数");
         fts.put(FieldType.FLOAT, "浮点型");
         fts.put(FieldType.MONEY, "金额");
         fts.put(FieldType.DOUBLE, "双精度浮点型");
