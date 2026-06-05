@@ -514,7 +514,7 @@ public abstract class FieldType {
             "BFILE".equals(columnType) ||
             "JSONB".equals(columnType)) {
             return byte[].class;
-        } else if (FieldType.MONEY.equals(columnType) ||
+        } else if ("MONEY".equals(columnType) ||
             "DECIMAL32".equals(columnType) ||
             "DECIMAL64".equals(columnType) ||
             "DECIMAL128".equals(columnType)) {
@@ -530,7 +530,7 @@ public abstract class FieldType {
         } else if ("BIGINT".equals(columnType) ||
             "INT64".equals(columnType) ||
             "UINT64".equals(columnType) ||
-            FieldType.LONG.equals(columnType)) {
+            "LONG".equals(columnType)) {
             return Long.class;
         } else if (columnType.contains("INT")) {
             return Integer.class;
