@@ -115,7 +115,7 @@ public class TableMapInfo extends SimpleTableInfo {
             if (field.isPrimaryKey() && this.isEmbeddedId()) {
                 Object pkId = embeddedIdField.getBeanField().getObjectFieldValue(object);
                 if (pkId == null) {
-                    pkId = embeddedIdField.getJavaType().newInstance();
+                    pkId = embeddedIdField.getJavaType().getDeclaredConstructor().newInstance();
                     field.getBeanField().setObjectFieldValue(pkId, newValue);
                     embeddedIdField.getBeanField().setObjectFieldValue(object, pkId);
                 } else {
@@ -124,7 +124,7 @@ public class TableMapInfo extends SimpleTableInfo {
             } else {
                 field.getBeanField().setObjectFieldValue(object, newValue);
             }
-        } catch (IllegalAccessException | InstantiationException e) {
+        } catch (ReflectiveOperationException e) {
             ObjectException exception = new ObjectException(500, "创建EmbeddedId 实例错误", e);
             exception.setObjectData(this);
             throw exception;

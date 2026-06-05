@@ -176,7 +176,7 @@ public abstract class OrmUtils {
                                             "主键生成规则RANDOM_ID只能用于单主键表中！");
                                     }*/
                                     for (int i = 0; i < 100; i++) {
-                                        String no = prefix + RandomStringUtils.random(len, BASE62);
+                                        String no = prefix + RandomStringUtils.secure().next(len, BASE62);
                                         //检查唯一属性是否冲突
                                         if(NumberBaseOpt.castObjectToInteger(
                                             DatabaseAccess.fetchScalarObject(
@@ -197,7 +197,7 @@ public abstract class OrmUtils {
                                 String prefix = params.length > 1 ? params[1] : "";
                                 int len = NumberBaseOpt.castObjectToInteger(params[0], 10);
                                 for (int i = 0; i < 100; i++) {
-                                    String no = prefix + RandomStringUtils.random(len, DNS1123);
+                                    String no = prefix + RandomStringUtils.secure().next(len, DNS1123);
                                     //检查唯一属性是否冲突
                                     int nHasId = NumberBaseOpt.castObjectToInteger(
                                         DatabaseAccess.fetchScalarObject(
@@ -332,12 +332,12 @@ public abstract class OrmUtils {
     }
 
     public static <T> T  fetchObjectFormResultSet(ResultSet rs, Class<T> clazz, TableField[] fields)
-        throws SQLException, IllegalAccessException, InstantiationException, IOException {
+        throws SQLException, ReflectiveOperationException, IOException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(clazz);
         if (mapInfo == null)
             return null;
         if (rs.next()) {
-            return insideFetchFieldsFormResultSet(rs, clazz.newInstance(), mapInfo, fields);
+            return insideFetchFieldsFormResultSet(rs, clazz.getDeclaredConstructor().newInstance(), mapInfo, fields);
         } else {
             return null;
         }
@@ -352,12 +352,12 @@ public abstract class OrmUtils {
     }
 
     static <T> T fetchObjectFormResultSet(ResultSet rs, Class<T> clazz)
-        throws SQLException, IllegalAccessException, InstantiationException, IOException {
+        throws SQLException, ReflectiveOperationException, IOException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(clazz);
         if (mapInfo == null)
             return null;
         if (rs.next()) {
-            return insideFetchFieldsFormResultSet(rs, clazz.newInstance(), mapInfo);
+            return insideFetchFieldsFormResultSet(rs, clazz.getDeclaredConstructor().newInstance(), mapInfo);
         } else {
             return null;
         }
@@ -372,7 +372,7 @@ public abstract class OrmUtils {
     }
 
     static <T> List<T> fetchObjectListFormResultSet(ResultSet rs, Class<T> clazz, TableField[] fields)
-        throws SQLException, IllegalAccessException, InstantiationException, IOException {
+        throws SQLException, ReflectiveOperationException, IOException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(clazz);
         if (mapInfo == null)
             return null;
@@ -383,7 +383,7 @@ public abstract class OrmUtils {
 
         List<T> listObj = new ArrayList<>();
         while (rs.next()) {
-            T object = clazz.newInstance();
+            T object = clazz.getDeclaredConstructor().newInstance();
             for (int i = 0; i < fieldCount; i++) {
                 putResultSetObjectToField(object, mapInfo, (SimpleTableField) fields[i], rs,i + 1);
             }
@@ -393,7 +393,7 @@ public abstract class OrmUtils {
     }
 
     static <T> List<T> fetchObjectListFormResultSet(ResultSet rs, Class<T> clazz)
-        throws SQLException, IllegalAccessException, InstantiationException, IOException {
+        throws SQLException, ReflectiveOperationException, IOException {
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(clazz);
         if (mapInfo == null)
@@ -408,7 +408,7 @@ public abstract class OrmUtils {
 
         List<T> listObj = new ArrayList<>();
         while (rs.next()) {
-            T object = clazz.newInstance();
+            T object = clazz.getDeclaredConstructor().newInstance();
             for (int i = 1; i <= fieldCount; i++) {
                 if (fields[i] != null) {
                     putResultSetObjectToField(object, mapInfo, fields[i], rs, i);

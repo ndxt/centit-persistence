@@ -208,7 +208,7 @@ public abstract class OrmDaoUtils {
             //return obj;
         } catch (SQLException e) {
             throw new ObjectException(sqlAndParams.getQuery(), e);
-        } catch (IOException | InstantiationException | IllegalAccessException | NoSuchFieldException e) {
+        } catch (IOException | ReflectiveOperationException e) {
             throw new ObjectException(ObjectException.ILLEGALACCESS_EXCEPTION, e);
         }
     }
@@ -1079,7 +1079,7 @@ public abstract class OrmDaoUtils {
 
     public interface FetchDataWork<T> {
         T execute(ResultSet rs) throws SQLException, IOException, NoSuchFieldException,
-            InstantiationException, IllegalAccessException;
+            ReflectiveOperationException;
     }
 
     /**
