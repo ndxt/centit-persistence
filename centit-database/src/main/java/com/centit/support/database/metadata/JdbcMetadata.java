@@ -8,8 +8,12 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class JdbcMetadata implements DatabaseMetadata {
     protected static final Logger logger = LoggerFactory.getLogger(JdbcMetadata.class);
@@ -93,10 +97,10 @@ public class JdbcMetadata implements DatabaseMetadata {
             rs.close();
 
             rs = dbmd.getExportedKeys(dbCatalog, dbSchema, tabName);
-            Map<String, SimpleTableReference> refs = new HashMap<String, SimpleTableReference>();
+            Map<String, SimpleTableReference> referenceHashMap = new HashMap<>();
             while (rs.next()) {
                 String fkTableName = rs.getString("FKTABLE_NAME");
-                SimpleTableReference ref = refs.get(fkTableName);
+                SimpleTableReference ref = referenceHashMap.get(fkTableName);
                 if (ref == null) {
                     ref = new SimpleTableReference();
                     ref.setTableName(fkTableName);
@@ -105,10 +109,11 @@ public class JdbcMetadata implements DatabaseMetadata {
                 }
                 ref.addReferenceColumn(rs.getString("PKCOLUMN_NAME"),
                     rs.getString("FKCOLUMN_NAME"));
+                referenceHashMap.put(fkTableName, ref);
             }
             rs.close();
 
-            for (Map.Entry<String, SimpleTableReference> entry : refs.entrySet()) {
+            for (Map.Entry<String, SimpleTableReference> entry : referenceHashMap.entrySet()) {
                 tab.addReference(entry.getValue());
             }
 

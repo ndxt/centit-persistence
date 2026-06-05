@@ -7,6 +7,7 @@
         <artifactId>centit-persistence</artifactId>
         <version>JDK21-SNAPSHOT</version>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
     <artifactId>centit-database</artifactId>
     <name>com.centit.support:centit-database</name>
@@ -26,11 +27,11 @@
             <artifactId>jakarta.persistence-api</artifactId>
         </dependency>
 
-        <!--<dependency>
-            <groupId>org.xerial</groupId>
-            <artifactId>sqlite-jdbc</artifactId>
+        <dependency>
+            <groupId>com.dm</groupId>
+            <artifactId>dmjdbc7</artifactId>
             <scope>test</scope>
-        </dependency>-->
+        </dependency>
         <!--<dependency>
             <groupId>commons-dbutils</groupId>
             <artifactId>commons-dbutils</artifactId>
