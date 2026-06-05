@@ -33,7 +33,7 @@ public class PostgreSqlDDLOperations extends GeneralDDLOperations {
     @Override
     public String makeModifyColumnSql(String tableCode, TableField oldColumn, TableField column) {
         StringBuilder sbsql = new StringBuilder("alter table ");
-        Boolean modify=false;
+        boolean modify=false;
         sbsql.append(tableCode);
         sbsql.append(" ALTER ").append(column.getColumnName()).append(" ");
         if (!StringUtils.equalsIgnoreCase(oldColumn.getColumnType(), column.getColumnType())
@@ -46,8 +46,8 @@ public class PostgreSqlDDLOperations extends GeneralDDLOperations {
 
         if (oldColumn.isMandatory() != column.isMandatory()) {
             if(modify) {
-                sbsql.append(";alter table "+tableCode);
-                sbsql.append(" ALTER ").append(column.getColumnName()).append(" ");
+                sbsql.append(";alter table ").append(tableCode)
+                    .append(" ALTER ").append(column.getColumnName()).append(" ");
             }
             sbsql.append(column.isMandatory() ? " set not null" : " drop not null");
         }
