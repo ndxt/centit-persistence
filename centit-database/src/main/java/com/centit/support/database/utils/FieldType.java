@@ -742,7 +742,7 @@ public abstract class FieldType {
             case FieldType.LONG:
                 return "INTEGER";
             case FieldType.MONEY:
-                return "DECIMAL(20,4)";
+                return "NUMERIC(20,4)"; //sqlite 不支持 DECIMAL， 后面的 (20,4) 也没有实际意义
             case FieldType.DOUBLE:
             case FieldType.FLOAT:
                 return "REAL";
