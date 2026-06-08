@@ -134,85 +134,46 @@ public abstract class FieldType {
 
     /**
      * 转换到Oracle的字段
-     *
      * @param ft String
      * @return String
      */
     public static String mapToOracleColumnType(String ft) {
         if (StringUtils.isBlank(ft))
             return ft;
-        switch (ft) {
-            case STRING:
-                return "varchar2";
-            case IDENTITY:
-            case INTEGER:
-            case LONG:
-                return "number(12,0)";
-            case FLOAT:
-            case DOUBLE:
-            case NUMBER:
-                return "number";
-            case MONEY:
-                return "number(30,4)";
-            case BOOLEAN:
-                return "varchar2(1)";
-            case DATE:
-            case DATETIME:
-                return "Date";
-            case TIMESTAMP:
-                return "TimeStamp";
-            case TEXT:
-            case JSON_OBJECT:
-                return "clob";//长文本
-            case BYTE_ARRAY:
-            case FILE:
-                return "blob";//大字段
-            case FILE_ID:
-                return "varchar2(64)";//默认记录文件的ID号
-            case ENUM_NAME:
-                return "varchar2(64)";//
-            default:
-                return ft;
-        }
+        return switch (ft) {
+            case STRING -> "varchar2";
+            case IDENTITY, INTEGER, LONG -> "number(12,0)";
+            case FLOAT, DOUBLE, NUMBER -> "number";
+            case MONEY -> "number(30,4)";
+            case BOOLEAN -> "varchar2(1)";
+            case DATE, DATETIME -> "Date";
+            case TIMESTAMP -> "TimeStamp";
+            case TEXT, JSON_OBJECT -> "clob";//长文本
+            case BYTE_ARRAY, FILE -> "blob";//大字段
+            case FILE_ID -> "varchar2(64)";//默认记录文件的ID号
+            case ENUM_NAME -> "varchar2(64)";//
+            default -> ft;
+        };
     }
 
     public static String mapToGBaseColumnType(String ft) {
         if (StringUtils.isBlank(ft))
             return ft;
-        switch (ft) {
-            case STRING:
-                return "lvarchar"; //南大通用 GBase 8s  varchar 最多支持255 个字符，保险起见用这个
-            case INTEGER:
-                return "int";
-            case IDENTITY:
-            case LONG:
-                return "bigint";
-            case FLOAT:
-            case DOUBLE:
-            case NUMBER:
-                return "decimal";
-            case MONEY:
-                return "decimal(30,4)";
-            case BOOLEAN:
-                return "varchar(1)";
-            case DATE:
-                return "Date";
-            case DATETIME:
-            case TIMESTAMP:
-                return "datatime";
-            case TEXT:
-            case JSON_OBJECT:
-                return  "TEXT"; // "clob"也可以 TEXT < 2GB , CLOB < 4TB 感觉没有必要
-            case BYTE_ARRAY:
-            case FILE:
-                return "blob";//大字段
-            case FILE_ID:
-                return "varchar(64)";//默认记录文件的ID号
-            case ENUM_NAME:
-                return "varchar(64)";//
-            default:
-                return ft;
-        }
+        return switch (ft) {
+            case STRING -> "lvarchar"; //南大通用 GBase 8s  varchar 最多支持255 个字符，保险起见用这个
+            case INTEGER -> "int";
+            case IDENTITY, LONG -> "bigint";
+            case FLOAT, DOUBLE, NUMBER -> "decimal";
+            case MONEY -> "decimal(30,4)";
+            case BOOLEAN -> "varchar(1)";
+            case DATE -> "Date";
+            case DATETIME, TIMESTAMP -> "datatime";
+            case TEXT, JSON_OBJECT -> "TEXT"; // "clob"也可以 TEXT < 2GB , CLOB < 4TB 感觉没有必要
+            case BYTE_ARRAY, FILE -> "blob";//大字段
+            case FILE_ID -> "varchar(64)";//默认记录文件的ID号
+            case ENUM_NAME -> "varchar(64)";//
+            default -> ft;
+        };
     }
 
     /**
@@ -224,41 +185,22 @@ public abstract class FieldType {
     public static String mapToSqlServerColumnType(String ft) {
         if (StringUtils.isBlank(ft))
             return ft;
-        switch (ft) {
-            case STRING:
-                return "varchar";
-            case INTEGER:
-                return "int";
-            case IDENTITY:
-                return "bigint identity(1,1)";
-            case LONG:
-                return "bigint";
-            case DOUBLE:
-            case FLOAT:
-            case NUMBER:
-                return "decimal";
-            case MONEY:
-                return "decimal(30,4)";
-            case BOOLEAN:
-                return "varchar(1)";
-            case DATE:
-            case DATETIME:
-                return "datetime";
-            case TIMESTAMP:
-                return "TimeStamp";
-            case TEXT:
-            case JSON_OBJECT:
-                return "text";//长文本
-            case BYTE_ARRAY:
-            case FILE:
-                return "VarBinary(MAX)";
-            case FILE_ID:
-                return "varchar(64)";//默认记录文件的ID号
-            case ENUM_NAME:
-                return "varchar(64)";//
-            default:
-                return ft;
-        }
+        return switch (ft) {
+            case STRING -> "varchar";
+            case INTEGER -> "int";
+            case IDENTITY -> "bigint identity(1,1)";
+            case LONG -> "bigint";
+            case DOUBLE, FLOAT, NUMBER -> "decimal";
+            case MONEY -> "decimal(30,4)";
+            case BOOLEAN -> "varchar(1)";
+            case DATE, DATETIME -> "datetime";
+            case TIMESTAMP -> "TimeStamp";
+            case TEXT, JSON_OBJECT -> "text";//长文本
+            case BYTE_ARRAY, FILE -> "VarBinary(MAX)";
+            case FILE_ID -> "varchar(64)";//默认记录文件的ID号
+            case ENUM_NAME -> "varchar(64)";//
+            default -> ft;
+        };
     }
 
     /**
@@ -270,40 +212,21 @@ public abstract class FieldType {
     public static String mapToDB2ColumnType(String ft) {
         if (StringUtils.isBlank(ft))
             return ft;
-        switch (ft) {
-            case STRING:
-                return "varchar";
-            case IDENTITY:
-                return "INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1 )";
-            case INTEGER:
-            case LONG:
-                return "INTEGER";
-            case DOUBLE:
-            case FLOAT:
-            case NUMBER:
-                return "DECIMAL";
-            case MONEY:
-                return "DECIMAL(30,4)";
-            case BOOLEAN:
-                return "varchar(1)";
-            case DATE:
-            case DATETIME:
-                return "Date";
-            case TIMESTAMP:
-                return "TimeStamp";
-            case TEXT:
-            case JSON_OBJECT:
-                return "clob(52428800)";//长文本
-            case BYTE_ARRAY:
-            case FILE:
-                return "BLOB";
-            case FILE_ID:
-                return "varchar(64)";//默认记录文件的ID号
-            case ENUM_NAME:
-                return "varchar(64)";//
-            default:
-                return ft;
-        }
+        return switch (ft) {
+            case STRING -> "varchar";
+            case IDENTITY -> "INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1 )";
+            case INTEGER, LONG -> "INTEGER";
+            case DOUBLE, FLOAT, NUMBER -> "DECIMAL";
+            case MONEY -> "DECIMAL(30,4)";
+            case BOOLEAN -> "varchar(1)";
+            case DATE, DATETIME -> "Date";
+            case TIMESTAMP -> "TimeStamp";
+            case TEXT, JSON_OBJECT -> "clob(52428800)";//长文本
+            case BYTE_ARRAY, FILE -> "BLOB";
+            case FILE_ID -> "varchar(64)";//默认记录文件的ID号
+            case ENUM_NAME -> "varchar(64)";//
+            default -> ft;
+        };
     }
 
     /**
@@ -315,125 +238,68 @@ public abstract class FieldType {
     public static String mapToMySqlColumnType(String ft) {
         if (StringUtils.isBlank(ft))
             return ft;
-        switch (ft) {
-            case STRING:
-                return "varchar";
-            case INTEGER:
-                return "INT";
-            case IDENTITY:
-                return "bigint AUTO_INCREMENT";
-            case LONG:
-                return "BIGINT";
-            case MONEY:
-                return "DECIMAL(30,4)";
-            case FLOAT:
-                return "FLOAT";
-            case DOUBLE:
-                return "DOUBLE";
-            case NUMBER:
-                return "DECIMAL";
-            case BOOLEAN:
-                return "varchar(1)";
-            case DATE:
-                return "Date";
-            case DATETIME:
-                return "DATETIME";
-            case TIMESTAMP:
-                return "TimeStamp";
-            case TEXT:
-            case JSON_OBJECT:
-                return "LONGTEXT";//长文本
-            case FILE_ID:
-                return "varchar(64)";//默认记录文件的ID号
-            case BYTE_ARRAY:
-            case FILE:
-                return "VARBINARY";
-            case ENUM_NAME:
-                return "varchar(64)";//
-            default:
-                return ft;
-        }
+        return switch (ft) {
+            case STRING -> "varchar";
+            case INTEGER -> "INT";
+            case IDENTITY -> "bigint AUTO_INCREMENT";
+            case LONG -> "BIGINT";
+            case MONEY -> "DECIMAL(30,4)";
+            case FLOAT -> "FLOAT";
+            case DOUBLE -> "DOUBLE";
+            case NUMBER -> "DECIMAL";
+            case BOOLEAN -> "varchar(1)";
+            case DATE -> "Date";
+            case DATETIME -> "DATETIME";
+            case TIMESTAMP -> "TimeStamp";
+            case TEXT, JSON_OBJECT -> "LONGTEXT";//长文本
+            case FILE_ID -> "varchar(64)";//默认记录文件的ID号
+            case BYTE_ARRAY, FILE -> "VARBINARY";
+            case ENUM_NAME -> "varchar(64)";//
+            default -> ft;
+        };
     }
 
     public static String mapToClickHouseColumnType(String ft) {
         if (StringUtils.isBlank(ft))
             return ft;
-        switch (ft) {
-            case STRING:
-                return "String";
-            case INTEGER:
-                return "Int32";
-            case IDENTITY:
-            case LONG:
-                return "Int64";
-            case NUMBER:
-                return "DECIMAL";
-            case MONEY:
-                return "Decimal32(4)";
-            case FLOAT:
-                return "Float32";
-            case DOUBLE:
-                return "Float64";
-            case BOOLEAN:
-                return "FixedString(1)";
-            case DATE:
-                return "Date";
-            case DATETIME:
-                return "Datetime";
-            case TIMESTAMP:
-                return "Datetime64";
-            case TEXT:
-            case JSON_OBJECT:
-            case BYTE_ARRAY:
-            case FILE:
-                return "String";//长文本
-            case FILE_ID:
-                return "FixedString(64)";//默认记录文件的ID号
-            case ENUM_NAME:
-                return "FixedString(64)";//
-            default:
-                return ft;
-        }
+        return switch (ft) {
+            case STRING -> "String";
+            case INTEGER -> "Int32";
+            case IDENTITY, LONG -> "Int64";
+            case NUMBER -> "DECIMAL";
+            case MONEY -> "Decimal32(4)";
+            case FLOAT -> "Float32";
+            case DOUBLE -> "Float64";
+            case BOOLEAN -> "FixedString(1)";
+            case DATE -> "Date";
+            case DATETIME -> "Datetime";
+            case TIMESTAMP -> "Datetime64";
+            case TEXT, JSON_OBJECT, BYTE_ARRAY, FILE -> "String";//长文本
+            case FILE_ID -> "FixedString(64)";//默认记录文件的ID号
+            case ENUM_NAME -> "FixedString(64)";//
+            default -> ft;
+        };
     }
 
     public static String mapToPostgreSqlColumnType(String ft) {
         if (StringUtils.isBlank(ft))
             return ft;
-        switch (ft) {
-            case STRING:
-                return "varchar";
-            case INTEGER:
-                return "integer";
-            case IDENTITY:
-                return "SERIAL";
-            case LONG:
-                return "bigint";
-            case MONEY:
-                return "money";
-            case FLOAT:
-            case DOUBLE:
-            case NUMBER:
-                return "decimal";
-            case BOOLEAN:
-                return "char(1)";
-            case DATE:
-                return "Date";
-            case DATETIME:
-            case TIMESTAMP:
-                return "TimeStamp";
-            case TEXT:
-            case JSON_OBJECT:
-                return "TEXT";//长文本
-            case FILE_ID:
-                return "varchar(64)";//默认记录文件的ID号
-            case BYTE_ARRAY:
-            case FILE:
-                return "character";
-            case ENUM_NAME:
-                return "varchar(64)";//
-            default:
-                return ft;
-        }
+        return switch (ft) {
+            case STRING -> "varchar";
+            case INTEGER -> "integer";
+            case IDENTITY -> "SERIAL";
+            case LONG -> "bigint";
+            case MONEY -> "money";
+            case FLOAT, DOUBLE, NUMBER -> "decimal";
+            case BOOLEAN -> "char(1)";
+            case DATE -> "Date";
+            case DATETIME, TIMESTAMP -> "TimeStamp";
+            case TEXT, JSON_OBJECT -> "TEXT";//长文本
+            case FILE_ID -> "varchar(64)";//默认记录文件的ID号
+            case BYTE_ARRAY, FILE -> "character";
+            case ENUM_NAME -> "varchar(64)";//
+            default -> ft;
+        };
     }
 
     /**
@@ -444,27 +310,15 @@ public abstract class FieldType {
     public static String mapToDatabaseType(String ft, DBType dt) {
         if (dt == null || StringUtils.isBlank(ft))
             return ft;
-        switch (dt) {
-            case SqlServer:
-                return mapToSqlServerColumnType(ft);
-            case DB2:
-                return mapToDB2ColumnType(ft);
-            case H2:
-            case MySql:
-                return mapToMySqlColumnType(ft);
-            case ClickHouse:
-                return mapToClickHouseColumnType(ft);
-            case PostgreSql:
-                return mapToPostgreSqlColumnType(ft);
-            case GBase:
-                return mapToGBaseColumnType(ft);
-            case Oracle:
-            case DM:
-            case KingBase:
-            case Oscar:
-            default:
-                return mapToOracleColumnType(ft);
-        }
+        return switch (dt) {
+            case SqlServer -> mapToSqlServerColumnType(ft);
+            case DB2 -> mapToDB2ColumnType(ft);
+            case H2, MySql -> mapToMySqlColumnType(ft);
+            case ClickHouse -> mapToClickHouseColumnType(ft);
+            case PostgreSql -> mapToPostgreSqlColumnType(ft);
+            case GBase -> mapToGBaseColumnType(ft);
+            default -> mapToOracleColumnType(ft);
+        };
 
     }
 
@@ -568,80 +422,32 @@ public abstract class FieldType {
      * @see Types
      */
     public static Class<?> mapToJavaType(int dbType) {
-        switch (dbType) {
-            case -6:
-            case -5:
-            case 5:
-            case 4:
-            case 2:
-                return Integer.class;
-            case 6:
-            case 7:
-                return Float.class;
-            case 8:
-                return Double.class;
-            case 3:
-                return Long.class;
-
-            case 91:
-            case 92:
-                return Date.class;
-            case 93:
-            case 2013:
-            case 2014:
-                return Timestamp.class;
-            case -2:
-            case -3:
-            case -4:
-            case 2004:
-                return byte[].class;
-            case -1:
-            case 1:
-            case 12:
-            default:
-                return String.class;
-        }
+        return switch (dbType) {
+            case -6, -5, 5, 4, 2 -> Integer.class;
+            case 6, 7 -> Float.class;
+            case 8 -> Double.class;
+            case 3 -> Long.class;
+            case 91, 92 -> Date.class;
+            case 93, 2013, 2014 -> Timestamp.class;
+            case -2, -3, -4, 2004 -> byte[].class;
+            default -> String.class;
+        };
     }
 
     public static String mapToFieldType(int dbType) {
-        switch (dbType) {
-            case -6:
-            case -5:
-            case 5:
-            case 4:
-            case 2:
-                return FieldType.INTEGER;
-            case 6:
-            case 7:
-                return FieldType.FLOAT;
-            case 8:
-                return FieldType.DOUBLE;
-            case 3:
-                return FieldType.LONG;
-
-            case 91:
-                return FieldType.DATE;
-            case 92:
-                return FieldType.DATETIME;
-            case 93:
-            case 2013:
-            case 2014:
-                return FieldType.TIMESTAMP;
-            case -2:
-            case -3:
-            case -4:
-            case 2004:
-                return FieldType.BYTE_ARRAY;
-            case 2005:
-                return FieldType.TEXT;
-            case 16:
-                return FieldType.BOOLEAN;
-            case -1:
-            case 1:
-            case 12:
-            default:
-                return FieldType.STRING;
-        }
+        return switch (dbType) {
+            case -6, -5, 5, 4, 2 -> FieldType.INTEGER;
+            case 6, 7 -> FieldType.FLOAT;
+            case 8 -> FieldType.DOUBLE;
+            case 3 -> FieldType.LONG;
+            case 91 -> FieldType.DATE;
+            case 92 -> FieldType.DATETIME;
+            case 93, 2013, 2014 -> FieldType.TIMESTAMP;
+            case -2, -3, -4, 2004 -> FieldType.BYTE_ARRAY;
+            case 2005 -> FieldType.TEXT;
+            case 16 -> FieldType.BOOLEAN;
+            default -> FieldType.STRING;
+        };
     }
 
     public static String mapToFieldType(String columnType, int length, int scale) {
@@ -737,25 +543,14 @@ public abstract class FieldType {
     }
 
     public static String mapToSqliteColumnType(String javaType) {
-        switch (javaType){
-            case FieldType.INTEGER:
-            case FieldType.LONG:
-                return "INTEGER";
-            case FieldType.MONEY:
-                return "NUMERIC(20,4)"; //sqlite 不支持 DECIMAL， 后面的 (20,4) 也没有实际意义
-            case FieldType.DOUBLE:
-            case FieldType.FLOAT:
-                return "REAL";
-            case FieldType.BYTE_ARRAY:
-                return "BLOB";
-            case FieldType.TIMESTAMP:
-            case FieldType.DATETIME:
-            case FieldType.DATE:
+        return switch (javaType) {
+            case FieldType.INTEGER, FieldType.LONG -> "INTEGER";
+            case FieldType.MONEY -> "NUMERIC(20,4)"; //sqlite 不支持 DECIMAL， 后面的 (20,4) 也没有实际意义
+            case FieldType.DOUBLE, FieldType.FLOAT -> "REAL";
+            case FieldType.BYTE_ARRAY -> "BLOB";
             //    return "DATETIME"; // 全部设置为 TEXT
-            case FieldType.STRING:
-            default:
-                return "TEXT";
-        }
+            default -> "TEXT";
+        };
 
     }
 }
