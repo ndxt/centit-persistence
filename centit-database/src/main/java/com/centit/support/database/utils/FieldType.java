@@ -644,7 +644,7 @@ public abstract class FieldType {
         }
     }
 
-    public static String mapToFieldType(String columnType, int scale) {
+    public static String mapToFieldType(String columnType, int length, int scale) {
         if(StringUtils.isBlank(columnType)) {
             return null;
         }
@@ -652,11 +652,7 @@ public abstract class FieldType {
         if ("NUMBER".equals(columnType) ||
             "NUMERIC".equals(columnType) ||
             "DECIMAL".equals(columnType)) {
-            if (scale > 0) {
-                return FieldType.DOUBLE;
-            } else {
-                return FieldType.LONG;
-            }
+            return (length>0 || scale>0) ? FieldType.NUMBER : FieldType.LONG;
         } else if (columnType.contains("CHAR")){ // CHAR VARCHAR VARCHAR2 NVARCHAR NVARCHAR2 CHARACTER LVARCHAR CHARACTER VARYING
             return FieldType.STRING;
         } else if ("DATE".equals(columnType) ||
@@ -695,10 +691,6 @@ public abstract class FieldType {
             return FieldType.BOOLEAN;
         }
         return columnType;
-    }
-
-    public static String mapToFieldType(String columnType) {
-        return mapToFieldType(columnType, 0);
     }
 
     public static String mapToFieldType(Class<?> javaType) {
