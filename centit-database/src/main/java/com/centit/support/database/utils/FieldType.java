@@ -13,6 +13,10 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public abstract class FieldType {
     public static final String VOID = "void";
+
+    public static final String INT_NUMBER_DIGITS = "10";
+    public static final String LONG_NUMBER_DIGITS = "18";
+    public static final String MONEY_NUMBER_DIGITS_DESC = "24,4";
     /**
      * 这个是 Sql Server 和 MySql 特有的自增id类型， 起始值和增加幅度（这个一旦确定不好修改，默认1，1);
      * 并且这个字段必须是 主键； 目前还没有实现
@@ -146,14 +150,15 @@ public abstract class FieldType {
                 return "varchar2";
             case IDENTITY:
             case INTEGER:
+                return "number("+ INT_NUMBER_DIGITS +",0)";
             case LONG:
-                return "number(12,0)";
+                return "number("+ LONG_NUMBER_DIGITS +",0)";
             case FLOAT:
             case DOUBLE:
             case NUMBER:
                 return "number";
             case MONEY:
-                return "number(30,4)";
+                return "number("+MONEY_NUMBER_DIGITS_DESC+")";
             case BOOLEAN:
                 return "varchar2(1)";
             case DATE:
@@ -192,7 +197,7 @@ public abstract class FieldType {
             case NUMBER:
                 return "decimal";
             case MONEY:
-                return "decimal(30,4)";
+                return "decimal("+MONEY_NUMBER_DIGITS_DESC+")";
             case BOOLEAN:
                 return "varchar(1)";
             case DATE:
@@ -238,7 +243,7 @@ public abstract class FieldType {
             case NUMBER:
                 return "decimal";
             case MONEY:
-                return "decimal(30,4)";
+                return "decimal("+MONEY_NUMBER_DIGITS_DESC+")";
             case BOOLEAN:
                 return "varchar(1)";
             case DATE:
@@ -283,7 +288,7 @@ public abstract class FieldType {
             case NUMBER:
                 return "DECIMAL";
             case MONEY:
-                return "DECIMAL(30,4)";
+                return "DECIMAL("+MONEY_NUMBER_DIGITS_DESC+")";
             case BOOLEAN:
                 return "varchar(1)";
             case DATE:
@@ -325,7 +330,7 @@ public abstract class FieldType {
             case LONG:
                 return "BIGINT";
             case MONEY:
-                return "DECIMAL(30,4)";
+                return "DECIMAL("+MONEY_NUMBER_DIGITS_DESC+")";
             case FLOAT:
                 return "FLOAT";
             case DOUBLE:
@@ -742,7 +747,7 @@ public abstract class FieldType {
             case FieldType.LONG:
                 return "INTEGER";
             case FieldType.MONEY:
-                return "NUMERIC(20,4)"; //sqlite 不支持 DECIMAL， 后面的 (20,4) 也没有实际意义
+                return "DECIMAL("+MONEY_NUMBER_DIGITS_DESC+")"; //sqlite 不支持 DECIMAL， 后面的 (20,4) 也没有实际意义
             case FieldType.DOUBLE:
             case FieldType.FLOAT:
                 return "REAL";
