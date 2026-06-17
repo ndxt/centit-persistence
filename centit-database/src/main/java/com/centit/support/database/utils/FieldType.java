@@ -657,7 +657,7 @@ public abstract class FieldType {
         if ("NUMBER".equals(columnType) ||
             "NUMERIC".equals(columnType) ||
             "DECIMAL".equals(columnType)) {
-            return (length>0 || scale>0) ? FieldType.NUMBER : FieldType.LONG;
+            return FieldType.NUMBER;
         } else if (columnType.contains("CHAR")){ // CHAR VARCHAR VARCHAR2 NVARCHAR NVARCHAR2 CHARACTER LVARCHAR CHARACTER VARYING
             return FieldType.STRING;
         } else if ("DATE".equals(columnType) ||
@@ -683,7 +683,9 @@ public abstract class FieldType {
             "REAL".equals(columnType) ||
             "DOUBLE PRECISION".equals(columnType)) {
             return FieldType.DOUBLE;
-        } else  if ("BIGINT".equals(columnType) ||
+        } else  if (
+            "LONG".equals(columnType) ||
+            "BIGINT".equals(columnType) ||
             "INT64".equals(columnType) ||
             "UINT64".equals(columnType) ||
             "SERIAL".equals(columnType)) {
