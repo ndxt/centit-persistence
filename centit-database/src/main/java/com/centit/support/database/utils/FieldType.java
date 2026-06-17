@@ -13,6 +13,10 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public abstract class FieldType {
     public static final String VOID = "void";
+
+    public static final String INT_NUMBER_DIGITS = "10";
+    public static final String LONG_NUMBER_DIGITS = "18";
+    public static final String MONEY_NUMBER_DIGITS_DESC = "24,4";
     /**
      * 这个是 Sql Server 和 MySql 特有的自增id类型， 起始值和增加幅度（这个一旦确定不好修改，默认1，1);
      * 并且这个字段必须是 主键； 目前还没有实现
@@ -142,9 +146,10 @@ public abstract class FieldType {
             return ft;
         return switch (ft) {
             case STRING -> "varchar2";
-            case IDENTITY, INTEGER, LONG -> "number(12,0)";
+            case IDENTITY, INTEGER -> "number("+ INT_NUMBER_DIGITS +",0)";
+            case LONG -> "number("+ LONG_NUMBER_DIGITS +",0)";
             case FLOAT, DOUBLE, NUMBER -> "number";
-            case MONEY -> "number(30,4)";
+            case MONEY -> "number("+MONEY_NUMBER_DIGITS_DESC+")";
             case BOOLEAN -> "varchar2(1)";
             case DATE, DATETIME -> "Date";
             case TIMESTAMP -> "TimeStamp";
@@ -164,7 +169,7 @@ public abstract class FieldType {
             case INTEGER -> "int";
             case IDENTITY, LONG -> "bigint";
             case FLOAT, DOUBLE, NUMBER -> "decimal";
-            case MONEY -> "decimal(30,4)";
+            case MONEY -> "decimal("+MONEY_NUMBER_DIGITS_DESC+")";
             case BOOLEAN -> "varchar(1)";
             case DATE -> "Date";
             case DATETIME, TIMESTAMP -> "datatime";
@@ -191,7 +196,7 @@ public abstract class FieldType {
             case IDENTITY -> "bigint identity(1,1)";
             case LONG -> "bigint";
             case DOUBLE, FLOAT, NUMBER -> "decimal";
-            case MONEY -> "decimal(30,4)";
+            case MONEY -> "decimal("+MONEY_NUMBER_DIGITS_DESC+")";
             case BOOLEAN -> "varchar(1)";
             case DATE, DATETIME -> "datetime";
             case TIMESTAMP -> "TimeStamp";
@@ -217,7 +222,7 @@ public abstract class FieldType {
             case IDENTITY -> "INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1 )";
             case INTEGER, LONG -> "INTEGER";
             case DOUBLE, FLOAT, NUMBER -> "DECIMAL";
-            case MONEY -> "DECIMAL(30,4)";
+            case MONEY -> "DECIMAL("+MONEY_NUMBER_DIGITS_DESC+")";
             case BOOLEAN -> "varchar(1)";
             case DATE, DATETIME -> "Date";
             case TIMESTAMP -> "TimeStamp";
@@ -243,7 +248,7 @@ public abstract class FieldType {
             case INTEGER -> "INT";
             case IDENTITY -> "bigint AUTO_INCREMENT";
             case LONG -> "BIGINT";
-            case MONEY -> "DECIMAL(30,4)";
+            case MONEY -> "DECIMAL("+MONEY_NUMBER_DIGITS_DESC+")";
             case FLOAT -> "FLOAT";
             case DOUBLE -> "DOUBLE";
             case NUMBER -> "DECIMAL";
@@ -545,7 +550,7 @@ public abstract class FieldType {
     public static String mapToSqliteColumnType(String javaType) {
         return switch (javaType) {
             case FieldType.INTEGER, FieldType.LONG -> "INTEGER";
-            case FieldType.MONEY -> "NUMERIC(20,4)"; //sqlite 不支持 DECIMAL， 后面的 (20,4) 也没有实际意义
+            case FieldType.MONEY -> "DECIMAL("+MONEY_NUMBER_DIGITS_DESC+")"; //sqlite 不支持 DECIMAL， 后面的 (20,4) 也没有实际意义
             case FieldType.DOUBLE, FieldType.FLOAT -> "REAL";
             case FieldType.BYTE_ARRAY -> "BLOB";
             //    return "DATETIME"; // 全部设置为 TEXT
