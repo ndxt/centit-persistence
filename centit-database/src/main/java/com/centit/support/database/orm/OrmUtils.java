@@ -335,7 +335,7 @@ public abstract class OrmUtils {
         throws SQLException, ReflectiveOperationException, IOException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(clazz);
         if (mapInfo == null)
-            return null;
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "未定义表结构映射信息："+ clazz.getName());
         if (rs.next()) {
             return insideFetchFieldsFormResultSet(rs, clazz.getDeclaredConstructor().newInstance(), mapInfo, fields);
         } else {
@@ -355,7 +355,7 @@ public abstract class OrmUtils {
         throws SQLException, ReflectiveOperationException, IOException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(clazz);
         if (mapInfo == null)
-            return null;
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "未定义表结构映射信息："+ clazz.getName());
         if (rs.next()) {
             return insideFetchFieldsFormResultSet(rs, clazz.getDeclaredConstructor().newInstance(), mapInfo);
         } else {
@@ -375,7 +375,7 @@ public abstract class OrmUtils {
         throws SQLException, ReflectiveOperationException, IOException {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(clazz);
         if (mapInfo == null)
-            return null;
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "未定义表结构映射信息："+ clazz.getName());
         int fieldCount = rs.getMetaData().getColumnCount();
         if (fieldCount > fields.length) {
             fieldCount = fields.length;
@@ -397,7 +397,7 @@ public abstract class OrmUtils {
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(clazz);
         if (mapInfo == null)
-            return null;
+            throw new ObjectException(ObjectException.ORM_METADATA_EXCEPTION, "未定义表结构映射信息："+ clazz.getName());
         ResultSetMetaData resMeta = rs.getMetaData();
         int fieldCount = resMeta.getColumnCount();
         SimpleTableField[] fields = new SimpleTableField[fieldCount + 1];
