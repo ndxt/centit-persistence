@@ -357,7 +357,7 @@ public abstract class QueryUtils {
     public static boolean hasOrderBy(String sql) {
         Lexer lex = new Lexer(sql, Lexer.LANG_TYPE_SQL);
         String aWord = lex.getAWord();
-        while (aWord != null && !"".equals(aWord) && !"order".equalsIgnoreCase(aWord)) {
+        while (aWord != null && !aWord.isEmpty() && !"order".equalsIgnoreCase(aWord)) {
             aWord = lex.getAWord();
         }
         return "order".equalsIgnoreCase(aWord);
@@ -373,13 +373,13 @@ public abstract class QueryUtils {
         Lexer lex = new Lexer(sql, Lexer.LANG_TYPE_SQL);
         String aWord = lex.getAWord();
         int nPos = lex.getCurrPos();
-        while (aWord != null && !"".equals(aWord) && !"order".equalsIgnoreCase(aWord)) {
+        while (aWord != null && !aWord.isEmpty() && !"order".equalsIgnoreCase(aWord)) {
             if (aWord.equals("(")) {
                 lex.seekToRightBracket();
             }
             nPos = lex.getCurrPos();
             aWord = lex.getAWord();
-            if (aWord == null || "".equals(aWord))
+            if (aWord == null || aWord.isEmpty())
                 return sql;
         }
         return sql.substring(0, nPos);
@@ -395,18 +395,18 @@ public abstract class QueryUtils {
         Lexer lex = new Lexer(sql, Lexer.LANG_TYPE_SQL);
         String aWord = lex.getAWord();
 
-        while (aWord != null && !"".equals(aWord) && !"group".equalsIgnoreCase(aWord)) {
+        while (aWord != null && !aWord.isEmpty() && !"group".equalsIgnoreCase(aWord)) {
             if (aWord.equals("(")) {
                 lex.seekToRightBracket();
                 //aWord = lex.getAWord();
             }
             aWord = lex.getAWord();
-            if (aWord == null || "".equals(aWord))
+            if (aWord == null || aWord.isEmpty())
                 return null;
 
         }
         if ("group".equalsIgnoreCase(aWord)) {
-            while (aWord != null && !"".equals(aWord) && !"by".equalsIgnoreCase(aWord)) {
+            while (aWord != null && !aWord.isEmpty() && !"by".equalsIgnoreCase(aWord)) {
                 aWord = lex.getAWord();
             }
         }
@@ -415,7 +415,7 @@ public abstract class QueryUtils {
         int nPos = lex.getCurrPos();
         int nEnd = nPos;
 
-        while (aWord != null && !"".equals(aWord) && !"order".equalsIgnoreCase(aWord)) {
+        while (aWord != null && !aWord.isEmpty() && !"order".equalsIgnoreCase(aWord)) {
             nEnd = lex.getCurrPos();
             aWord = lex.getAWord();
         }
@@ -440,12 +440,12 @@ public abstract class QueryUtils {
         int sl = sql.length();
         String aWord = lex.getAWord();
 
-        while (aWord != null && !"".equals(aWord) && !"select".equalsIgnoreCase(aWord)) {
+        while (aWord != null && !aWord.isEmpty() && !"select".equalsIgnoreCase(aWord)) {
             if (aWord.equals("(")) {
                 lex.seekToRightBracket();
             }
             aWord = lex.getAWord();
-            if (aWord == null || "".equals(aWord))
+            if (aWord == null || aWord.isEmpty())
                 break;
         }
 
@@ -467,12 +467,12 @@ public abstract class QueryUtils {
             }
         }
 
-        while (aWord != null && !"".equals(aWord) && !"from".equalsIgnoreCase(aWord)) {
+        while (aWord != null && !aWord.isEmpty() && !"from".equalsIgnoreCase(aWord)) {
             if (aWord.equals("(")) {
                 lex.seekToRightBracket();
             }
             aWord = lex.getAWord();
-            if (aWord == null || "".equals(aWord))
+            if (aWord == null || aWord.isEmpty())
                 return sqlPiece;
         }
         int nFieldEnd = lex.getCurrPos();
@@ -567,17 +567,17 @@ public abstract class QueryUtils {
      */
     public static String buildPostgreSqlLimitQuerySQL(String sql, int offset, int maxsize, boolean asParameter) {
         if (asParameter)
-            return "select * from ("+sql+") a " + (offset > 0 ? " limit ? offset ?" : " limit ?");
+            return "select * from ("+sql+" \r\n) a " + (offset > 0 ? " limit ? offset ?" : " limit ?");
         else
-            return "select * from ("+sql+") a " + (offset > 0 ? " limit " + maxsize + " offset " + offset :
+            return "select * from ("+sql+" \r\n) a " + (offset > 0 ? " limit " + maxsize + " offset " + offset :
                 " limit " + maxsize);
     }
 
     public static String buildMySqlLimitQuerySQL(String sql, int offset, int maxsize, boolean asParameter) {
         if (asParameter)
-            return "select * from ("+sql+") a " + (offset > 0 ? " limit ?, ?" : " limit ?");
+            return "select * from ("+sql+" \r\n) a " + (offset > 0 ? " limit ?, ?" : " limit ?");
         else
-            return "select * from ("+sql+") a " + (offset > 0 ? " limit " + offset+ "," + maxsize:
+            return "select * from ("+sql+" \r\n) a " + (offset > 0 ? " limit " + offset+ "," + maxsize:
                 " limit " + maxsize);
     }
 
@@ -602,9 +602,9 @@ public abstract class QueryUtils {
             }
             pagingSelect.append(sql);
             if (offset > 0) {
-                pagingSelect.append(" ) row_ ) where rownum_ <= ? and rownum_ > ?");
+                pagingSelect.append(" \r\n) row_ ) where rownum_ <= ? and rownum_ > ?");
             } else {
-                pagingSelect.append(" ) where rownum <= ?");
+                pagingSelect.append(" \r\n) where rownum <= ?");
             }
         } else {
             if (offset > 0) {
@@ -614,12 +614,12 @@ public abstract class QueryUtils {
             }
             pagingSelect.append(sql);
             if (offset > 0) {
-                pagingSelect.append(" ) row_ ) where rownum_ <= ")
+                pagingSelect.append(" \r\n) row_ ) where rownum_ <= ")
                     .append(offset + maxsize)
                     .append(" and rownum_ > ")
                     .append(offset);
             } else {
-                pagingSelect.append(" ) where rownum <= ").append(maxsize);
+                pagingSelect.append(" \r\n) where rownum <= ").append(maxsize);
             }
         }
 
@@ -639,12 +639,12 @@ public abstract class QueryUtils {
         /*if(asParameter)*/
         //throw new SQLException("DB2 unsupported parameter in fetch statement.");
         if (offset == 0) {
-            return maxsize > 1 ? sql + " fetch first " + maxsize + " rows only" :
+            return maxsize > 1 ? sql + "\r\n fetch first " + maxsize + " rows only" :
                 sql + " fetch first 1 row only";
         }
         //nest the main query in an outer select
         return "select * from ( select inner2_.*, rownumber() over(order by order of inner2_) as rownumber_ from ( "
-            + sql + " fetch first " + String.valueOf(offset + maxsize) + " rows only ) as inner2_ ) as inner1_ where rownumber_ > "
+            + sql + "\r\n fetch first " + String.valueOf(offset + maxsize) + " rows only ) as inner2_ ) as inner1_ where rownumber_ > "
             + offset + " order by rownumber_";
     }
 
@@ -968,7 +968,7 @@ public abstract class QueryUtils {
         Lexer lex = new Lexer(fromSql, Lexer.LANG_TYPE_SQL);
         String aWord = lex.getAWord();
         Map<String, String> tableNameMap = new HashMap<>(4);
-        while (aWord != null && !"".equals(aWord) && !StringUtils.equalsAnyIgnoreCase(aWord,
+        while (aWord != null && !aWord.isEmpty() && !StringUtils.equalsAnyIgnoreCase(aWord,
             "where", "group", "order")) {
 
             if("(".equals(aWord)) {
@@ -982,21 +982,14 @@ public abstract class QueryUtils {
                 aWord = lex.getAWord();
                 if (sqlPieces != null && sqlPieces.size() > 2) {
                     Map<String, String> subTtableNameMap = extraTables(sqlPieces.get(2));
-                    if (subTtableNameMap != null) {
-                        if (!StringUtils.equalsAnyIgnoreCase(aWord,
-                            ",", "left", "right", "inner", "outer", "join")) {
-                            for (String subTableName : subTtableNameMap.keySet()) {
-                                tableNameMap.put(subTableName, aWord);
-                            }
-                            aWord = lex.getAWord();
-                        } else {
-                            tableNameMap.putAll(subTtableNameMap);
+                    if (!StringUtils.equalsAnyIgnoreCase(aWord,
+                        ",", "left", "right", "inner", "outer", "join")) {
+                        for (String subTableName : subTtableNameMap.keySet()) {
+                            tableNameMap.put(subTableName, aWord);
                         }
+                        aWord = lex.getAWord();
                     } else {
-                        if (!StringUtils.equalsAnyIgnoreCase(aWord,
-                            ",", "left", "right", "inner", "outer", "join")) {
-                            aWord = lex.getAWord();
-                        }
+                        tableNameMap.putAll(subTtableNameMap);
                     }
                 }
             }else {
