@@ -567,17 +567,17 @@ public abstract class QueryUtils {
      */
     public static String buildPostgreSqlLimitQuerySQL(String sql, int offset, int maxsize, boolean asParameter) {
         if (asParameter)
-            return "select * from ("+sql+") a " + (offset > 0 ? " limit ? offset ?" : " limit ?");
+            return "select * from ("+sql+" \r\n) a " + (offset > 0 ? " limit ? offset ?" : " limit ?");
         else
-            return "select * from ("+sql+") a " + (offset > 0 ? " limit " + maxsize + " offset " + offset :
+            return "select * from ("+sql+" \r\n) a " + (offset > 0 ? " limit " + maxsize + " offset " + offset :
                 " limit " + maxsize);
     }
 
     public static String buildMySqlLimitQuerySQL(String sql, int offset, int maxsize, boolean asParameter) {
         if (asParameter)
-            return "select * from ("+sql+") a " + (offset > 0 ? " limit ?, ?" : " limit ?");
+            return "select * from ("+sql+" \r\n) a " + (offset > 0 ? " limit ?, ?" : " limit ?");
         else
-            return "select * from ("+sql+") a " + (offset > 0 ? " limit " + offset+ "," + maxsize:
+            return "select * from ("+sql+" \r\n) a " + (offset > 0 ? " limit " + offset+ "," + maxsize:
                 " limit " + maxsize);
     }
 
@@ -602,9 +602,9 @@ public abstract class QueryUtils {
             }
             pagingSelect.append(sql);
             if (offset > 0) {
-                pagingSelect.append(" ) row_ ) where rownum_ <= ? and rownum_ > ?");
+                pagingSelect.append(" \r\n) row_ ) where rownum_ <= ? and rownum_ > ?");
             } else {
-                pagingSelect.append(" ) where rownum <= ?");
+                pagingSelect.append(" \r\n) where rownum <= ?");
             }
         } else {
             if (offset > 0) {
@@ -614,12 +614,12 @@ public abstract class QueryUtils {
             }
             pagingSelect.append(sql);
             if (offset > 0) {
-                pagingSelect.append(" ) row_ ) where rownum_ <= ")
+                pagingSelect.append(" \r\n) row_ ) where rownum_ <= ")
                     .append(offset + maxsize)
                     .append(" and rownum_ > ")
                     .append(offset);
             } else {
-                pagingSelect.append(" ) where rownum <= ").append(maxsize);
+                pagingSelect.append(" \r\n) where rownum <= ").append(maxsize);
             }
         }
 
@@ -639,12 +639,12 @@ public abstract class QueryUtils {
         /*if(asParameter)*/
         //throw new SQLException("DB2 unsupported parameter in fetch statement.");
         if (offset == 0) {
-            return maxsize > 1 ? sql + " fetch first " + maxsize + " rows only" :
+            return maxsize > 1 ? sql + "\r\n fetch first " + maxsize + " rows only" :
                 sql + " fetch first 1 row only";
         }
         //nest the main query in an outer select
         return "select * from ( select inner2_.*, rownumber() over(order by order of inner2_) as rownumber_ from ( "
-            + sql + " fetch first " + String.valueOf(offset + maxsize) + " rows only ) as inner2_ ) as inner1_ where rownumber_ > "
+            + sql + "\r\n fetch first " + String.valueOf(offset + maxsize) + " rows only ) as inner2_ ) as inner1_ where rownumber_ > "
             + offset + " order by rownumber_";
     }
 
