@@ -1,11 +1,14 @@
 package com.centit.support.database.utils;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * Created by codefan on 17-9-19.
  */
 public class PageDesc implements Serializable {
+
+    @Serial
     private static final long serialVersionUID =  1L;
 
     private int totalRows;
