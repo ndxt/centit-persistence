@@ -315,7 +315,7 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
      * @return 返回的对应这个属性的语句，如果找不到返回 null
      */
     public static String mapFieldToColumnPiece(String querySql, String fieldName) {
-        List<Pair<String, String>> fields = QueryUtils.extraSqlFieldNamePieceMap(querySql);
+        List<Pair<String, String>> fields = SqlStatementAnalyzer.extraSqlFieldNamePieceMap(querySql);
         for (Pair<String, String> field : fields) {
             if (fieldName.equalsIgnoreCase(field.getLeft()) ||
                 fieldName.equals(FieldType.mapPropName(field.getLeft())) ||

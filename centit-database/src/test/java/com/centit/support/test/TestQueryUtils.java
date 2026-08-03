@@ -2,9 +2,7 @@ package com.centit.support.test;
 
 import com.centit.support.algorithm.CollectionsOpt;
 import com.centit.support.algorithm.StringBaseOpt;
-import com.centit.support.database.utils.FieldType;
-import com.centit.support.database.utils.QueryAndNamedParams;
-import com.centit.support.database.utils.QueryUtils;
+import com.centit.support.database.utils.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -16,7 +14,7 @@ public class TestQueryUtils {
         String sql = "select USER_CODE, LAST_UPDATE_TIME, LAST_UPDATE_USER, IS_TIMER " +
             "from WF_FLOW_INSTANCE where 1=1 " +
             "[ :(splitForIn,like,loop)pt | and PROMISE_TIME =:pt ] order by CREATE_TIME DESC";
-        QueryAndNamedParams query =  QueryUtils.translateQuery(sql,
+        QueryAndNamedParams query =  ParamsDrivenSQL.translateQuery(sql,
             CollectionsOpt.createHashMap("pt", "a+你好+ 我不好 +d"));
         System.out.println(query.getQuery());
         System.out.println(query.getParams());
@@ -24,7 +22,7 @@ public class TestQueryUtils {
         sql = "select USER_CODE, LAST_UPDATE_TIME, LAST_UPDATE_USER, IS_TIMER " +
             "from WF_FLOW_INSTANCE where 1=1 " +
             "[ :(splitForIn, loopWithOr)pt |PROMISE_TIME =:pt] order by CREATE_TIME DESC";
-        query =  QueryUtils.translateQuery(sql,
+        query =  ParamsDrivenSQL.translateQuery(sql,
             CollectionsOpt.createHashMap("pt", "1,2,3,4"));
         System.out.println(query.getQuery());
     }
@@ -40,7 +38,7 @@ public class TestQueryUtils {
             "IS_SUB_INST as '你好啊', PRE_INST_ID as 爱上, PRE_NODE_INST_ID 地球, UNIT_CODE, " +
             "USER_CODE, LAST_UPDATE_TIME, LAST_UPDATE_USER, IS_TIMER " +
             "from WF_FLOW_INSTANCE where 1=1 and PROMISE_TIME =:pt order by CREATE_TIME DESC";
-        System.out.println(StringBaseOpt.castObjectToString(QueryUtils.splitSqlFieldNames(sql)));
+        System.out.println(StringBaseOpt.castObjectToString(SqlStatementAnalyzer.splitSqlFieldNames(sql)));
         System.out.println(QueryUtils.buildSqlServerLimitQuerySQL(sql, 30, 30));
     }
 }

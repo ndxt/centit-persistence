@@ -338,7 +338,7 @@ public abstract class DatabaseAccess {
                     return new JSONArray();
                 String[] fns = fieldNames;
                 if (ArrayUtils.isEmpty(fns)) {
-                    List<String> fields = QueryUtils.getSqlFiledNames(sSql);
+                    List<String> fields = SqlStatementAnalyzer.getSqlFiledNames(sSql);
                     fns = mapColumnsNameToFields(fields);
                 }
                 return fetchResultSetToJSONArray(rs, fns);
@@ -362,7 +362,7 @@ public abstract class DatabaseAccess {
                 }
                 String[] fns = fieldNames;
                 if (ArrayUtils.isEmpty(fns)) {
-                    List<String> fields = QueryUtils.getSqlFiledNames(sSql);
+                    List<String> fields = SqlStatementAnalyzer.getSqlFiledNames(sSql);
                     fns = mapColumnsNameToFields(fields);
                 }
                 return fetchResultSetRowToJSONObject(rs, fns);
@@ -788,7 +788,7 @@ public abstract class DatabaseAccess {
      */
     public static Long queryTotalRows(Connection conn, String sSql, Object[] values)
         throws SQLException, IOException {
-        Object scalarObj = DatabaseAccess.getScalarObjectQuery(conn, QueryUtils.buildGetCountSQL(sSql), values);
+        Object scalarObj = DatabaseAccess.getScalarObjectQuery(conn, SqlStatementAnalyzer.buildGetCountSQL(sSql), values);
         return NumberBaseOpt.castObjectToLong(scalarObj);
     }
 
@@ -805,7 +805,7 @@ public abstract class DatabaseAccess {
      */
     public static Long queryTotalRows(Connection conn, String sSql, Map<String, Object> values)
         throws SQLException, IOException {
-        Object scalarObj = DatabaseAccess.getScalarObjectQuery(conn, QueryUtils.buildGetCountSQL(sSql), values);
+        Object scalarObj = DatabaseAccess.getScalarObjectQuery(conn, SqlStatementAnalyzer.buildGetCountSQL(sSql), values);
         return NumberBaseOpt.castObjectToLong(scalarObj);
     }
 
@@ -882,7 +882,7 @@ public abstract class DatabaseAccess {
                         rs.absolute((pageNo - 1) * pageSize);
                     String[] fns = fieldNames;
                     if (ArrayUtils.isEmpty(fns)) {
-                        List<String> fields = QueryUtils.getSqlFiledNames(sSql);
+                        List<String> fields = SqlStatementAnalyzer.getSqlFiledNames(sSql);
                         fns = mapColumnsNameToFields(fields);
                     }
                     return fetchResultSetToJSONArray(rs, fns);
@@ -893,7 +893,7 @@ public abstract class DatabaseAccess {
         } else {
             String[] fns = fieldNames;
             if (ArrayUtils.isEmpty(fns)) {
-                List<String> fields = QueryUtils.getSqlFiledNames(sSql);
+                List<String> fields = SqlStatementAnalyzer.getSqlFiledNames(sSql);
                 fns = mapColumnsNameToFields(fields);
             }
             return findObjectsAsJSON(conn, query, values, fns);

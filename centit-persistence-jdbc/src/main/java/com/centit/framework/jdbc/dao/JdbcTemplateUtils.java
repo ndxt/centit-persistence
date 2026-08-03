@@ -117,7 +117,7 @@ public abstract class JdbcTemplateUtils {
                                             Map<String, Object> namedParams, PageDesc pageDesc) {
 
         return listObjectsByNamedSqlAsJson(jdbcTemplate, querySql, fieldNames,
-                QueryUtils.buildGetCountSQLByReplaceFields( querySql), namedParams, pageDesc);
+                SqlStatementAnalyzer.buildGetCountSQLByReplaceFields( querySql), namedParams, pageDesc);
     }
 
     public static JSONArray listObjectsByNamedSqlAsJson(JdbcTemplate jdbcTemplate,
@@ -155,7 +155,7 @@ public abstract class JdbcTemplateUtils {
                                             Map<String, Object> namedParams, PageDesc pageDesc) {
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
             return JdbcTemplateUtils.listObjectsByNamedSqlAsJson(jdbcTemplate, querySql, null,
-                    QueryUtils.buildGetCountSQLByReplaceFields(querySql), namedParams, pageDesc);
+                    SqlStatementAnalyzer.buildGetCountSQLByReplaceFields(querySql), namedParams, pageDesc);
         }else{
             JSONArray ja = JdbcTemplateUtils.listObjectsByNamedSqlAsJson(jdbcTemplate, querySql, namedParams);
             if(ja != null && pageDesc != null){
@@ -199,7 +199,7 @@ public abstract class JdbcTemplateUtils {
                                                    String querySql, String[] fieldNames,
                                                    Object[] params, PageDesc pageDesc) {
         return listObjectsBySqlAsJson(jdbcTemplate, querySql, fieldNames,
-                QueryUtils.buildGetCountSQLByReplaceFields( querySql), params, pageDesc);
+                SqlStatementAnalyzer.buildGetCountSQLByReplaceFields( querySql), params, pageDesc);
     }
 
 
@@ -236,7 +236,7 @@ public abstract class JdbcTemplateUtils {
     public static JSONArray listObjectsBySqlAsJson(JdbcTemplate jdbcTemplate, String querySql, Object[] params, PageDesc pageDesc) {
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
             return JdbcTemplateUtils.listObjectsBySqlAsJson(jdbcTemplate, querySql,
-                    QueryUtils.buildGetCountSQLByReplaceFields( querySql), params, pageDesc);
+                    SqlStatementAnalyzer.buildGetCountSQLByReplaceFields( querySql), params, pageDesc);
         }else{
             JSONArray ja = JdbcTemplateUtils.listObjectsBySqlAsJson(jdbcTemplate, querySql, params);
             if(ja != null && pageDesc != null){
@@ -283,7 +283,7 @@ public abstract class JdbcTemplateUtils {
 
     public static List<Object[]> listObjectsBySql(JdbcTemplate jdbcTemplate, String querySql, Object[] params, PageDesc pageDesc) {
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            String queryCountSql = QueryUtils.buildGetCountSQL(querySql);
+            String queryCountSql = SqlStatementAnalyzer.buildGetCountSQL(querySql);
             return JdbcTemplateUtils.listObjectsBySql(jdbcTemplate,querySql, queryCountSql,params, pageDesc);
         }else{
             List<Object[]> ja = JdbcTemplateUtils.listObjectsBySql(jdbcTemplate,querySql,params);
@@ -333,7 +333,7 @@ public abstract class JdbcTemplateUtils {
     public static List<Object[]> listObjectsByNamedSql(JdbcTemplate jdbcTemplate, String querySql,
                                                        Map<String, Object> namedParams, PageDesc pageDesc) {
         if(pageDesc!=null && pageDesc.getPageSize()>0) {
-            String queryCountSql = QueryUtils.buildGetCountSQL(querySql);
+            String queryCountSql = SqlStatementAnalyzer.buildGetCountSQL(querySql);
             return JdbcTemplateUtils.listObjectsByNamedSql(jdbcTemplate,querySql, queryCountSql,namedParams, pageDesc);
         }else{
             List<Object[]> ja = JdbcTemplateUtils.listObjectsByNamedSql(jdbcTemplate,querySql,namedParams);
@@ -356,9 +356,9 @@ public abstract class JdbcTemplateUtils {
     public static JSONArray listObjectsByParamsDriverSqlAsJson(JdbcTemplate jdbcTemplate,
                                                         String querySql, String[] fieldNames, String queryCountSql,
                                                         Map<String, Object> namedParams, PageDesc pageDesc) {
-        QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
+        QueryAndNamedParams qap = ParamsDrivenSQL.translateQuery( querySql, namedParams);
         Map<String, Object> paramsMap = qap.getParams();
-        QueryAndNamedParams countQap = QueryUtils.translateQuery( queryCountSql, namedParams);
+        QueryAndNamedParams countQap = ParamsDrivenSQL.translateQuery( queryCountSql, namedParams);
         paramsMap.putAll(countQap.getParams());
 
         return listObjectsByNamedSqlAsJson(jdbcTemplate, qap.getQuery(), fieldNames, countQap.getQuery(),
@@ -370,17 +370,17 @@ public abstract class JdbcTemplateUtils {
     public static JSONArray listObjectsByParamsDriverSqlAsJson(JdbcTemplate jdbcTemplate,
                                                    String querySql, String[] fieldNames,
                                                    Map<String, Object> namedParams, PageDesc pageDesc) {
-        QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
+        QueryAndNamedParams qap = ParamsDrivenSQL.translateQuery( querySql, namedParams);
 
         return listObjectsByNamedSqlAsJson(jdbcTemplate, qap.getQuery(), fieldNames,
-                QueryUtils.buildGetCountSQLByReplaceFields( qap.getQuery()), qap.getParams(), pageDesc);
+                SqlStatementAnalyzer.buildGetCountSQLByReplaceFields( qap.getQuery()), qap.getParams(), pageDesc);
     }
 
     public static JSONArray listObjectsByParamsDriverSqlAsJson(JdbcTemplate jdbcTemplate,
                                                    String querySql, String[] fieldNames,
                                                    Map<String, Object> namedParams) {
 
-        QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
+        QueryAndNamedParams qap = ParamsDrivenSQL.translateQuery( querySql, namedParams);
 
         return listObjectsByNamedSqlAsJson( jdbcTemplate,
                 qap.getQuery(), fieldNames, qap.getParams());
@@ -399,7 +399,7 @@ public abstract class JdbcTemplateUtils {
     public static JSONArray listObjectsByParamsDriverSqlAsJson(JdbcTemplate jdbcTemplate, String querySql,
                                                                Map<String,Object> namedParams) {
 
-        QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
+        QueryAndNamedParams qap = ParamsDrivenSQL.translateQuery( querySql, namedParams);
 
         return listObjectsByNamedSqlAsJson( jdbcTemplate, qap.getQuery(), qap.getParams());
     }
@@ -415,7 +415,7 @@ public abstract class JdbcTemplateUtils {
      */
     public static JSONArray listObjectsByParamsDriverSqlAsJson(JdbcTemplate jdbcTemplate, String querySql,
                                             Map<String, Object> namedParams, PageDesc pageDesc) {
-        QueryAndNamedParams qap = QueryUtils.translateQuery( querySql, namedParams);
+        QueryAndNamedParams qap = ParamsDrivenSQL.translateQuery( querySql, namedParams);
 
         return listObjectsByNamedSqlAsJson(jdbcTemplate, qap.getQuery(),
                                         qap.getParams(), pageDesc);

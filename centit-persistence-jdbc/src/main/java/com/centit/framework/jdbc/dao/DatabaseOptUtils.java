@@ -7,7 +7,8 @@ import com.centit.support.database.orm.JpaMetadata;
 import com.centit.support.database.orm.TableMapInfo;
 import com.centit.support.database.utils.DBType;
 import com.centit.support.database.utils.PageDesc;
-import com.centit.support.database.utils.QueryUtils;
+import com.centit.support.database.utils.ParamsDrivenSQL;
+import com.centit.support.database.utils.SqlStatementAnalyzer;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -43,12 +44,12 @@ public abstract class DatabaseOptUtils {
             if(values==null)
                 continue;
             Object paramValue = values.length==1 ? values[0] : values;
-            ImmutableTriple<String, String, String> paramDesc = QueryUtils.parseParameter(key);
+            ImmutableTriple<String, String, String> paramDesc = ParamsDrivenSQL.parseParameter(key);
             String pretreatment = paramDesc.getRight();
             String valueName = StringUtils.isBlank(paramDesc.getMiddle()) ? paramDesc.getLeft() : paramDesc.getMiddle();
 
             if(StringUtils.isNotBlank(pretreatment)){
-                paramValue = QueryUtils.pretreatParameter(pretreatment, paramValue);
+                paramValue = ParamsDrivenSQL.pretreatParameter(pretreatment, paramValue);
             }
             map.put(valueName, paramValue);
         }
@@ -129,7 +130,7 @@ public abstract class DatabaseOptUtils {
                                             Map<String, Object> namedParams, PageDesc pageDesc) {
 
         return listObjectsByNamedSqlAsJson(baseDao, querySql, fieldNames,
-                QueryUtils.buildGetCountSQLByReplaceFields( querySql), namedParams, pageDesc);
+                SqlStatementAnalyzer.buildGetCountSQLByReplaceFields( querySql), namedParams, pageDesc);
     }
 
     public static JSONArray listObjectsByNamedSqlAsJson(BaseDaoImpl<?, ?> baseDao,
@@ -175,7 +176,7 @@ public abstract class DatabaseOptUtils {
                                                    String querySql, String[] fieldNames,
                                                    Object[] params, PageDesc pageDesc) {
         return listObjectsBySqlAsJson(baseDao, querySql, fieldNames,
-                QueryUtils.buildGetCountSQLByReplaceFields( querySql), params, pageDesc);
+                SqlStatementAnalyzer.buildGetCountSQLByReplaceFields( querySql), params, pageDesc);
     }
 
 

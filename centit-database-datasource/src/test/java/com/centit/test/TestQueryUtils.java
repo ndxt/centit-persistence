@@ -2,8 +2,10 @@ package com.centit.test;
 
 import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.common.LeftRightPair;
+import com.centit.support.database.utils.ParamsDrivenSQL;
 import com.centit.support.database.utils.QueryAndNamedParams;
 import com.centit.support.database.utils.QueryUtils;
+import com.centit.support.database.utils.SqlStatementAnalyzer;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
@@ -18,7 +20,7 @@ public class TestQueryUtils {
 
         String queryStatement = "select  eb.estimateDatOld" +
             " [ :(like,uppercase) xmqc,:(like,uppercase)newparames, user.Info.username : (like,uppercase) xmqc3 | and eb.PRONAME like:xmqc] ";
-        for (String s : QueryUtils.getSqlTemplateParameters(queryStatement)) {
+        for (String s : ParamsDrivenSQL.getSqlTemplateParameters(queryStatement)) {
             System.out.println(s);
         }
         System.out.println("\ndone!");
@@ -77,7 +79,7 @@ public class TestQueryUtils {
             " f.field_name field" +
             "  from table b left join c on a.id = c.id, table2 abc , table3 where b.cols= 'a' order by a.col";
 
-        Pair<List<Pair<String, String>>, Map<String, String>> query = QueryUtils.extraFieldAndTable(querySql);
+        Pair<List<Pair<String, String>>, Map<String, String>> query = SqlStatementAnalyzer.extraFieldAndTable(querySql);
 
         for (Pair<String, String> f : query.getKey()) {
             System.out.println(f.getKey() + " : " + f.getValue());
@@ -91,8 +93,8 @@ public class TestQueryUtils {
 
     public static void testBuildGetCountSQL() {
         System.out.println(QueryUtils.trimSqlOrderByField(""));
-        System.out.println(QueryUtils.buildGetCountSQL("From UserInfo"));
-        System.out.println(QueryUtils.buildGetCountSQL("with(select * from table group by 1,2 order by ab) a "
+        System.out.println(SqlStatementAnalyzer.buildGetCountSQL("From UserInfo"));
+        System.out.println(SqlStatementAnalyzer.buildGetCountSQL("with(select * from table group by 1,2 order by ab) a "
             + "select distinct a,b,c,count(*) From (select * from UserInfo group by a, b order by a,b) "
             + " atable group cute by a.a,b.v,b.c order by 1,2"));
     }
@@ -125,7 +127,7 @@ public class TestQueryUtils {
             "where 1=1 [(${p1.1}>2  && p2>2)(p1.1:ps)| and t1.a=:ps]" +
             "[(isNotEmpty(${p1.1})&&isNotEmpty(p2)&&isNotEmpty(p3))(p2,p3:px)"
             + "| and (t2.b> :p2 or t3.c >:px)] order by 1,2";
-        System.out.println(QueryUtils.transNamedParamSqlToParamSql(queryStatement).getLeft());
+        System.out.println(ParamsDrivenSQL.transNamedParamSqlToParamSql(queryStatement).getLeft());
     }
 
     public static void testTranslateQuery() {
@@ -134,7 +136,7 @@ public class TestQueryUtils {
             "from table1 t1,table2 t2,table3 t3 "+
             "where 1=1 {table1:t1} {不认识} [也不认识] order by 1,2";
 
-        printQueryAndNamedParams(QueryUtils.translateQuery(
+        printQueryAndNamedParams(ParamsDrivenSQL.translateQuery(
                  queryStatement, filters,
                   paramsMap, true));*/
         List<String> filters = new ArrayList<String>();
@@ -158,7 +160,7 @@ public class TestQueryUtils {
             //+ " [ p1.1 :()  p4, : ( like )p2  | and tw.a=:p3 ]"
             + " order by 1,2";
 
-        printQueryAndNamedParams(QueryUtils.translateQuery(
+        printQueryAndNamedParams(ParamsDrivenSQL.translateQuery(
             queryStatement, filters,
             paramsMap, true));
         /*
@@ -167,7 +169,7 @@ public class TestQueryUtils {
                 "where 1=1 [(${p1.1}>2  && p2>2)(p1.1:ps)| and t1.a=:ps][(isNotEmpty(${p1.1})&&isNotEmpty(p2)&&isNotEmpty(p3))(()p2,p3:px)"
                 + "| and (t2.b> :p2 or t3.c >:px)] order by 1,2";
 
-        printQueryAndNamedParams(QueryUtils.translateQuery(
+        printQueryAndNamedParams(ParamsDrivenSQL.translateQuery(
                  queryStatement, filters,
                   paramsMap, true));
 
@@ -175,7 +177,7 @@ public class TestQueryUtils {
         queryStatement = "select [(${p1.1}>2 && p2>2)|t1.a,] t2.b,t3.c "+
                 "from [(${p1.1}>2 && p2>2)| table1 t1,] table2 t2,table3 t3 "+
                 "where 1=1 [(${p1.1}>2 && p2>2)(p1.1:ps)| and t1.a=:ps][p1.1,:p2,p3:px| and (t2.b> :p2 or t3.c >:px)] order by 1,2";
-        printQueryAndNamedParams(QueryUtils.translateQuery(
+        printQueryAndNamedParams(ParamsDrivenSQL.translateQuery(
                  queryStatement, filters,
                   paramsMap, true));*/
     }
@@ -185,7 +187,7 @@ public class TestQueryUtils {
             "from [(${p1.1}>2 && p2>2)| table1 t1,] table2 t2,table3 t3 " +
             "where t2.usercode = :userName  [(${p1.1}>2 && p2>2)(p5,:p9)| and t1.a=:ps][p3:px| and (t2.b> :p2 or t3.c >:px)] order by 1,2";
         System.out.println(StringBaseOpt.objectToString(
-            QueryUtils.getSqlTemplateFiledNames(queryStatement)));
+            SqlStatementAnalyzer.getSqlTemplateFiledNames(queryStatement)));
     }
 
     public static void testTranslateQuery2() {
@@ -208,7 +210,7 @@ public class TestQueryUtils {
                 + "[ * D(U+1, U3)||D(U--) :(like)mathName | and uu.unitName like :mathName ]"
                 + "[:(inplace)sort | order by :sort  ]";
 
-        printQueryAndNamedParams(QueryUtils.translateQuery(
+        printQueryAndNamedParams(ParamsDrivenSQL.translateQuery(
             queryStatement, null,
             paramsMap, true));
 

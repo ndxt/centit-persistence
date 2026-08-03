@@ -175,7 +175,7 @@ public abstract class BaseDaoImpl<T, PK> {
 
     public String encapsulateFilterToFields(Collection<String> fields, String filterQuery,
                                             String tableAlias, boolean withExtFilter) {
-        //QueryUtils.hasOrderBy(filterQuery)
+        //SqlStatementAnalyzer.hasOrderBy(filterQuery)
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         String fieldsSql =
                 ((fields != null && !fields.isEmpty())
@@ -252,7 +252,7 @@ public abstract class BaseDaoImpl<T, PK> {
     }
 
     public LeftRightPair<QueryAndNamedParams, TableField[]> buildQueryByParamsWithFields(Map<String, Object> filterMap, Collection<String> fields,
-                                                                             Collection<String> extentFilters, QueryUtils.IFilterTranslate powerTranslater){
+                                                                             Collection<String> extentFilters, ParamsDrivenSQL.IFilterTranslate powerTranslater){
 
         String selfOrderBy = fetchSelfOrderSql(filterMap);
 
@@ -269,7 +269,7 @@ public abstract class BaseDaoImpl<T, PK> {
     }
 
     protected QueryAndNamedParams buildQueryByParams(Map<String, Object> filterMap, Collection<String> fields,
-                                         Collection<String> extentFilters, QueryUtils.IFilterTranslate powerTranslater) {
+                                         Collection<String> extentFilters, ParamsDrivenSQL.IFilterTranslate powerTranslater) {
         String selfOrderBy = fetchSelfOrderSql(filterMap);
 
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
@@ -285,7 +285,7 @@ public abstract class BaseDaoImpl<T, PK> {
     }
 
     protected QueryAndNamedParams buildFilterByParams(Map<String, Object> filterMap,
-                                                      Collection<String> extentFilters, QueryUtils.IFilterTranslate powerTranslater) {
+                                                      Collection<String> extentFilters, ParamsDrivenSQL.IFilterTranslate powerTranslater) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Map<String, Object> queryParams = new HashMap<>(filterMap.size()+4);
         Map<String, DataFilter> filterList = obtainInsideFilters(mapInfo);
@@ -321,7 +321,7 @@ public abstract class BaseDaoImpl<T, PK> {
                         currentBuild.append(haveGroupSign? " or " : " and ");
                     }
 
-                    queryParams.put(df.getValueName(), QueryUtils.pretreatParameter(df.getPretreatment(),ent.getValue() ));
+                    queryParams.put(df.getValueName(), ParamsDrivenSQL.pretreatParameter(df.getPretreatment(),ent.getValue() ));
                     currentBuild.append(df.getFilterSql());
                 } else {
                     leftFilterMap.put(ent.getKey(), ent.getValue());
@@ -338,12 +338,12 @@ public abstract class BaseDaoImpl<T, PK> {
         StringBuilder filterQuery = new StringBuilder();
         //外部条件，一般是权限引擎的表达式
         if(extentFilters!=null && !extentFilters.isEmpty()) {
-            QueryUtils.IFilterTranslate translater = powerTranslater !=null ?
-                powerTranslater : new QueryUtils.SimpleFilterTranslate(filterMap);
+            ParamsDrivenSQL.IFilterTranslate translater = powerTranslater !=null ?
+                powerTranslater : new ParamsDrivenSQL.SimpleFilterTranslate(filterMap);
             Map<String, String> tableAlias = new HashMap<>(2);
             tableAlias.put(mapInfo.getTableName(), "");
             translater.setTableAlias(tableAlias );
-            QueryAndNamedParams powerFilter = QueryUtils.translateQueryFilter(extentFilters, translater, true);
+            QueryAndNamedParams powerFilter = ParamsDrivenSQL.translateQueryFilter(extentFilters, translater, true);
             if(powerFilter != null && StringUtils.isNotBlank(powerFilter.getQuery())){
                 filterQuery.append(" and ").append(powerFilter.getQuery());
                 queryParams.putAll(powerFilter.getParams());
@@ -886,7 +886,7 @@ public abstract class BaseDaoImpl<T, PK> {
     }
 
     public int deleteObjectsForceByProperties(Map<String, Object> properties,
-            Collection<String> extentFilters, QueryUtils.IFilterTranslate powerTranslater){
+            Collection<String> extentFilters, ParamsDrivenSQL.IFilterTranslate powerTranslater){
         QueryAndNamedParams filterAndParams = buildFilterByParams(properties, extentFilters, powerTranslater);
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         String deleteSql = "delete from " + mapInfo.getTableName() + " where 1=1 " + filterAndParams.getQuery();
@@ -899,7 +899,7 @@ public abstract class BaseDaoImpl<T, PK> {
     }
 
     public int deleteObjectsByProperties(Map<String, Object> properties,
-                                          Collection<String> extentFilters, QueryUtils.IFilterTranslate powerTranslater) {
+                                          Collection<String> extentFilters, ParamsDrivenSQL.IFilterTranslate powerTranslater) {
         boolean hasDeleteTag = EntityWithDeleteTag.class.isAssignableFrom(getPoClass());
         List<T> deleteList = listObjectsByProperties(properties, extentFilters, powerTranslater);
         int deleteSum = 0;
@@ -941,7 +941,7 @@ public abstract class BaseDaoImpl<T, PK> {
     }
 
     public T getObjectByProperties(Map<String, Object> properties ,
-                                   Collection<String> filters, QueryUtils.IFilterTranslate powerTranslater) {
+                                   Collection<String> filters, ParamsDrivenSQL.IFilterTranslate powerTranslater) {
         TableMapInfo mapInfo = JpaMetadata.fetchTableMapInfo(getPoClass());
         Pair<String, TableField[]> q = GeneralJsonObjectDao.buildFieldSqlWithFields(mapInfo, null, false);
         QueryAndNamedParams queryAndParams = buildFilterByParams(properties, filters, powerTranslater);
@@ -977,15 +977,15 @@ public abstract class BaseDaoImpl<T, PK> {
      * @return 返回的对象列表
      */
     public int countObjectByProperties(Map<String, Object> properties,
-                                       Collection<String> filters, QueryUtils.IFilterTranslate powerTranslater) {
+                                       Collection<String> filters, ParamsDrivenSQL.IFilterTranslate powerTranslater) {
         QueryAndNamedParams qap = buildQueryByParams( properties, null, filters, powerTranslater);
-        String countSql = QueryUtils.buildGetCountSQLByReplaceFields(qap.getQuery());
+        String countSql = SqlStatementAnalyzer.buildGetCountSQLByReplaceFields(qap.getQuery());
         return NumberBaseOpt.castObjectToInteger(
             DatabaseOptUtils.getScalarObjectQuery(this, countSql, qap.getParams()), 0);
     }
 
     public List<T> listObjectsByProperties(final Map<String, Object> properties,
-                                           Collection<String> filters, QueryUtils.IFilterTranslate powerTranslater) {
+                                           Collection<String> filters, ParamsDrivenSQL.IFilterTranslate powerTranslater) {
         QueryAndNamedParams qap = buildQueryByParams( properties, null, filters, powerTranslater);
 
         return jdbcTemplate.execute(
@@ -994,7 +994,7 @@ public abstract class BaseDaoImpl<T, PK> {
     }
 
     public List<T> listObjectsByProperties(final Map<String, Object> properties, Collection<String> filters,
-                                           QueryUtils.IFilterTranslate powerTranslater, int startPos, int maxSize) {
+                                           ParamsDrivenSQL.IFilterTranslate powerTranslater, int startPos, int maxSize) {
         QueryAndNamedParams qap = buildQueryByParams( properties, null, filters, powerTranslater);
         return jdbcTemplate.execute(
             (ConnectionCallback<List<T>>) conn -> OrmDaoUtils
@@ -1002,14 +1002,14 @@ public abstract class BaseDaoImpl<T, PK> {
     }
 
     public List<T> listObjectsByProperties(final Map<String, Object> properties, Collection<String> filters,
-                                           QueryUtils.IFilterTranslate powerTranslater, PageDesc pageDesc) {
+                                           ParamsDrivenSQL.IFilterTranslate powerTranslater, PageDesc pageDesc) {
         QueryAndNamedParams qap = buildQueryByParams( properties, null, filters, powerTranslater);
 
         return jdbcTemplate.execute(
             (ConnectionCallback<List<T>>) conn -> {
                 if(pageDesc != null && pageDesc.getPageSize() > 0 && pageDesc.getPageNo() > 0) {
                     pageDesc.setTotalRows(OrmDaoUtils.fetchObjectsCount(conn,
-                        QueryUtils.buildGetCountSQLByReplaceFields(qap.getQuery()), qap.getParams()));
+                        SqlStatementAnalyzer.buildGetCountSQLByReplaceFields(qap.getQuery()), qap.getParams()));
                     return OrmDaoUtils
                         .queryObjectsByNamedParamsSql(conn, qap.getQuery(), qap.getParams(), (Class<T>) getPoClass(),
                             pageDesc.getRowStart(), pageDesc.getPageSize());
@@ -1059,7 +1059,7 @@ public abstract class BaseDaoImpl<T, PK> {
 
                         pageDesc.setTotalRows(NumberBaseOpt.castObjectToInteger(
                             DatabaseAccess.getScalarObjectQuery(
-                                conn, QueryUtils.buildGetCountSQLByReplaceFields(querySql), params)));
+                                conn, SqlStatementAnalyzer.buildGetCountSQLByReplaceFields(querySql), params)));
                         return GeneralJsonObjectDao.findObjectsBySql(conn, pageQuerySql, params, fields);
                     } else {
                         JSONArray ja = GeneralJsonObjectDao.findObjectsBySql(conn, querySql, params, fields);
@@ -1095,7 +1095,7 @@ public abstract class BaseDaoImpl<T, PK> {
      * @return 返回的对象列表
      */
     public JSONArray listObjectsByPropertiesAsJson(final Map<String, Object> properties,
-                                           Collection<String> filters, QueryUtils.IFilterTranslate powerTranslater) {
+                                           Collection<String> filters, ParamsDrivenSQL.IFilterTranslate powerTranslater) {
         return listObjectsByPropertiesAsJson(properties, filters, powerTranslater, null);
     }
 
@@ -1113,7 +1113,7 @@ public abstract class BaseDaoImpl<T, PK> {
      * @return 返回的对象列表
      */
     public JSONArray listObjectsByPropertiesAsJson(final Map<String, Object> properties, Collection<String> filters,
-                                                   QueryUtils.IFilterTranslate powerTranslater, int startPos, int maxSize) {
+                                                   ParamsDrivenSQL.IFilterTranslate powerTranslater, int startPos, int maxSize) {
         LeftRightPair<QueryAndNamedParams, TableField[]> queryAndFields = buildQueryByParamsWithFields( properties, null, filters, powerTranslater);
         QueryAndParams sqlQuery = QueryAndParams.createFromQueryAndNamedParams(queryAndFields.getLeft());
         return listObjectsBySqlAsJson(sqlQuery.getQuery(), sqlQuery.getParams(), queryAndFields.getRight(), startPos, maxSize);
@@ -1130,7 +1130,7 @@ public abstract class BaseDaoImpl<T, PK> {
      * @return 返回的对象列表
      */
     public JSONArray listObjectsByPropertiesAsJson(final Map<String, Object> properties, Collection<String> filters,
-                                                   QueryUtils.IFilterTranslate powerTranslater, PageDesc pageDesc) {
+                                                   ParamsDrivenSQL.IFilterTranslate powerTranslater, PageDesc pageDesc) {
         LeftRightPair<QueryAndNamedParams, TableField[]> queryAndFields = buildQueryByParamsWithFields( properties, null, filters, powerTranslater);
         QueryAndParams sqlQuery = QueryAndParams.createFromQueryAndNamedParams(queryAndFields.getLeft());
 
@@ -1144,12 +1144,12 @@ public abstract class BaseDaoImpl<T, PK> {
 
 
     public JSONArray listObjectsPartFieldByPropertiesAsJson(final Map<String, Object> properties, Collection<String> fields,
-                                           Collection<String> filters, QueryUtils.IFilterTranslate powerTranslater) {
+                                           Collection<String> filters, ParamsDrivenSQL.IFilterTranslate powerTranslater) {
         return listObjectsPartFieldByPropertiesAsJson(properties, fields, filters, powerTranslater, null);
     }
 
     public JSONArray listObjectsPartFieldByPropertiesAsJson(final Map<String, Object> properties, Collection<String> fields, Collection<String> filters,
-                                                            QueryUtils.IFilterTranslate powerTranslater, int startPos, int maxSize) {
+                                                            ParamsDrivenSQL.IFilterTranslate powerTranslater, int startPos, int maxSize) {
         LeftRightPair<QueryAndNamedParams, TableField[]> queryAndFields = buildQueryByParamsWithFields( properties, fields, filters, powerTranslater);
         QueryAndParams sqlQuery = QueryAndParams.createFromQueryAndNamedParams(queryAndFields.getLeft());
 
@@ -1166,7 +1166,7 @@ public abstract class BaseDaoImpl<T, PK> {
      * @return 返回的对象列表
      */
     public JSONArray listObjectsPartFieldByPropertiesAsJson(final Map<String, Object> properties, Collection<String> fields, Collection<String> filters,
-                                                            QueryUtils.IFilterTranslate powerTranslater, PageDesc pageDesc) {
+                                                            ParamsDrivenSQL.IFilterTranslate powerTranslater, PageDesc pageDesc) {
         LeftRightPair<QueryAndNamedParams, TableField[]> queryAndFields = buildQueryByParamsWithFields( properties, fields, filters, powerTranslater);
         QueryAndParams sqlQuery = QueryAndParams.createFromQueryAndNamedParams(queryAndFields.getLeft());
 
