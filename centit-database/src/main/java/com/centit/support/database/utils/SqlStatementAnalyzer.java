@@ -695,8 +695,7 @@ public abstract class SqlStatementAnalyzer {
         if (pipeStart < 0) {
             return "";
         }
-        String stmt = piece.substring(pipeStart).trim();
-        return stmt;
+        return piece.substring(pipeStart).trim();
     }
 
     // ==================== 新增：完整结构化分析 ====================
@@ -980,10 +979,8 @@ public abstract class SqlStatementAnalyzer {
     private static void collectSelectSourceTables(String sql, SqlAnalysisResult result) {
         try {
             Map<String, String> tables = extraTables(SqlStatementAnalyzerFirstFrom(sql));
-            if (tables != null) {
-                for (Map.Entry<String, String> e : tables.entrySet()) {
-                    result.getSourceTables().add(new SqlAnalysisResult.TableRef(e.getKey(), e.getValue()));
-                }
+            for (Map.Entry<String, String> e : tables.entrySet()) {
+                result.getSourceTables().add(new SqlAnalysisResult.TableRef(e.getKey(), e.getValue()));
             }
         } catch (Exception e) {
             result.addWarning("insert-select 源表未能完整解析");
@@ -996,10 +993,8 @@ public abstract class SqlStatementAnalyzer {
             List<String> pieces = splitSqlByFields(sql);
             if (pieces != null && pieces.size() > 2) {
                 Map<String, String> tables = extraTables(pieces.get(2));
-                if (tables != null) {
-                    for (Map.Entry<String, String> e : tables.entrySet()) {
-                        result.getSourceTables().add(new SqlAnalysisResult.TableRef(e.getKey(), e.getValue()));
-                    }
+                for (Map.Entry<String, String> e : tables.entrySet()) {
+                    result.getSourceTables().add(new SqlAnalysisResult.TableRef(e.getKey(), e.getValue()));
                 }
             }
         } catch (Exception e) {
@@ -1023,8 +1018,8 @@ public abstract class SqlStatementAnalyzer {
         return sql;
     }
 
-    /** 提取 where 条件中的列引用（别名.字段 形式，可靠；独立标识符作为近似补充） */
-    /** 提取 where 条件中的列引用（仅 alias.column 形式，可靠；独立列名不近似伪造） */
+    /** 提取 where 条件中的列引用（别名.字段 形式，可靠；独立标识符作为近似补充）
+        提取 where 条件中的列引用（仅 alias.column 形式，可靠；独立列名不近似伪造） */
     private static void collectConditionColumns(String sql, List<String> out) {
         String whereClause = extractWhereClause(sql);
         if (whereClause == null) {
