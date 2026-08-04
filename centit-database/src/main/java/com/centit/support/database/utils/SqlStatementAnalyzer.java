@@ -786,7 +786,7 @@ public abstract class SqlStatementAnalyzer {
         collectConditionColumns(sql, result.getConditionColumns());
     }
 
-    /** 收集 with 语句中定义的 CTE 名（作为虚拟源表，alias 为空） */
+    /** 收集 with 语句中定义的 CTE 名（作为虚拟源表，alias 为空），并提取 CTE 定义体内引用的真实表，保证血缘完整 */
     private static void collectCteNames(String sql, SqlAnalysisResult result) {
         // 匹配 "with name as (" 或 ", name as (" 形式的 CTE 定义
         java.util.regex.Matcher m = java.util.regex.Pattern.compile(
@@ -796,6 +796,45 @@ public abstract class SqlStatementAnalyzer {
             if (!isSqlKeyWord(name)) {
                 result.getSourceTables().add(new SqlAnalysisResult.TableRef(name, ""));
             }
+            // 提取 CTE 定义体括号内的真实表，避免血缘只停留在 CTE 名层级
+            String body = extractBalancedParen(sql, m.end() - 1);
+            if (body != null) {
+                collectInnerTables(body, result);
+            }
+        }
+    }
+
+    /** 从 sql[start]='(' 起做括号配对，返回匹配括号内的内容（不含外层括号）；不匹配返回 null。 */
+    private static String extractBalancedParen(String sql, int start) {
+        if (start < 0 || start >= sql.length() || sql.charAt(start) != '(') {
+            return null;
+        }
+        int depth = 0;
+        for (int i = start; i < sql.length(); i++) {
+            char c = sql.charAt(i);
+            if (c == '(') {
+                depth++;
+            } else if (c == ')') {
+                depth--;
+                if (depth == 0) {
+                    return sql.substring(start + 1, i);
+                }
+            }
+        }
+        return null;
+    }
+
+    /** 提取一段（子查询/CTE 定义体）内的源表并入结果；解析失败静默忽略，不伪造。 */
+    private static void collectInnerTables(String subSql, SqlAnalysisResult result) {
+        try {
+            Pair<List<Pair<String, String>>, Map<String, String>> fat = extraFieldAndTable(subSql);
+            if (fat != null && fat.getRight() != null) {
+                for (Map.Entry<String, String> e : fat.getRight().entrySet()) {
+                    result.getSourceTables().add(new SqlAnalysisResult.TableRef(e.getKey(), e.getValue()));
+                }
+            }
+        } catch (Exception ignore) {
+            // 子结构解析失败不影响主流程，避免伪造血缘
         }
     }
 
@@ -901,7 +940,7 @@ public abstract class SqlStatementAnalyzer {
                 result.getTargetTables().add(table);
             }
         }
-        // using 后是源（表或子查询）
+        // using 后是源（表名或子查询）：子查询时提取其内部表，保证血缘完整
         Lexer lex2 = new Lexer(sql, Lexer.LANG_TYPE_SQL);
         String s;
         while ((s = lex2.getAWord()) != null && !s.isEmpty() && !"using".equalsIgnoreCase(s)) {
@@ -910,9 +949,19 @@ public abstract class SqlStatementAnalyzer {
             }
         }
         if ("using".equalsIgnoreCase(s)) {
-            String src = readNextIdentifier(lex2);
-            if (StringUtils.isNotBlank(src)) {
-                result.getSourceTables().add(new SqlAnalysisResult.TableRef(src, null));
+            int afterUsingStart = lex2.getCurrPos();
+            String afterUsing = afterUsingStart <= sql.length() ? sql.substring(afterUsingStart).trim() : "";
+            if (afterUsing.startsWith("(")) {
+                String body = extractBalancedParen(afterUsing, 0);
+                if (body != null) {
+                    collectInnerTables(body, result);
+                }
+            } else {
+                Lexer srcLex = new Lexer(afterUsing, Lexer.LANG_TYPE_SQL);
+                String src = readNextIdentifier(srcLex);
+                if (StringUtils.isNotBlank(src)) {
+                    result.getSourceTables().add(new SqlAnalysisResult.TableRef(src, null));
+                }
             }
         }
     }
