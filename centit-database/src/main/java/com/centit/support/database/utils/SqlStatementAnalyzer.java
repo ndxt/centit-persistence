@@ -828,17 +828,35 @@ public abstract class SqlStatementAnalyzer {
         Lexer lex = new Lexer(sql, Lexer.LANG_TYPE_SQL);
         String w = lex.getAWord(); // update
         String table = readNextIdentifier(lex);
+        String targetAlias = null;
         if (StringUtils.isNotBlank(table)) {
-            result.getTargetTables().add(table);
             String alias = readNextIdentifier(lex);
             // update t1 set ... from t2 或 update t1 from t2
             if (alias != null && !"set".equalsIgnoreCase(alias)) {
-                // 可能为别名，继续
+                // from 是子句关键字；其余非关键字按 update t1 [as] alias set ... 的别名分析
+                if ("as".equalsIgnoreCase(alias)) {
+                    targetAlias = readNextIdentifier(lex);
+                } else if (!"from".equalsIgnoreCase(alias) && !isSqlKeyWord(alias)) {
+                    targetAlias = alias;
+                }
             }
         }
-        if (containsWord(sql, "from")) {
+        boolean updateFrom = containsWord(sql, "from");
+        if (updateFrom) {
             result.setSubType("UPDATE_FROM");
             collectFromSourceTables(sql, result);
+        }
+        // SQL Server 支持 update alias set ... from real_table alias：按 from 中的别名还原目标表名。
+        if (StringUtils.isNotBlank(table) && targetAlias == null && updateFrom) {
+            for (SqlAnalysisResult.TableRef sourceTable : result.getSourceTables()) {
+                if (table.equalsIgnoreCase(sourceTable.getAlias())) {
+                    table = sourceTable.getName();
+                    break;
+                }
+            }
+        }
+        if (StringUtils.isNotBlank(table)) {
+            result.getTargetTables().add(table);
         }
         collectConditionColumns(sql, result.getConditionColumns());
     }
