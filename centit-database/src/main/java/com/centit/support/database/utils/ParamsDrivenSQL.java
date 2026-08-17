@@ -29,7 +29,7 @@ import java.util.*;
  * 原 {@code QueryUtils} 中对应的公共静态方法保留为转发入口，以保证存量调用零改动。
  *
  * @author codefan@hotmail.com
- * @see QueryUtils#translateQuery(String, Object)
+ * @see ParamsDrivenSQL#translateQuery(String, Object)
  */
 @SuppressWarnings("unused")
 public abstract class ParamsDrivenSQL {
@@ -765,6 +765,423 @@ public abstract class ParamsDrivenSQL {
         return hqlAndParams;
     }
 
+    /**
+     * 严格翻译外置过滤条件（调用方语义，本库不做权限判断）。和历史 API 不同，本方法不会跳过无法编译的部分：
+     * 任一 filter 失败、参数重名或空集合都会返回 INVALID，且不返回可执行片段。
+     */
+    public static StrictSqlResult translateQueryStrict(String queryStatement,
+                                                       StrictSqlAccess access,
+                                                       Collection<StrictSqlFilter> filters,
+                                                       boolean isUnion,
+                                                       IFilterTranslate translate) {
+        List<StrictSqlAnchorDiagnostic> anchorDiagnostics = new ArrayList<>();
+        List<StrictSqlFilterDiagnostic> filterDiagnostics = new ArrayList<>();
+        if (StringUtils.isBlank(queryStatement)) {
+            return StrictSqlResult.invalid(StrictSqlReasonCode.SQL_MISSING,
+                anchorDiagnostics, filterDiagnostics);
+        }
+        if (access == null || translate == null) {
+            return StrictSqlResult.invalid(StrictSqlReasonCode.FILTER_INVALID,
+                anchorDiagnostics, filterDiagnostics);
+        }
+        List<StrictSqlFilter> strictFilters = filters == null
+            ? Collections.emptyList()
+            : new ArrayList<>(filters);
+        if (access == StrictSqlAccess.FILTERED) {
+            if (strictFilters.isEmpty()) {
+                return StrictSqlResult.invalid(StrictSqlReasonCode.FILTERS_MISSING,
+                    anchorDiagnostics, filterDiagnostics);
+            }
+            Set<String> filterIds = new HashSet<>();
+            for (StrictSqlFilter filter : strictFilters) {
+                if (filter == null || StringUtils.isBlank(filter.filterId())
+                    || StringUtils.isBlank(filter.expression())) {
+                    return StrictSqlResult.invalid(StrictSqlReasonCode.FILTER_INVALID,
+                        anchorDiagnostics, filterDiagnostics);
+                }
+                if (!filterIds.add(filter.filterId())) {
+                    return StrictSqlResult.invalid(StrictSqlReasonCode.FILTER_ID_DUPLICATED,
+                        anchorDiagnostics, filterDiagnostics);
+                }
+            }
+        }
+
+        QueryAndNamedParams result = new QueryAndNamedParams();
+        Set<String> reservedParameterNames = new HashSet<>(
+            getSqlNamedParameters(queryStatement));
+        StringBuilder sql = new StringBuilder();
+        Lexer lexer = new Lexer(queryStatement, Lexer.LANG_TYPE_SQL);
+        String word = lexer.getAWord();
+        int previousPosition = 0;
+        int anchorIndex = 0;
+        boolean sawRequiredAnchor = false;
+        while (word != null && !word.isEmpty()) {
+            if ("{".equals(word)) {
+                int currentPosition = lexer.getCurrPos();
+                if (currentPosition - 1 > previousPosition) {
+                    sql.append(queryStatement, previousPosition, currentPosition - 1);
+                }
+                if (!lexer.seekToRightBrace()) {
+                    return StrictSqlResult.invalid(StrictSqlReasonCode.MALFORMED_TEMPLATE,
+                        anchorDiagnostics, filterDiagnostics);
+                }
+                previousPosition = lexer.getCurrPos();
+                String anchorText = queryStatement.substring(
+                    currentPosition, previousPosition - 1).trim();
+                StrictAnchor anchor = parseStrictAnchor(anchorText);
+                if (anchor == null) {
+                    return StrictSqlResult.invalid(StrictSqlReasonCode.ANCHOR_INVALID,
+                        anchorDiagnostics, filterDiagnostics);
+                }
+                if (anchor.required()) {
+                    sawRequiredAnchor = true;
+                }
+                if (access == StrictSqlAccess.FULL) {
+                    anchorDiagnostics.add(new StrictSqlAnchorDiagnostic(anchorIndex,
+                        anchor.required(), anchor.references(), 0, true,
+                        StrictSqlReasonCode.READY));
+                } else if (access == StrictSqlAccess.DENY) {
+                    sql.append(" and 0=1 ");
+                    anchorDiagnostics.add(new StrictSqlAnchorDiagnostic(anchorIndex,
+                        anchor.required(), anchor.references(), 0, true,
+                        StrictSqlReasonCode.READY));
+                } else {
+                    translate.setTableAlias(anchor.tableMap());
+                    List<QueryAndNamedParams> compiled = new ArrayList<>(strictFilters.size());
+                    Set<String> localParams = new HashSet<>();
+                    for (int filterIndex = 0; filterIndex < strictFilters.size(); filterIndex++) {
+                        StrictSqlFilter filter = strictFilters.get(filterIndex);
+                        QueryAndNamedParams piece = translateQueryFilterStrict(filter.expression(),
+                            translate, strictParamPrefix(anchorIndex, filterIndex));
+                        if (piece == null || StringUtils.isBlank(piece.getQuery())) {
+                            filterDiagnostics.add(new StrictSqlFilterDiagnostic(filter.filterId(),
+                                anchorIndex, false, StrictSqlReasonCode.FILTER_NOT_APPLICABLE));
+                            continue;
+                        }
+                        if (STRICT_FILTER_INVALID_QUERY.equals(piece.getQuery())) {
+                            filterDiagnostics.add(new StrictSqlFilterDiagnostic(filter.filterId(),
+                                anchorIndex, false, StrictSqlReasonCode.FILTER_INVALID));
+                            return StrictSqlResult.invalid(StrictSqlReasonCode.FILTER_PARTIALLY_COMPILED,
+                                anchorDiagnostics, filterDiagnostics);
+                        }
+                        if (containsAny(localParams, piece.getParams().keySet())
+                            || containsAny(reservedParameterNames, piece.getParams().keySet())
+                            || hasParameterCollision(result.getParams(), piece.getParams())) {
+                            filterDiagnostics.add(new StrictSqlFilterDiagnostic(filter.filterId(),
+                                anchorIndex, false, StrictSqlReasonCode.PARAMETER_COLLISION));
+                            return StrictSqlResult.invalid(StrictSqlReasonCode.PARAMETER_COLLISION,
+                                anchorDiagnostics, filterDiagnostics);
+                        }
+                        localParams.addAll(piece.getParams().keySet());
+                        compiled.add(piece);
+                        filterDiagnostics.add(new StrictSqlFilterDiagnostic(filter.filterId(),
+                            anchorIndex, true, StrictSqlReasonCode.READY));
+                    }
+                    if (compiled.isEmpty()) {
+                        anchorDiagnostics.add(new StrictSqlAnchorDiagnostic(anchorIndex,
+                            anchor.required(), anchor.references(), 0, false,
+                            StrictSqlReasonCode.REQUIRED_ANCHOR_UNCOVERED));
+                        return StrictSqlResult.invalid(StrictSqlReasonCode.REQUIRED_ANCHOR_UNCOVERED,
+                            anchorDiagnostics, filterDiagnostics);
+                    }
+                    sql.append(" and ");
+                    appendStrictFilterPieces(sql, result, compiled, isUnion);
+                    anchorDiagnostics.add(new StrictSqlAnchorDiagnostic(anchorIndex,
+                        anchor.required(), anchor.references(), compiled.size(), true,
+                        StrictSqlReasonCode.READY));
+                }
+                anchorIndex++;
+            } else if ("[".equals(word)) {
+                int currentPosition = lexer.getCurrPos();
+                if (currentPosition - 1 > previousPosition) {
+                    sql.append(queryStatement, previousPosition, currentPosition - 1);
+                }
+                if (!lexer.seekToRightSquareBracket()) {
+                    return StrictSqlResult.invalid(StrictSqlReasonCode.MALFORMED_TEMPLATE,
+                        anchorDiagnostics, filterDiagnostics);
+                }
+                previousPosition = lexer.getCurrPos();
+                String queryPiece = queryStatement.substring(
+                    currentPosition, previousPosition - 1).trim();
+                QueryAndNamedParams piece = translateQueryPiece(queryPiece, translate);
+                if (piece != null && StringUtils.isNotBlank(piece.getQuery())) {
+                    if (hasParameterCollision(result.getParams(), piece.getParams())) {
+                        return StrictSqlResult.invalid(StrictSqlReasonCode.PARAMETER_COLLISION,
+                            anchorDiagnostics, filterDiagnostics);
+                    }
+                    sql.append(piece.getQuery());
+                    result.addAllParams(piece.getParams());
+                    reservedParameterNames.addAll(piece.getParams().keySet());
+                }
+            }
+            word = lexer.getAWord();
+        }
+        sql.append(queryStatement.substring(previousPosition));
+        if (access != StrictSqlAccess.FULL && !sawRequiredAnchor) {
+            return StrictSqlResult.invalid(StrictSqlReasonCode.REQUIRED_ANCHOR_MISSING,
+                anchorDiagnostics, filterDiagnostics);
+        }
+        result.setQuery(sql.toString());
+        return StrictSqlResult.ready(result, anchorDiagnostics, filterDiagnostics);
+    }
+
+    private static String strictParamPrefix(int anchorIndex, int filterIndex) {
+        return "__rs_a" + anchorIndex + "_f" + filterIndex + "_";
+    }
+
+    private static final String STRICT_FILTER_INVALID_QUERY = "\u0000STRICT_FILTER_INVALID\u0000";
+
+    private static QueryAndNamedParams translateQueryFilterStrict(String filter,
+                                                                  IFilterTranslate translate,
+                                                                  String parameterPrefix) {
+        QueryAndNamedParams result = new QueryAndNamedParams();
+        Lexer lexer = new Lexer(filter, Lexer.LANG_TYPE_SQL);
+        StringBuilder sql = new StringBuilder();
+        String word = lexer.getAWord();
+        int previousPosition = 0;
+        boolean hasApplicableColumn = false;
+        boolean hasNotApplicableColumn = false;
+        while (word != null && !word.isEmpty()) {
+            if ("[".equals(word)) {
+                int currentPosition = lexer.getCurrPos();
+                if (currentPosition - 1 > previousPosition) {
+                    sql.append(filter, previousPosition, currentPosition - 1);
+                }
+                if (!lexer.seekToRightSquareBracket()) {
+                    return invalidStrictFilterPiece();
+                }
+                previousPosition = lexer.getCurrPos();
+                String columnDesc = filter.substring(currentPosition, previousPosition - 1).trim();
+                if (StringUtils.isBlank(columnDesc)) {
+                    return invalidStrictFilterPiece();
+                }
+                String column = translate.translateColumn(columnDesc);
+                if (column == null) {
+                    hasNotApplicableColumn = true;
+                } else {
+                    hasApplicableColumn = true;
+                    sql.append(column);
+                }
+            } else if ("{".equals(word)) {
+                int currentPosition = lexer.getCurrPos();
+                if (currentPosition - 1 > previousPosition) {
+                    sql.append(filter, previousPosition, currentPosition - 1);
+                }
+                if (!lexer.seekToRightBrace()) {
+                    return invalidStrictFilterPiece();
+                }
+                previousPosition = lexer.getCurrPos();
+                if (previousPosition <= currentPosition + 1) {
+                    return invalidStrictFilterPiece();
+                }
+                String parameter = filter.substring(currentPosition, previousPosition - 1).trim();
+                if (StringUtils.isBlank(parameter)) {
+                    return invalidStrictFilterPiece();
+                }
+                ImmutableTriple<String, String, String> parameterMeta;
+                try {
+                    parameterMeta = parseParameter(parameter);
+                } catch (RuntimeException invalidParameter) {
+                    return invalidStrictFilterPiece();
+                }
+                String parameterName = StringUtils.isBlank(parameterMeta.left)
+                    ? parameterMeta.middle : parameterMeta.left;
+                String requestedAlias = StringUtils.isBlank(parameterMeta.middle)
+                    ? parameterMeta.left : parameterMeta.middle;
+                if (StringUtils.isBlank(parameterName) || StringUtils.isBlank(requestedAlias)) {
+                    return invalidStrictFilterPiece();
+                }
+                LeftRightPair<String, Object> translated = translate.translateParam(parameterName);
+                if (translated == null) {
+                    return invalidStrictFilterPiece();
+                }
+                Object value = translated.getRight();
+                if (isEmptyMultiValue(value)) {
+                    return new QueryAndNamedParams("0=1", new LinkedHashMap<>());
+                }
+                if (value != null) {
+                    Object realValue = pretreatParameter(parameterMeta.right, value);
+                    String alias = parameterPrefix + sanitizeParameterName(requestedAlias);
+                    if (hasPretreatment(parameterMeta.right, SQL_PRETREAT_CREEPFORIN)) {
+                        QueryAndNamedParams inStatement = buildInStatement(alias, realValue);
+                        if (StringUtils.isBlank(inStatement.getQuery())) {
+                            return new QueryAndNamedParams("0=1", new LinkedHashMap<>());
+                        }
+                        sql.append(inStatement.getQuery());
+                        if (hasParameterCollision(result.getParams(), inStatement.getParams())) {
+                            return invalidStrictFilterPiece();
+                        }
+                        result.addAllParams(inStatement.getParams());
+                    } else if (hasPretreatment(parameterMeta.right, SQL_PRETREAT_INPLACE)) {
+                        sql.append(QueryUtils.cleanSqlStatement(
+                            StringBaseOpt.objectToString(realValue)));
+                    } else {
+                        if (result.getParams().containsKey(alias)) {
+                            Object previousValue = result.getParam(alias);
+                            if (!Objects.equals(previousValue, realValue)) {
+                                return invalidStrictFilterPiece();
+                            }
+                        } else {
+                            result.addParam(alias, realValue);
+                        }
+                        sql.append(":").append(alias);
+                    }
+                } else if (StringUtils.isNotBlank(translated.getLeft())) {
+                    sql.append(translated.getLeft());
+                } else {
+                    return invalidStrictFilterPiece();
+                }
+            }
+            word = lexer.getAWord();
+        }
+        if (hasNotApplicableColumn && !hasApplicableColumn) {
+            return null;
+        }
+        if (hasNotApplicableColumn) {
+            return invalidStrictFilterPiece();
+        }
+        sql.append(filter.substring(previousPosition));
+        if (StringUtils.isBlank(sql)) {
+            return invalidStrictFilterPiece();
+        }
+        result.setQuery(sql.toString());
+        return result;
+    }
+
+    private static QueryAndNamedParams invalidStrictFilterPiece() {
+        return new QueryAndNamedParams(STRICT_FILTER_INVALID_QUERY, new LinkedHashMap<>());
+    }
+
+    private static boolean containsAny(Set<String> existing, Collection<String> names) {
+        if (existing == null || existing.isEmpty() || names == null || names.isEmpty()) {
+            return false;
+        }
+        for (String name : names) {
+            if (existing.contains(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasParameterCollision(Map<String, Object> existing,
+                                                 Map<String, Object> additional) {
+        if (existing == null || existing.isEmpty() || additional == null || additional.isEmpty()) {
+            return false;
+        }
+        for (String name : additional.keySet()) {
+            if (existing.containsKey(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void appendStrictFilterPieces(StringBuilder sql,
+                                                 QueryAndNamedParams result,
+                                                 List<QueryAndNamedParams> pieces,
+                                                 boolean isUnion) {
+        if (pieces.size() > 1) {
+            sql.append("( ");
+        }
+        for (int i = 0; i < pieces.size(); i++) {
+            if (i > 0) {
+                sql.append(isUnion ? " or " : " and ");
+            }
+            QueryAndNamedParams piece = pieces.get(i);
+            sql.append(piece.getQuery());
+            result.addAllParams(piece.getParams());
+        }
+        if (pieces.size() > 1) {
+            sql.append(" )");
+        }
+    }
+
+    private static StrictAnchor parseStrictAnchor(String anchorText) {
+        if (StringUtils.isBlank(anchorText)) {
+            return null;
+        }
+        boolean required = false;
+        String text = anchorText;
+        String firstWord = Lexer.getFirstWord(text);
+        if ("required".equalsIgnoreCase(firstWord)) {
+            required = true;
+            text = text.substring(firstWord.length()).trim();
+        }
+        if (StringUtils.isBlank(text)) {
+            return null;
+        }
+        List<StrictTableReference> tableReferences = new ArrayList<>();
+        List<String> references = new ArrayList<>();
+        Set<String> aliases = new HashSet<>();
+        for (String tableDesc : text.split(",")) {
+            Lexer tableLexer = new Lexer(tableDesc, Lexer.LANG_TYPE_SQL);
+            String tableName = tableLexer.getAWord();
+            String aliasName = tableLexer.getAWord();
+            if (":".equals(aliasName)) {
+                aliasName = tableLexer.getAWord();
+            }
+            if (StringUtils.isBlank(tableName)) {
+                return null;
+            }
+            if (StringUtils.isBlank(aliasName)) {
+                aliasName = "";
+            }
+            String trailing = tableLexer.getAWord();
+            if (StringUtils.isNotBlank(trailing)) {
+                return null;
+            }
+            String aliasKey = aliasName.toLowerCase(Locale.ROOT);
+            if (StringUtils.isNotBlank(aliasKey) && !aliases.add(aliasKey)) {
+                return null;
+            }
+            tableReferences.add(new StrictTableReference(tableName, aliasName));
+            references.add(StringUtils.isBlank(aliasName)
+                ? tableName
+                : tableName + ":" + aliasName);
+        }
+        if (tableReferences.isEmpty()) {
+            return null;
+        }
+        Map<String, Long> tableCounts = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        for (StrictTableReference reference : tableReferences) {
+            tableCounts.merge(reference.tableName(), 1L, Long::sum);
+        }
+        Map<String, String> tableMap = new LinkedHashMap<>();
+        for (StrictTableReference reference : tableReferences) {
+            if (tableCounts.get(reference.tableName()) == 1L) {
+                tableMap.put(reference.tableName(), reference.aliasName());
+            } else if (StringUtils.isBlank(reference.aliasName())) {
+                return null;
+            }
+            if (StringUtils.isNotBlank(reference.aliasName())) {
+                tableMap.put(reference.aliasName(), reference.aliasName());
+            }
+        }
+        return new StrictAnchor(required, tableMap, references);
+    }
+
+    private record StrictAnchor(boolean required,
+                                Map<String, String> tableMap,
+                                List<String> references) {
+    }
+
+    private record StrictTableReference(String tableName, String aliasName) {
+    }
+
+    private static boolean isEmptyMultiValue(Object value) {
+        return value instanceof Collection<?> collection && collection.isEmpty()
+            || value instanceof Object[] array && array.length == 0;
+    }
+
+    private static String sanitizeParameterName(String paramName) {
+        if (StringUtils.isBlank(paramName)) {
+            return "param";
+        }
+        String sanitized = paramName.replaceAll("[^A-Za-z0-9_]", "_");
+        return StringUtils.isBlank(sanitized) ? "param" : sanitized;
+    }
+
     private static void sqlCreepByValue(QueryAndNamedParams hqlAndParams, String paramPretreat, String paramAlias, Object realParam) {
         String sql = hqlAndParams.getQuery();
         if (hasPretreatment(paramPretreat, SQL_PRETREAT_CREEPFORIN)) {
@@ -981,7 +1398,7 @@ public abstract class ParamsDrivenSQL {
      * 这个函数是为了满足 根据前端查询表单中的参数填写情况动态拼接查询语句条件的的需求而设计的。
      * 传统的办法是用if语句一个一个的判断，这样是可以工作的，但是这样query语句非常零碎，容易出错。
      * <p>
-     * 详见 {@link QueryUtils#translateQuery(String, Collection, Object, boolean)} 的说明，
+     * 详见 {@link ParamsDrivenSQL#translateQuery(String, Collection, Object, boolean)} 的说明，
      * 实现已迁移至本类。
      *
      * @param queryStatement 待处理的查询语句
