@@ -7,6 +7,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -225,6 +226,45 @@ class ParamsDrivenSQLStrictTest {
 
         assertEquals(StrictSqlReasonCode.PARAMETER_COLLISION, result.reasonCode());
         assertNull(result.query());
+    }
+
+    @Test
+    void collectionValueWithoutPretreatmentExpandsToInParameterList() {
+        for (Object units : List.of(List.of("U1", "U2"), new Object[] {"U1", "U2"})) {
+            StrictSqlResult result = translate(
+                "select * from orders o where 1=1 {required orders:o}",
+                StrictSqlAccess.FILTERED,
+                List.of(filter("units", "[orders.unit_code] in ({units})")),
+                Map.of("units", units));
+
+            assertTrue(result.isReady());
+            // 未标注 creepForIn 的集合值也应自动展开为 in 列表参数，而非单参数绑定整个集合
+            assertEquals(2, result.query().getParams().size());
+            assertTrue(result.query().getParams().containsValue("U1"));
+            assertTrue(result.query().getParams().containsValue("U2"));
+            assertTrue(result.query().getQuery().contains("unit_code"));
+        }
+    }
+
+    @Test
+    void legacyTranslateQueryExpandsCollectionAndEmptyCollectionBindsNull() {
+        // legacy 全路径（锚点解析 + translateQueryFilter）：集合自动展开
+        QueryAndNamedParams expanded = ParamsDrivenSQL.translateQuery(
+            "select * from orders o where 1=1 {orders:o}",
+            List.of("[orders.unit_code] in ({units})"), true,
+            new ParamsDrivenSQL.SimpleFilterTranslate(Map.of("units", List.of("U1", "U2"))));
+        assertNotNull(expanded);
+        assertEquals(2, expanded.getParams().size());
+        assertTrue(expanded.getQuery().contains("unit_code"));
+
+        // legacy 路径空集合：占位符替换为 null 字面量（in (null) 恒不匹配 = 空集语义）
+        QueryAndNamedParams empty = ParamsDrivenSQL.translateQuery(
+            "select * from orders o where 1=1 {orders:o}",
+            List.of("[orders.unit_code] in ({units})"), true,
+            new ParamsDrivenSQL.SimpleFilterTranslate(Map.of("units", List.of())));
+        assertNotNull(empty);
+        assertTrue(empty.getQuery().contains("null"), "空集合应替换为 null: " + empty.getQuery());
+        assertTrue(empty.getParams().isEmpty());
     }
 
     private static StrictSqlFilter filter(String id, String expression) {

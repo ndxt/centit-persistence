@@ -661,6 +661,12 @@ public abstract class ParamsDrivenSQL {
     }
 
     /**
+     * 把外置过滤条件中的一个变量占位符编译为 sql 片段。变量值为集合（Collection / Object[]）时，
+     * 无论是否标注 CREEPFORIN 预处理，都自动展开为 in 列表参数（书写约定：集合占位符写在
+     * in 的括号内，如 {@code col in ({var})}）；集合为空时占位符替换为 {@code null}，
+     * 使 {@code in (null)} 恒不匹配，等价于空集。历史行为（单值绑定命名参数、INPLACE/CREEPFORIN
+     * 预处理）保持不变。
+     *
      * @param filter     转换为 sql
      * @param Translate 变量内嵌在语句中，不用参数
      * @return QueryAndNamedParams
@@ -710,10 +716,17 @@ public abstract class ParamsDrivenSQL {
 
                 if (paramPair.getRight() != null) {
                     Object realParam = pretreatParameter(paramMeta.right, paramPair.getRight());
-                    if (hasPretreatment(paramMeta.right, SQL_PRETREAT_CREEPFORIN)) {
+                    if (hasPretreatment(paramMeta.right, SQL_PRETREAT_CREEPFORIN)
+                            || realParam instanceof Collection || realParam instanceof Object[]) {
+                        // 集合值（或显式 CREEPFORIN 预处理）展开为 in 列表参数；
+                        // 空集合替换为 null 字面量：in (null) 合法且恒不匹配，等价于空集
                         QueryAndNamedParams inSt = buildInStatement(paramAlias, realParam);
-                        hqlPiece.append(inSt.getQuery());
-                        hqlAndParams.addAllParams(inSt.getParams());
+                        if (StringUtils.isBlank(inSt.getQuery())) {
+                            hqlPiece.append("null");
+                        } else {
+                            hqlPiece.append(inSt.getQuery());
+                            hqlAndParams.addAllParams(inSt.getParams());
+                        }
                     } else if (hasPretreatment(paramMeta.right, SQL_PRETREAT_INPLACE)) {
                         hqlPiece.append(QueryUtils.cleanSqlStatement(StringBaseOpt.objectToString(realParam)));
                     } else {
@@ -1002,7 +1015,10 @@ public abstract class ParamsDrivenSQL {
                 if (value != null) {
                     Object realValue = pretreatParameter(parameterMeta.right, value);
                     String alias = parameterPrefix + sanitizeParameterName(requestedAlias);
-                    if (hasPretreatment(parameterMeta.right, SQL_PRETREAT_CREEPFORIN)) {
+                    if (hasPretreatment(parameterMeta.right, SQL_PRETREAT_CREEPFORIN)
+                            || realValue instanceof Collection || realValue instanceof Object[]) {
+                        // 集合值（或显式 CREEPFORIN 预处理）展开为 in 列表参数；
+                        // 空集合已被 isEmptyMultiValue 拦截返回 0=1，此处仅防御性判空
                         QueryAndNamedParams inStatement = buildInStatement(alias, realValue);
                         if (StringUtils.isBlank(inStatement.getQuery())) {
                             return new QueryAndNamedParams("0=1", new LinkedHashMap<>());
