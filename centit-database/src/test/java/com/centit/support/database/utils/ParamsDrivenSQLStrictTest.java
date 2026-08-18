@@ -267,6 +267,72 @@ class ParamsDrivenSQLStrictTest {
         assertTrue(empty.getParams().isEmpty());
     }
 
+    @Test
+    void multiTableAnchorInjectsCrossTableFilter() {
+        // 合并锚点声明多张表：单条表达式跨表引用两张表时全部可解析，正常注入
+        StrictSqlResult result = translate(
+            "select * from orders o join customer c on o.customer_id = c.customer_id "
+                + "where 1=1 {required orders:o, customer:c}",
+            StrictSqlAccess.FILTERED,
+            List.of(filter("cross",
+                "[orders.owner_code] = {userCode} and [customer.top_unit] = {topUnit}")),
+            Map.of("userCode", "U001", "topUnit", "T001"));
+
+        assertTrue(result.isReady(), String.valueOf(result.reasonCode()));
+        assertTrue(result.query().getQuery().contains("o.owner_code"));
+        assertTrue(result.query().getQuery().contains("c.top_unit"));
+        assertEquals(2, result.query().getParams().size());
+    }
+
+    @Test
+    void multiTableAnchorStillRejectsMixedReferenceToUndeclaredTable() {
+        // 合并锚点漏声明表达式引用的表：混合适用按非法拒绝（fail-close），不是部分注入
+        StrictSqlResult result = translate(
+            "select * from orders o join customer c on o.customer_id = c.customer_id "
+                + "where 1=1 {required orders:o, customer:c}",
+            StrictSqlAccess.FILTERED,
+            List.of(filter("mixed",
+                "[orders.owner_code] = {userCode} and [other.state] = {state}")),
+            Map.of("userCode", "U001", "state", "S1"));
+
+        assertEquals(StrictSqlReasonCode.FILTER_PARTIALLY_COMPILED, result.reasonCode());
+        assertNull(result.query());
+    }
+
+    @Test
+    void tableNameCaseVariantsMatchAnchor() {
+        // 表达式与锚点对同一物理表的大小写写法不同也能命中
+        StrictSqlResult result = translate(
+            "select * from ORDERS o where 1=1 {required orders:o}",
+            StrictSqlAccess.FILTERED,
+            List.of(filter("owner", "[ORDERS.owner_code] = {userCode}")),
+            Map.of("userCode", "U001"));
+
+        assertTrue(result.isReady(), String.valueOf(result.reasonCode()));
+        assertTrue(result.query().getQuery().contains("o.owner_code"));
+    }
+
+    @Test
+    void classNameAnchorMatchesPhysicalTableName() {
+        // 锚点以 PO 类名书写、表达式写物理表名：驼峰互转后命中
+        StrictSqlResult byClassNameAnchor = translate(
+            "select * from dde_orders o where 1=1 {required DdeOrders:o}",
+            StrictSqlAccess.FILTERED,
+            List.of(filter("owner", "[dde_orders.owner_code] = {userCode}")),
+            Map.of("userCode", "U001"));
+        assertTrue(byClassNameAnchor.isReady(), String.valueOf(byClassNameAnchor.reasonCode()));
+        assertTrue(byClassNameAnchor.query().getQuery().contains("o.owner_code"));
+
+        // 反向：锚点写物理表名、表达式写 PO 类名
+        StrictSqlResult byPhysicalAnchor = translate(
+            "select * from dde_orders o where 1=1 {required dde_orders:o}",
+            StrictSqlAccess.FILTERED,
+            List.of(filter("owner", "[DdeOrders.owner_code] = {userCode}")),
+            Map.of("userCode", "U001"));
+        assertTrue(byPhysicalAnchor.isReady(), String.valueOf(byPhysicalAnchor.reasonCode()));
+        assertTrue(byPhysicalAnchor.query().getQuery().contains("o.owner_code"));
+    }
+
     private static StrictSqlFilter filter(String id, String expression) {
         return new StrictSqlFilter(id, expression);
     }

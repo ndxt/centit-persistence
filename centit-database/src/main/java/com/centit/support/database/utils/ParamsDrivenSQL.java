@@ -1163,7 +1163,8 @@ public abstract class ParamsDrivenSQL {
         for (StrictTableReference reference : tableReferences) {
             tableCounts.merge(reference.tableName(), 1L, Long::sum);
         }
-        Map<String, String> tableMap = new LinkedHashMap<>();
+        // 表名与别名映射忽略大小写：过滤表达式与锚点对同一物理表的大小写写法不同也能命中
+        Map<String, String> tableMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (StrictTableReference reference : tableReferences) {
             if (tableCounts.get(reference.tableName()) == 1L) {
                 tableMap.put(reference.tableName(), reference.aliasName());
@@ -1363,7 +1364,8 @@ public abstract class ParamsDrivenSQL {
                 }
 
                 String[] tables = tablesDesc.split(",");
-                Map<String, String> tableMap = new HashMap<>();
+                // 与 parseStrictAnchor 一致：表名-别名映射忽略大小写
+                Map<String, String> tableMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
                 for (String tableDesc : tables) {
                     Lexer tableLexer = new Lexer(tableDesc, Lexer.LANG_TYPE_SQL);
                     String tableName = tableLexer.getAWord();
@@ -1468,6 +1470,39 @@ public abstract class ParamsDrivenSQL {
     }
 
     /**
+     * 在锚点声明的表名-别名映射中解析表达式引用的表名，返回对应的别名（可为空串）。
+     * <p>
+     * 匹配规则与 {@code FieldType} 的 PO 类名映射兼容：
+     * <ol>
+     *   <li>表名直接命中（映射为忽略大小写时含大小写变体）；</li>
+     *   <li>表名按 {@link FieldType#mapClassName} 转为大驼峰类名后命中（锚点以 PO 类名书写）；</li>
+     *   <li>锚点声明的表名转为大驼峰类名后与表名相等（表达式以 PO 类名书写）。</li>
+     * </ol>
+     *
+     * @param tableAlias 锚点声明的表名-别名映射
+     * @param tableName  过滤表达式中 {@code [表名.字段]} 的表名
+     * @return 对应别名（可为空串，表示无别名、直接用列名）；映射中无此表返回 {@code null}
+     */
+    public static String resolveTableAlias(Map<String, String> tableAlias, String tableName) {
+        if (tableAlias == null || tableAlias.isEmpty() || StringUtils.isBlank(tableName)) {
+            return null;
+        }
+        if (tableAlias.containsKey(tableName)) {
+            return tableAlias.get(tableName);
+        }
+        String className = FieldType.mapClassName(tableName);
+        if (tableAlias.containsKey(className)) {
+            return tableAlias.get(className);
+        }
+        for (Map.Entry<String, String> entry : tableAlias.entrySet()) {
+            if (tableName.equalsIgnoreCase(FieldType.mapClassName(entry.getKey()))) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    /**
      * 变量翻译器接口：负责把参数驱动 SQL 中的字段描述、变量名翻译为实际的列名和参数值。
      * <p>
      * 原 {@code QueryUtils.IFilterTranslate}，已迁移至本类。存量代码可通过
@@ -1507,13 +1542,14 @@ public abstract class ParamsDrivenSQL {
 
             String poClassName = n < 0? "*" : columnDesc.substring(0, n);
             String columnName = n < 0? columnDesc : columnDesc.substring(n + 1);
-            if (tableAlias.containsKey(poClassName)) {
-                String alias = tableAlias.get(poClassName);
-                return StringUtils.isBlank(alias) ? columnName : alias + '.' + columnName;
-            } /* * 这个地方无法获取 表相关的元数据信息，如果可以校验一下字段中是否有对应的字段 就完美了；、
-             所以目前只能由于仅有一个表的过滤中 */
-            else if ("*".equals(poClassName) && tableAlias.size() == 1) {
+            if ("*".equals(poClassName) && tableAlias.size() == 1) {
+                /* * 这个地方无法获取 表相关的元数据信息，如果可以校验一下字段中是否有对应的字段 就完美了；、
+                 所以目前只能用于仅有一个表的过滤中 */
                 String alias = tableAlias.values().iterator().next();
+                return StringUtils.isBlank(alias) ? columnName : alias + '.' + columnName;
+            }
+            String alias = resolveTableAlias(tableAlias, poClassName);
+            if (alias != null) {
                 return StringUtils.isBlank(alias) ? columnName : alias + '.' + columnName;
             }
             return null;
