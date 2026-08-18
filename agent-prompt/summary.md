@@ -115,4 +115,4 @@ centit-persistence-jdbc (Spring JDBC ORM 框架，顶层入口)
 </dependency>
 ```
 
-版本号由父 POM 统一管理，当前为 `JDK21-SNAPSHOT`。
+版本号由父 POM 统一管理，当前为 `JDK17-SNAPSHOT`。
