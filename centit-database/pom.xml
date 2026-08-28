@@ -48,6 +48,12 @@
             <version>1.7</version>
             <scope>test</scope>
         </dependency>-->
+        <dependency>
+            <groupId>gbase</groupId>
+            <artifactId>jdbc</artifactId>
+            <version>V6-1.0.0B06</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 
