@@ -123,7 +123,7 @@ public enum DBType {
         if (connurl.startsWith("jdbc:kingbase")
             || "kingbase".equalsIgnoreCase(connurl))
             return KingBase;
-        if (connurl.startsWith("jdbc:gbasedbt-sqli")
+        if (connurl.startsWith("jdbc:gbase")
             || "gbase".equalsIgnoreCase(connurl))
             return GBase;
         if (connurl.startsWith("jdbc:oscar")

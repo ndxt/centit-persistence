@@ -717,7 +717,6 @@ public abstract class QueryUtils {
             case Oracle:
             case DM:
             case KingBase:
-            case GBase:
             case Oscar:
                 return buildOracleLimitQuerySQL(sql, offset, maxsize, asParameter);
             case DB2:
@@ -729,6 +728,7 @@ public abstract class QueryUtils {
             case H2:
             case ClickHouse:
                 return buildMySqlLimitQuerySQL(sql, offset, maxsize, asParameter);
+            case GBase:
             case PostgreSql:
                 return buildPostgreSqlLimitQuerySQL(sql, offset, maxsize, asParameter);
 
