@@ -455,7 +455,7 @@ public abstract class FieldType {
         };
     }
 
-    public static String mapToFieldType(String columnType, int length, int scale) {
+    public static String mapToFieldType(String columnType) {
         if(StringUtils.isBlank(columnType)) {
             return null;
         }

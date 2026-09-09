@@ -42,7 +42,7 @@ public class SimpleTableField implements TableField {
     public void mapToMetadata() {
         //这个和下面的 mapToDatabaseType 不对称
         propertyName = FieldType.mapPropName(columnName);
-        fieldType = FieldType.mapToFieldType(columnType, maxLength, scale);
+        fieldType = FieldType.mapToFieldType(columnType);
         lazyFetch = FieldType.TEXT.equals(fieldType) ||
             FieldType.BYTE_ARRAY.equals(fieldType) ||
             FieldType.JSON_OBJECT.equals(fieldType);
@@ -91,7 +91,7 @@ public class SimpleTableField implements TableField {
     @Override
     public String getFieldType() {
         if (StringUtils.isBlank(fieldType)) {
-            return FieldType.mapToFieldType(columnType, maxLength, scale);
+            return FieldType.mapToFieldType(columnType);
         }
         return fieldType;
     }
