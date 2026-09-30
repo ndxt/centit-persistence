@@ -48,25 +48,25 @@ public class DB2DDLOperations extends GeneralDDLOperations {
     }
 
     @Override
-    public String makeModifyColumnSql(final String tableCode, final TableField oldColumn, final TableField column) {
-        StringBuilder sbsql = new StringBuilder("alter table ");
-        sbsql.append(tableCode);
-
+    public List<String> makeModifyColumnSqls(final String tableCode, final TableField oldColumn, final TableField column) {
+        List<String> sqlList = new ArrayList<>();
         if (!StringUtils.equalsIgnoreCase(oldColumn.getColumnType(), column.getColumnType())
             || !GeneralAlgorithm.equals(oldColumn.getMaxLength(), column.getMaxLength())
             || !GeneralAlgorithm.equals(oldColumn.getScale(), column.getScale())) {
-            sbsql.append(" alter column ")
+            StringBuilder sbsql = new StringBuilder("alter table ");
+            sbsql.append(tableCode)
+                .append(" alter column ")
                 .append(column.getColumnName())
                 .append(" set data type ");
             appendColumnTypeSQL(column, sbsql);
+            sqlList.add(sbsql.toString());
         }
 
         if (oldColumn.isMandatory() != column.isMandatory()) {
-            sbsql.append(" alter column ")
-                .append(column.getColumnName())
-                .append(column.isMandatory() ? " set not null" : " drop not null");
+            sqlList.add("alter table " + tableCode + " alter column " + column.getColumnName()
+                + (column.isMandatory() ? " set not null" : " drop not null"));
         }
 
-        return sbsql.toString();
+        return sqlList;
     }
 }

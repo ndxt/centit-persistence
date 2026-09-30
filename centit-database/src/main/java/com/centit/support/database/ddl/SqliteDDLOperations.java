@@ -79,8 +79,9 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
     }
 
     @Override
-    public String makeModifyColumnSql(String tableCode, TableField oldColumn, TableField column) {
-        return null;
+    public List<String> makeModifyColumnSqls(String tableCode, TableField oldColumn, TableField column) {
+        // SQLite 不支持修改列定义
+        return List.of();
     }
 
     private static String mapPropertyNameToColumnName(String propertyName) {

@@ -27,7 +27,7 @@ public class OracleDDLOperations extends GeneralDDLOperations {
     }
 
     @Override
-    public String makeModifyColumnSql(final String tableCode, final TableField oldColumn, final TableField column) {
+    public List<String> makeModifyColumnSqls(final String tableCode, final TableField oldColumn, final TableField column) {
         StringBuilder sbsql = new StringBuilder("alter table ");
         sbsql.append(tableCode);
         sbsql.append(" modify ").append(column.getColumnName()).append(" ");
@@ -41,7 +41,7 @@ public class OracleDDLOperations extends GeneralDDLOperations {
             sbsql.append(column.isMandatory() ? " not null" : " null");
         }
 
-        return sbsql.toString();
+        return List.of(sbsql.toString());
     }
 
     @Override

@@ -59,14 +59,16 @@ public interface DDLOperations {
     String makeAddColumnSql(final String tableCode, final TableField column);
 
     /**
-     * 修改列定义 ，比如 修改 varchar 的长度
+     * 修改列定义 ，比如 修改 varchar 的长度。
+     * 部分方言（H2、DB2 等）不支持单条语句替换整列定义，按子句拆分为多条；
+     * 不支持修改列的方言（SQLite）返回空列表。
      *
      * @param tableCode 表代码
      * @param oldColumn 老的字段
      * @param column    字段
-     * @return sql语句
+     * @return sql语句列表
      */
-    String makeModifyColumnSql(final String tableCode, final TableField oldColumn, final TableField column);
+    List<String> makeModifyColumnSqls(final String tableCode, final TableField oldColumn, final TableField column);
 
     /**
      * 删除列

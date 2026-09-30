@@ -42,7 +42,7 @@ public class SqlSvrDDLOperations extends GeneralDDLOperations {
     }
 
     @Override
-    public String makeModifyColumnSql(final String tableCode, final TableField oldColumn, final TableField column) {
+    public List<String> makeModifyColumnSqls(final String tableCode, final TableField oldColumn, final TableField column) {
         StringBuilder sbsql = new StringBuilder("alter table ");
         sbsql.append(tableCode);
         sbsql.append(" ALTER COLUMN ").append(column.getColumnName()).append(" ");
@@ -55,6 +55,6 @@ public class SqlSvrDDLOperations extends GeneralDDLOperations {
         if (oldColumn.isMandatory() != column.isMandatory()) {
             sbsql.append(column.isMandatory() ? " not null" : " null");
         }
-        return sbsql.toString();
+        return List.of(sbsql.toString());
     }
 }

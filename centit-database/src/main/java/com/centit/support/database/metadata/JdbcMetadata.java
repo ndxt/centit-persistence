@@ -73,10 +73,17 @@ public class JdbcMetadata implements DatabaseMetadata {
             while (rs.next()) {
                 SimpleTableField field = new SimpleTableField();
                 field.setColumnName(rs.getString("COLUMN_NAME"));
-                field.setColumnType(rs.getString("TYPE_NAME"));
+                String columnType = rs.getString("TYPE_NAME");
+                // H2 2.x 把 varchar 报告为 SQL 标准官方名 CHARACTER VARYING，
+                // 折叠为 DDL 生成侧的常用名，否则发布前后的结构对比永远不等。
+                if ("CHARACTER VARYING".equalsIgnoreCase(columnType)) {
+                    columnType = "VARCHAR";
+                }
+                field.setColumnType(columnType);
                 field.setMaxLength(rs.getInt("COLUMN_SIZE"));
                 field.setScale(rs.getInt("DECIMAL_DIGITS"));
                 field.setNullEnable(rs.getString("NULLABLE"));
+                field.setDefaultValue(rs.getString("COLUMN_DEF"));
                 field.setColumnComment(rs.getString("REMARKS"));
                 field.setFieldLabelName(
                     StringUtils.substring(field.getColumnComment(),0, 80));

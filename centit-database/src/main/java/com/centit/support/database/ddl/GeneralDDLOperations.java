@@ -391,7 +391,9 @@ public abstract class GeneralDDLOperations implements DDLOperations {
 
     @Override
     public void modifyColumn(String tableCode, TableField oldColumn, TableField column) throws SQLException {
-        DatabaseAccess.doExecuteSql(conn, makeModifyColumnSql(tableCode, oldColumn, column));
+        for (String sql : makeModifyColumnSqls(tableCode, oldColumn, column)) {
+            DatabaseAccess.doExecuteSql(conn, sql);
+        }
     }
 
     @Override

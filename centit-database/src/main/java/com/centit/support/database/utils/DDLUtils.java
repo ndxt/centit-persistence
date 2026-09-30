@@ -35,7 +35,7 @@ public abstract class DDLUtils {
                             (!StringUtils.equals(column.getFieldLabelName(), ocol.getFieldLabelName())
                                 && dbType.equals(DBType.MySql)); // 修改注释似乎没有意义
                         if (exits) {
-                            sqlList.add(ddlOpt.makeModifyColumnSql(
+                            sqlList.addAll(ddlOpt.makeModifyColumnSqls(
                                 newTable.getTableName(), ocol, column));
                         }
                     } else {

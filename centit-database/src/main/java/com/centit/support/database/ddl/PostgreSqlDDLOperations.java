@@ -6,6 +6,8 @@ import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PostgreSqlDDLOperations extends GeneralDDLOperations {
 
@@ -31,28 +33,24 @@ public class PostgreSqlDDLOperations extends GeneralDDLOperations {
      * @return sql语句
      */
     @Override
-    public String makeModifyColumnSql(String tableCode, TableField oldColumn, TableField column) {
-        StringBuilder sbsql = new StringBuilder("alter table ");
-        boolean modify=false;
-        sbsql.append(tableCode);
-        sbsql.append(" ALTER ").append(column.getColumnName()).append(" ");
+    public List<String> makeModifyColumnSqls(String tableCode, TableField oldColumn, TableField column) {
+        List<String> sqlList = new ArrayList<>();
         if (!StringUtils.equalsIgnoreCase(oldColumn.getColumnType(), column.getColumnType())
             || !GeneralAlgorithm.equals(oldColumn.getMaxLength(), column.getMaxLength())
             || !GeneralAlgorithm.equals(oldColumn.getScale(), column.getScale())) {
-            sbsql.append(" type ");
+            StringBuilder sbsql = new StringBuilder("alter table ");
+            sbsql.append(tableCode)
+                .append(" ALTER ").append(column.getColumnName()).append(" type ");
             appendColumnTypeSQL(column, sbsql);
-            modify=true;
+            sqlList.add(sbsql.toString());
         }
 
         if (oldColumn.isMandatory() != column.isMandatory()) {
-            if(modify) {
-                sbsql.append(";alter table ").append(tableCode)
-                    .append(" ALTER ").append(column.getColumnName()).append(" ");
-            }
-            sbsql.append(column.isMandatory() ? " set not null" : " drop not null");
+            sqlList.add("alter table " + tableCode + " ALTER " + column.getColumnName()
+                + (column.isMandatory() ? " set not null" : " drop not null"));
         }
 
-        return sbsql.toString();
+        return sqlList;
     }
 
 

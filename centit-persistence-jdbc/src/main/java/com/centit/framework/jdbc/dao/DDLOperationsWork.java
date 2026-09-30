@@ -139,12 +139,12 @@ public class DDLOperationsWork implements DDLOperations {
     }
 
     @Override
-    public String makeModifyColumnSql(String tableCode, TableField oldColumn, TableField column) {
+    public List<String> makeModifyColumnSqls(String tableCode, TableField oldColumn, TableField column) {
         try {
-            return getDDLOperations().makeModifyColumnSql(tableCode, oldColumn, column);
+            return getDDLOperations().makeModifyColumnSqls(tableCode, oldColumn, column);
         } catch (SQLException e) {
             logger.error(e.getMessage());
-            return null;
+            return List.of();
         }
     }
 
