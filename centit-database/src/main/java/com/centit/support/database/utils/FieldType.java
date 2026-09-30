@@ -8,6 +8,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 @SuppressWarnings("unused")
@@ -453,6 +454,42 @@ public abstract class FieldType {
             case 16 -> FieldType.BOOLEAN;
             default -> FieldType.STRING;
         };
+    }
+
+    /**
+     * 变长或带精度语义的类型（字符串、精确数值、枚举）才需要比较列长度与标度；
+     * 定长类型（整数、日期、布尔、大对象、浮点）的存储长度由类型自身决定，
+     * 不同 JDBC 驱动报告的 COLUMN_SIZE 各不相同，不参与结构差异判定。
+     */
+    public static boolean precisionMatters(String fieldType) {
+        String normalized = normalizeFieldType(fieldType);
+        return STRING.equalsIgnoreCase(normalized) || NUMBER.equalsIgnoreCase(normalized)
+            || MONEY.equalsIgnoreCase(normalized) || ENUM_NAME.equalsIgnoreCase(normalized);
+    }
+
+    /**
+     * 语义类型归一：数据库原生类型名（VARCHAR、BIGINT 等，常见于导入或历史
+     * 草稿）经 mapToFieldType 折叠到平台语义类型；datetime 与 timestamp 互为
+     * 数据库别名（H2 无 DATETIME，落库后一律是 TIMESTAMP）也折叠到同一表示。
+     * 设计草稿与物理回读的字段类型比较必须对称，否则发布状态永远无法收敛。
+     */
+    public static String normalizeFieldType(String fieldType) {
+        if (fieldType == null) {
+            return null;
+        }
+        String semantic = mapToFieldType(fieldType.trim());
+        String target = semantic == null ? fieldType : semantic;
+        if (DATETIME.equalsIgnoreCase(target)) {
+            return TIMESTAMP;
+        }
+        return target.toLowerCase(Locale.ROOT);
+    }
+
+    /** 语义等价的字段类型判定：归一后不区分大小写比较。 */
+    public static boolean sameFieldType(String left, String right) {
+        String a = normalizeFieldType(left);
+        String b = normalizeFieldType(right);
+        return a == null ? b == null : a.equalsIgnoreCase(b);
     }
 
     public static String mapToFieldType(String columnType) {
