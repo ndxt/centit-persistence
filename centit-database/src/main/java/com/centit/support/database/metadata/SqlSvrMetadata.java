@@ -1,58 +1,55 @@
 package com.centit.support.database.metadata;
 
+import com.centit.support.database.utils.FieldType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-
+import java.util.Map;
 
 public class SqlSvrMetadata implements DatabaseMetadata {
-    protected static final Logger logger = LoggerFactory.getLogger(SqlSvrMetadata.class);
 
-    private final static String sqlGetTabColumns =
-        "SELECT  a.name, c.name AS typename, a.length , a.xprec, a.xscale, isnullable " +
-            "FROM syscolumns a INNER JOIN " +
-            "sysobjects b ON a.id = b.id INNER JOIN " +
-            "systypes c ON a.xtype = c.xtype " +
-            "WHERE b.xtype = 'U' and b.name = ? " +
-            "ORDER BY a.colorder";
+    private static final String SQL_TABLES =
+        "SELECT o.name AS TABLE_NAME, o.type AS TABLE_TYPE, o.object_id, " +
+            "CAST(p.value AS NVARCHAR(MAX)) AS COMMENTS FROM sys.objects o " +
+            "JOIN sys.schemas s ON s.schema_id=o.schema_id " +
+            "LEFT JOIN sys.extended_properties p " +
+            "ON p.class=1 AND p.major_id=o.object_id AND p.minor_id=0 AND p.name='MS_Description' " +
+            "WHERE s.name=? AND o.type IN ('U', 'V') AND o.is_ms_shipped=0";
 
-    private final static String sqlPKName =
-        "select a.name,a.object_id, a.parent_object_id ,a.unique_index_id  " +
-            "from sys.key_constraints a , sysobjects b " +
-            "where a.type='PK' and " +
-            " a.parent_object_id=b.id and b.xtype = 'U' and b.name = ? ";
+    private static final String SQL_COLUMNS =
+        "SELECT a.name, t.name AS typename, COALESCE(b.name, t.name) AS base_typename, " +
+            "a.max_length, a.precision, a.scale, a.is_nullable, a.is_identity, d.definition AS default_value, " +
+            "CAST(p.value AS NVARCHAR(MAX)) AS COMMENTS " +
+            "FROM sys.columns a JOIN sys.types t ON a.user_type_id=t.user_type_id " +
+            "LEFT JOIN sys.types b ON a.system_type_id=b.user_type_id AND b.is_user_defined=0 " +
+            "LEFT JOIN sys.default_constraints d ON d.object_id=a.default_object_id " +
+            "LEFT JOIN sys.extended_properties p ON p.class=1 AND p.major_id=a.object_id " +
+            "AND p.minor_id=a.column_id AND p.name='MS_Description' " +
+            "WHERE a.object_id=? ORDER BY a.column_id";
 
-    private final static String sqlPKColumns =
-        "select a.name " +
-            "from sys.index_columns b join sys.columns a on(a.object_id=b.object_id and a.column_id=b.column_id) " +
-            "where b.object_id=? and b.index_id=? " +
-            "order by b.key_ordinal";
-    //两个参数 均是 integer 对应上面的 parent_object_id 和 unique_index_id
+    private static final String SQL_PRIMARY_KEY =
+        "SELECT k.name AS PK_NAME, c.name AS COLUMN_NAME, i.key_ordinal " +
+            "FROM sys.key_constraints k JOIN sys.index_columns i " +
+            "ON i.object_id=k.parent_object_id AND i.index_id=k.unique_index_id " +
+            "JOIN sys.columns c ON c.object_id=i.object_id AND c.column_id=i.column_id " +
+            "WHERE k.parent_object_id=? AND k.type='PK' AND i.key_ordinal>0 ORDER BY i.key_ordinal";
 
-
-    //foreign_keys
-    private final static String sqlFKNames =
-        "select a.name,a.object_id,a.parent_object_id , b.name as tabname " +
-            "from sys.foreign_keys a join sysobjects b ON a.parent_object_id = b.id " +
-            "where referenced_object_id = ? ";
-    //参数对应与上面的 parent_object_id 也就是 主表的ID
-
-    //foreign_key_columns
-    private final static String sqlFKColumns =
-        "SELECT  a.name, c.name AS typename, a.length , a.xprec, a.xscale, isnullable " +
-            "FROM syscolumns a INNER JOIN " +
-            "sys.foreign_key_columns b ON a.id = b.parent_object_id  and b.parent_column_id=a.colid JOIN " +
-            "systypes c ON a.xtype = c.xtype " +
-            "WHERE b.constraint_object_id=? " +
-            "ORDER BY b.constraint_column_id";
-    //参数对应与上面的 object_id
+    private static final String SQL_REFERENCES =
+        "SELECT fk.name AS FK_NAME, child.name AS TABLE_NAME, " +
+            "p.name AS PARENT_COLUMN, c.name AS CHILD_COLUMN " +
+            "FROM sys.foreign_keys fk JOIN sys.foreign_key_columns f ON f.constraint_object_id=fk.object_id " +
+            "JOIN sys.objects child ON child.object_id=fk.parent_object_id " +
+            "JOIN sys.schemas s ON s.schema_id=child.schema_id " +
+            "JOIN sys.columns p ON p.object_id=f.referenced_object_id AND p.column_id=f.referenced_column_id " +
+            "JOIN sys.columns c ON c.object_id=f.parent_object_id AND c.column_id=f.parent_column_id " +
+            "WHERE fk.referenced_object_id=? AND s.name=? ORDER BY fk.name, f.constraint_column_id";
 
     private String sDBSchema;
     private Connection dbc;
@@ -62,164 +59,172 @@ public class SqlSvrMetadata implements DatabaseMetadata {
         this.dbc = dbc;
     }
 
+    @Override
     public String getDBSchema() {
-        return sDBSchema;
+        try {
+            return resolveSchema();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to determine SQL Server schema", e);
+        }
     }
 
+    @Override
     public void setDBSchema(String schema) {
         sDBSchema = schema;
     }
 
-    @Override
-    public List<SimpleTableInfo> listTables(boolean withColumn, String[] tableNames) {
-        List<SimpleTableInfo> tables = new ArrayList<>(100);
-        String sql = "SELECT a.name AS TABLE_NAME, a.xtype AS TABLE_TYPE, " +
-            "CAST(p.value AS NVARCHAR(MAX)) AS COMMENTS " +
-            "FROM sysobjects a " +
-            "LEFT JOIN sys.extended_properties p ON p.major_id = a.id AND p.minor_id = 0 AND p.name = 'MS_Description' " +
-            "WHERE a.xtype IN ('U ', 'V ')";
-        try (PreparedStatement pStmt = dbc.prepareStatement(sql);
-             ResultSet rs = pStmt.executeQuery()) {
-            String dbSchema = null;
-            try {
-                dbSchema = dbc.getSchema();
-            } catch (SQLException ignored) {
-            }
-            while (rs.next()) {
-                String tableName = rs.getString("TABLE_NAME");
-                boolean canAddTable = false;
-                if (tableNames == null) {
-                    canAddTable = true;
-                } else {
-                    for (String tabName : tableNames) {
-                        if (tabName.equalsIgnoreCase(tableName)) {
-                            canAddTable = true;
-                            break;
-                        }
-                    }
-                }
-                if (!canAddTable) {
-                    continue;
-                }
-                SimpleTableInfo tab = new SimpleTableInfo();
-                if (dbSchema != null) {
-                    tab.setSchema(dbSchema.toUpperCase());
-                }
-                tab.setTableName(tableName);
-                tab.setTableComment(rs.getString("COMMENTS"));
-                tab.setTableLabelName(
-                    StringUtils.substring(rs.getString("COMMENTS"), 0, 80));
-                String tt = rs.getString("TABLE_TYPE").trim();
-                tab.setTableType("V".equalsIgnoreCase(tt) ? "V" : "T");
-                if (withColumn) {
-                    fetchTableDetail(tab);
-                }
-                tables.add(tab);
-            }
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);
+    private String resolveSchema() throws SQLException {
+        if (StringUtils.isNotBlank(sDBSchema)) {
+            return sDBSchema;
         }
-        return tables;
+        String schema;
+        try {
+            schema = dbc.getSchema();
+        } catch (SQLFeatureNotSupportedException | AbstractMethodError e) {
+            schema = null;
+        }
+        if (StringUtils.isBlank(schema)) {
+            try (PreparedStatement stmt = dbc.prepareStatement("SELECT SCHEMA_NAME() AS SCHEMA_NAME");
+                 ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    schema = rs.getString("SCHEMA_NAME");
+                }
+            }
+        }
+        if (StringUtils.isBlank(schema)) {
+            throw new SQLException("Cannot determine SQL Server schema; setDBSchema is required");
+        }
+        return schema;
     }
 
-    private void fetchTableDetail(SimpleTableInfo tab) {
-        String tabName = tab.getTableName();
-        int tableId = 0, pkIndId = 0;
+    @Override
+    public List<SimpleTableInfo> listTables(boolean withColumn, String[] tableNames) {
+        try {
+            String schema = resolveSchema();
+            List<SimpleTableInfo> tables = new ArrayList<>(100);
+            try (PreparedStatement stmt = dbc.prepareStatement(SQL_TABLES)) {
+                stmt.setString(1, schema);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        String name = rs.getString("TABLE_NAME");
+                        if (tableNames != null && !StringUtils.equalsAnyIgnoreCase(name, tableNames)) {
+                            continue;
+                        }
+                        SimpleTableInfo tab = readTableInfo(rs, schema);
+                        if (withColumn) {
+                            fetchTableDetail(tab, rs.getInt("object_id"));
+                        }
+                        tables.add(tab);
+                    }
+                }
+            }
+            return tables;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to read SQL Server table metadata", e);
+        }
+    }
 
-        try (PreparedStatement pStmt = dbc.prepareStatement(sqlGetTabColumns)) {
-            pStmt.setString(1, tabName);
-            try (ResultSet rs = pStmt.executeQuery()) {
+    private SimpleTableInfo readTableInfo(ResultSet rs, String schema) throws SQLException {
+        SimpleTableInfo tab = new SimpleTableInfo(rs.getString("TABLE_NAME"));
+        tab.setSchema(schema);
+        tab.setTableComment(rs.getString("COMMENTS"));
+        tab.setTableLabelName(StringUtils.substring(tab.getTableComment(), 0, 80));
+        tab.setTableType("V".equalsIgnoreCase(StringUtils.trim(rs.getString("TABLE_TYPE"))) ? "V" : "T");
+        return tab;
+    }
+
+    private void fetchTableDetail(SimpleTableInfo tab, int tableId) throws SQLException {
+        try (PreparedStatement stmt = dbc.prepareStatement(SQL_COLUMNS)) {
+            stmt.setInt(1, tableId);
+            try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     SimpleTableField field = new SimpleTableField();
                     field.setColumnName(rs.getString("name"));
                     field.setColumnType(rs.getString("typename"));
-                    int l = rs.getInt("length");
-                    int p = rs.getInt("xprec");
-                    field.setMaxLength(p > 0 ? p : l);
-                    field.setScale(rs.getInt("xscale"));
-                    field.setNullEnable(rs.getString("isnullable"));
+                    String baseType = rs.getString("base_typename");
+                    int length = rs.getInt("max_length");
+                    int precision = rs.getInt("precision");
+                    if (length > 0 && ("nchar".equalsIgnoreCase(baseType) || "nvarchar".equalsIgnoreCase(baseType))) {
+                        length /= 2;
+                    }
+                    field.setMaxLength(precision > 0 ? precision : length);
+                    field.setScale(rs.getInt("scale"));
+                    field.setMandatory(!rs.getBoolean("is_nullable"));
+                    field.setColumnComment(rs.getString("COMMENTS"));
+                    field.setFieldLabelName(StringUtils.substring(field.getColumnComment(), 0, 80));
                     field.mapToMetadata();
+                    // Preserve the actual alias type in columnType, and map its underlying built-in type.
+                    field.setFieldType(FieldType.mapToFieldType(baseType));
+                    if (rs.getBoolean("is_identity")) {
+                        field.setFieldType(FieldType.IDENTITY);
+                    } else {
+                        field.setDefaultValue(rs.getString("default_value"));
+                    }
+                    field.setLazyFetch(FieldType.TEXT.equals(field.getFieldType())
+                        || FieldType.BYTE_ARRAY.equals(field.getFieldType())
+                        || FieldType.JSON_OBJECT.equals(field.getFieldType()));
                     tab.addColumn(field);
                 }
             }
-        } catch (SQLException e) {
-            logger.error(e.getLocalizedMessage(), e);
         }
-
-        try (PreparedStatement pStmt = dbc.prepareStatement(sqlPKName)) {
-            pStmt.setString(1, tabName);
-            try (ResultSet rs = pStmt.executeQuery()) {
-                if (rs.next()) {
-                    tab.setPkName(rs.getString("name"));
-                    tableId = rs.getInt("parent_object_id");
-                    pkIndId = rs.getInt("unique_index_id");
-                }
-            }
-        } catch (SQLException e) {
-            logger.error(e.getLocalizedMessage(), e);
-        }
-
-        if (tableId == 0) {
-            return;
-        }
-
-        try (PreparedStatement pStmt = dbc.prepareStatement(sqlPKColumns)) {
-            pStmt.setInt(1, tableId);
-            pStmt.setInt(2, pkIndId);
-            try (ResultSet rs = pStmt.executeQuery()) {
+        try (PreparedStatement stmt = dbc.prepareStatement(SQL_PRIMARY_KEY)) {
+            stmt.setInt(1, tableId);
+            try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    tab.setColumnAsPrimaryKey(rs.getString("name"));
-                }
-            }
-        } catch (SQLException e) {
-            logger.error(e.getLocalizedMessage(), e);
-        }
-
-        try (PreparedStatement pStmt = dbc.prepareStatement(sqlFKNames)) {
-            pStmt.setInt(1, tableId);
-            try (ResultSet rs = pStmt.executeQuery()) {
-                while (rs.next()) {
-                    SimpleTableReference ref = new SimpleTableReference();
-                    ref.setParentTableName(tabName);
-                    ref.setTableName(rs.getString("tabname"));
-                    ref.setReferenceCode(rs.getString("name"));
-                    ref.setObjectId(rs.getInt("object_id"));
-                    tab.addReference(ref);
-                }
-            }
-        } catch (SQLException e) {
-            logger.error(e.getLocalizedMessage(), e);
-        }
-
-        for (SimpleTableReference ref : tab.getReferences()) {
-            try (PreparedStatement pStmt = dbc.prepareStatement(sqlFKColumns)) {
-                pStmt.setInt(1, ref.getObjectId());
-                try (ResultSet rs = pStmt.executeQuery()) {
-                    while (rs.next()) {
-                        String columnName = rs.getString("name");
-                        ref.addReferenceColumn(columnName, columnName);
+                    tab.setPkName(rs.getString("PK_NAME"));
+                    SimpleTableField field = tab.findFieldByColumn(rs.getString("COLUMN_NAME"));
+                    if (field == null) {
+                        throw new SQLException("Primary key column is absent from " + tab.getTableName());
                     }
+                    field.setPrimaryKey(true);
+                    field.setPrimaryKeyOrder(rs.getInt("key_ordinal"));
                 }
-            } catch (SQLException e) {
-                logger.error(e.getLocalizedMessage(), e);
             }
         }
+        Map<String, SimpleTableReference> references = new LinkedHashMap<>();
+        try (PreparedStatement stmt = dbc.prepareStatement(SQL_REFERENCES)) {
+            stmt.setInt(1, tableId);
+            stmt.setString(2, tab.getSchema());
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String name = rs.getString("FK_NAME");
+                    SimpleTableReference ref = references.get(name);
+                    if (ref == null) {
+                        ref = new SimpleTableReference();
+                        ref.setParentTableName(tab.getTableName());
+                        ref.setTableName(rs.getString("TABLE_NAME"));
+                        ref.setReferenceCode(name);
+                        ref.setReferenceName(name);
+                        references.put(name, ref);
+                    }
+                    ref.addReferenceColumn(rs.getString("PARENT_COLUMN"), rs.getString("CHILD_COLUMN"));
+                }
+            }
+        }
+        tab.getReferences().addAll(references.values());
     }
 
+    @Override
     public SimpleTableInfo getTableMetadata(String tabName) {
-        SimpleTableInfo tab = new SimpleTableInfo(tabName);
         try {
-            tab.setSchema(dbc.getSchema().toUpperCase());
+            String schema = resolveSchema();
+            SimpleTableInfo tab;
+            int tableId;
+            try (PreparedStatement stmt = dbc.prepareStatement(SQL_TABLES + " AND o.name=?")) {
+                stmt.setString(1, schema);
+                stmt.setString(2, tabName);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (!rs.next()) {
+                        return null;
+                    }
+                    tab = readTableInfo(rs, schema);
+                    tableId = rs.getInt("object_id");
+                }
+            }
+            fetchTableDetail(tab, tableId);
+            return tab;
         } catch (SQLException e) {
-            logger.error(e.getLocalizedMessage(), e);
+            throw new IllegalStateException("Failed to read SQL Server metadata for " + tabName, e);
         }
-
-        fetchTableDetail(tab);
-
-        if (tab.getColumns().isEmpty()) {
-            return null;
-        }
-        return tab;
     }
-
 }
