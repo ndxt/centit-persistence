@@ -373,10 +373,9 @@ DDL 操作接口，定义建表、删表、增删改列、创建序列、创建�
 | `makeTableColumnComments(TableInfo tableInfo, int commentContent)` | `List<String>` | 生成字段注释 SQL |
 | `makeDropTableSql(String tableName)` | `String` | 生成删表 SQL |
 | `makeAddColumnSql(String tableName, TableField column)` | `String` | 生成添加列 SQL |
-| `makeModifyColumnSql(String tableName, TableField oldColumn, TableField newColumn)` | `String` | 生成修改列 SQL |
+| `makeModifyColumnSqls(String tableName, TableField oldColumn, TableField newColumn)` | `List<String>` | 生成原生修改列 SQL，不支持的操作报错 |
 | `makeDropColumnSql(String tableName, String columnName)` | `String` | 生成删除列 SQL |
 | `makeRenameColumnSql(String tableName, String oldColumnName, TableField newColumn)` | `String` | 生成重命名列 SQL |
-| `makeReconfigurationColumnSqls(String tableName, String columnName, TableField newColumn)` | `List<String>` | 生成列重构 SQL 列表 |
 | `makeCreateViewSql(String selectSql, String viewName)` | `String` | 生成创建视图 SQL |
 
 ### 执行方法
@@ -390,7 +389,6 @@ DDL 操作接口，定义建表、删表、增删改列、创建序列、创建�
 | `modifyColumn(String tableName, TableField oldColumn, TableField newColumn)` | `void` | 执行修改列 |
 | `dropColumn(String tableName, String columnName)` | `void` | 执行删除列 |
 | `renameColumn(String tableName, String oldColumnName, TableField newColumn)` | `void` | 执行重命名列 |
-| `reconfigurationColumn(String tableName, String columnName, TableField newColumn)` | `void` | 执行列重构 |
 
 ---
 

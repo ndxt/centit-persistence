@@ -5,6 +5,7 @@ import com.centit.support.algorithm.StringBaseOpt;
 import com.centit.support.network.HtmlFormUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -249,6 +250,8 @@ public interface TableInfo {
                 }
             }
         }
+        pkCols.sort(Comparator.comparingInt(field -> field.getPrimaryKeyOrder() > 0
+            ? field.getPrimaryKeyOrder() : Integer.MAX_VALUE));
         return pkCols;
     }
 

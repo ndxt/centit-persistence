@@ -82,13 +82,6 @@ public class DDLOperationsWork implements DDLOperations {
     }
 
     @Override
-    public void reconfigurationColumn(final String tableCode, final String columnCode,
-            final TableField column) throws SQLException {
-        getDDLOperations().
-            reconfigurationColumn(tableCode,columnCode,column);
-    }
-
-    @Override
     public String makeCreateSequenceSql(String sequenceName) {
         try {
             return getDDLOperations().makeCreateSequenceSql(sequenceName);
@@ -168,13 +161,4 @@ public class DDLOperationsWork implements DDLOperations {
         }
     }
 
-    @Override
-    public List<String> makeReconfigurationColumnSqls(String tableCode, String columnCode, TableField column) {
-        try {
-            return getDDLOperations().makeReconfigurationColumnSqls(tableCode,columnCode,column);
-        } catch (SQLException e) {
-            logger.error(e.getMessage());
-            return null;
-        }
-    }
 }

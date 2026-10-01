@@ -3,7 +3,6 @@ package com.centit.support.database.ddl;
 import com.centit.support.algorithm.GeneralAlgorithm;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.utils.FieldType;
-import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,31 +23,21 @@ public class DB2DDLOperations extends GeneralDDLOperations {
     @Override
     protected void appendColumnTypeSQL(final TableField field, StringBuilder sbCreate) {
         if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
-            sbCreate.append("INTEGER GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1)");
+            appendColumnDataTypeSQL(field, sbCreate);
+            sbCreate.append(" GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1)");
         } else {
-            super.appendColumnTypeSQL(field, sbCreate);
+            super.appendColumnDataTypeSQL(field, sbCreate);
         }
     }
 
     @Override
-    public List<String> makeTableColumnComments(final TableInfo tableInfo, int commentContent){
-        List<String> comments = new ArrayList<>();
-        if(tableInfo.getColumns()==null)
-            return comments;
-        for (TableField field : tableInfo.getColumns()) {
-            StringBuilder sbComment = new StringBuilder("ALTER TABLE ");
-            sbComment.append(tableInfo.getTableName()).append(" ALTER COLUMN  ")
-                .append(field.getColumnName()).append(" SET NOTE ");
-            if(commentContent==1){
-                sbComment.append('\'').append(field.getFieldLabelName()).append('\'');
-            } else if(commentContent==2){
-                sbComment.append('\'').append(field.getColumnComment()).append('\'');
-            } else {
-                sbComment.append('\'').append(field.getFieldLabelName()).append(':').append(field.getColumnComment()).append('\'');
-            }
-            comments.add( sbComment.toString());
+    protected void appendColumnDataTypeSQL(final TableField field, StringBuilder sbCreate) {
+        if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())
+            && !StringUtils.equalsAnyIgnoreCase(field.getColumnType(), "SMALLINT", "INTEGER", "INT", "BIGINT", "DECIMAL", "NUMERIC")) {
+            sbCreate.append("INTEGER");
+        } else {
+            super.appendColumnDataTypeSQL(field, sbCreate);
         }
-        return comments;
     }
 
     @Override
@@ -59,6 +48,7 @@ public class DB2DDLOperations extends GeneralDDLOperations {
 
     @Override
     public List<String> makeModifyColumnSqls(final String tableCode, final TableField oldColumn, final TableField column) {
+        validateIdentityChange(oldColumn, column);
         List<String> sqlList = new ArrayList<>();
         if (!StringUtils.equalsIgnoreCase(oldColumn.getColumnType(), column.getColumnType())
             || !GeneralAlgorithm.equals(oldColumn.getMaxLength(), column.getMaxLength())
@@ -68,15 +58,25 @@ public class DB2DDLOperations extends GeneralDDLOperations {
                 .append(" alter column ")
                 .append(column.getColumnName())
                 .append(" set data type ");
-            appendColumnTypeSQL(column, sbsql);
+            appendColumnDataTypeSQL(column, sbsql);
             sqlList.add(sbsql.toString());
         }
 
-        if (oldColumn.isMandatory() != column.isMandatory()) {
+        if (!FieldType.IDENTITY.equalsIgnoreCase(column.getFieldType()) && oldColumn.isMandatory() != column.isMandatory()) {
             sqlList.add("alter table " + tableCode + " alter column " + column.getColumnName()
                 + (column.isMandatory() ? " set not null" : " drop not null"));
         }
 
+        if (!StringUtils.equals(StringUtils.trimToEmpty(oldColumn.getDefaultValue()), StringUtils.trimToEmpty(column.getDefaultValue()))) {
+            sqlList.add("alter table " + tableCode + " alter column " + column.getColumnName()
+                + (StringUtils.isBlank(column.getDefaultValue()) ? " drop default" : " set default " + column.getDefaultValue()));
+        }
+        if (!StringUtils.equals(StringUtils.defaultString(oldColumn.getFieldLabelName()), StringUtils.defaultString(column.getFieldLabelName()))) {
+            sqlList.add("comment on column " + tableCode + "." + column.getColumnName() + " is '"
+                + StringUtils.defaultString(column.getFieldLabelName()).replace("'", "''") + "'");
+        }
+
         return sqlList;
     }
+
 }

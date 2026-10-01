@@ -46,6 +46,11 @@ public interface TableField {
      */
     boolean isPrimaryKey();
 
+    /** 主键内的列顺序，从 1 开始；0 表示未指定。 */
+    default int getPrimaryKeyOrder() {
+        return 0;
+    }
+
     /**
      * @return 是否是懒加载；
      * 获取单个对象时，一般加载所有字段，获取列表时默认不加载lazy字段

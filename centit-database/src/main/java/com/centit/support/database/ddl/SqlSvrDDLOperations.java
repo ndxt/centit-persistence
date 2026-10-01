@@ -7,7 +7,6 @@ import com.centit.support.database.metadata.TableInfo;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.List;
 
 public class SqlSvrDDLOperations extends GeneralDDLOperations {
@@ -32,39 +31,74 @@ public class SqlSvrDDLOperations extends GeneralDDLOperations {
     @Override
     protected void appendColumnTypeSQL(final TableField field, StringBuilder sbCreate) {
         if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
-            sbCreate.append("bigint identity(1,1)");
+            appendColumnDataTypeSQL(field, sbCreate);
+            sbCreate.append(" identity(1,1)");
         } else {
-            super.appendColumnTypeSQL(field, sbCreate);
+            appendColumnDataTypeSQL(field, sbCreate);
+        }
+    }
+
+    @Override
+    protected void appendColumnDataTypeSQL(final TableField field, StringBuilder sbCreate) {
+        if (StringUtils.equalsAnyIgnoreCase(field.getColumnType(), "VARCHAR", "NVARCHAR", "VARBINARY") && field.getMaxLength() < 0) {
+            sbCreate.append(field.getColumnType()).append("(MAX)");
+        } else if (StringUtils.equalsAnyIgnoreCase(field.getColumnType(), "VARBINARY", "BINARY")) {
+            sbCreate.append(field.getColumnType()).append("(").append(field.getMaxLength() > 0 ? field.getMaxLength() : 1).append(")");
+        } else if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())
+            && !StringUtils.equalsAnyIgnoreCase(field.getColumnType(), "TINYINT", "SMALLINT", "INT", "INTEGER", "BIGINT", "NUMERIC", "DECIMAL")) {
+            sbCreate.append("bigint");
+        } else {
+            super.appendColumnDataTypeSQL(field, sbCreate);
         }
     }
 
     @Override
     public List<String> makeTableColumnComments(final TableInfo tableInfo, int commentContent){
-        return new ArrayList<>();
+        throw new UnsupportedOperationException("SQL Server 列注释需要扩展属性，本方言暂不支持");
     }
 
     @Override
     public String makeRenameColumnSql(final String tableCode, final String columnCode, final TableField column) {
-/*        dropColumn(tableCode, columnCode);
-        column.setColumnName(newColumnCode);
-        addColumn(tableCode, column);*/
-        return "exec sp_rename ' " + tableCode + "." + columnCode + "','" + column.getColumnName() + "','COLUMN'";
+        return "exec sp_rename '" + (tableCode + "." + columnCode).replace("'", "''")
+            + "','" + column.getColumnName().replace("'", "''") + "','COLUMN'";
+    }
+
+    @Override
+    public String makeAddColumnSql(final String tableCode, final TableField column) {
+        StringBuilder sql = new StringBuilder("alter table ").append(tableCode).append(" add ");
+        appendColumnSQL(column, sql);
+        return sql.toString();
+    }
+
+    @Override
+    public String makeCreateViewSql(final String selectSql, final String viewName) {
+        // 仅创建；视图已存在时由数据库报错，不模拟替换。
+        return "create view " + viewName + " as " + selectSql;
     }
 
     @Override
     public List<String> makeModifyColumnSqls(final String tableCode, final TableField oldColumn, final TableField column) {
+        validateIdentityChange(oldColumn, column);
+        if (!StringUtils.equals(StringUtils.trimToEmpty(oldColumn.getDefaultValue()), StringUtils.trimToEmpty(column.getDefaultValue()))) {
+            throw new UnsupportedOperationException("SQL Server 修改默认值需要默认约束名称，本方言暂不支持");
+        }
+        if (!StringUtils.equals(StringUtils.defaultString(oldColumn.getFieldLabelName()), StringUtils.defaultString(column.getFieldLabelName()))) {
+            throw new UnsupportedOperationException("SQL Server 列注释需要扩展属性，本方言暂不支持");
+        }
+        boolean typeChanged = !StringUtils.equalsIgnoreCase(oldColumn.getColumnType(), column.getColumnType())
+            || !GeneralAlgorithm.equals(oldColumn.getMaxLength(), column.getMaxLength())
+            || !GeneralAlgorithm.equals(oldColumn.getScale(), column.getScale());
+        boolean nullableChanged = !FieldType.IDENTITY.equalsIgnoreCase(column.getFieldType())
+            && oldColumn.isMandatory() != column.isMandatory();
+        if (!typeChanged && !nullableChanged) {
+            return List.of();
+        }
         StringBuilder sbsql = new StringBuilder("alter table ");
         sbsql.append(tableCode);
         sbsql.append(" ALTER COLUMN ").append(column.getColumnName()).append(" ");
-        if (!StringUtils.equalsIgnoreCase(oldColumn.getColumnType(), column.getColumnType())
-            || !GeneralAlgorithm.equals(oldColumn.getMaxLength(), column.getMaxLength())
-            || !GeneralAlgorithm.equals(oldColumn.getScale(), column.getScale())) {
-            appendColumnTypeSQL(column, sbsql);
-        }
-
-        if (oldColumn.isMandatory() != column.isMandatory()) {
-            sbsql.append(column.isMandatory() ? " not null" : " null");
-        }
+        appendColumnDataTypeSQL(column, sbsql);
+        sbsql.append(column.isMandatory() || column.isPrimaryKey() || FieldType.IDENTITY.equalsIgnoreCase(column.getFieldType()) ? " not null" : " null");
         return List.of(sbsql.toString());
     }
+
 }

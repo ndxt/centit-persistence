@@ -1,7 +1,6 @@
 package com.centit.support.database.ddl;
 
 import com.centit.support.algorithm.GeneralAlgorithm;
-import com.centit.support.database.metadata.SimpleTableField;
 import com.centit.support.database.metadata.TableField;
 import com.centit.support.database.metadata.TableInfo;
 import com.centit.support.database.utils.FieldType;
@@ -25,9 +24,25 @@ public class MySqlDDLOperations extends GeneralDDLOperations {
     @Override
     protected void appendColumnTypeSQL(final TableField field, StringBuilder sbCreate) {
         if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
-            sbCreate.append("bigint AUTO_INCREMENT");
+            appendColumnDataTypeSQL(field, sbCreate);
+            sbCreate.append(" AUTO_INCREMENT");
         } else {
-            super.appendColumnTypeSQL(field, sbCreate);
+            super.appendColumnDataTypeSQL(field, sbCreate);
+        }
+    }
+
+    @Override
+    protected void appendColumnDataTypeSQL(final TableField field, StringBuilder sbCreate) {
+        if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
+            String type = StringUtils.trimToEmpty(field.getColumnType());
+            String baseType = StringUtils.removeEndIgnoreCase(type, " UNSIGNED");
+            if (StringUtils.equalsAnyIgnoreCase(baseType, "TINYINT", "SMALLINT", "MEDIUMINT", "INT", "INTEGER", "BIGINT")) {
+                sbCreate.append(type);
+            } else {
+                sbCreate.append("bigint");
+            }
+        } else {
+            super.appendColumnDataTypeSQL(field, sbCreate);
         }
     }
 
@@ -39,13 +54,8 @@ public class MySqlDDLOperations extends GeneralDDLOperations {
 
     @Override
     protected void appendColumnSQL(final TableField field, StringBuilder sbCreate) {
-        sbCreate.append("  ").append(field.getColumnName())
-            .append(" ");
-        appendColumnTypeSQL(field, sbCreate);
-        if (field.isMandatory()) {
-            sbCreate.append(" not null");
-        }
-        sbCreate.append(" comment \'"+ field.getFieldLabelName()+"\'");
+        sbCreate.append("  ");
+        appendColumnDefinitionSQL(field, sbCreate);
     }
 
     @Override
@@ -55,30 +65,31 @@ public class MySqlDDLOperations extends GeneralDDLOperations {
 
     @Override
     public List<String> makeModifyColumnSqls(final String tableCode, final TableField oldColumn, final TableField column) {
-        StringBuilder sbsql = new StringBuilder("alter table ");
-        sbsql.append(tableCode);
-        Boolean modify=false;
-        sbsql.append(" MODIFY COLUMN  ").append(column.getColumnName()).append(" ");
-        if (!StringUtils.equalsIgnoreCase(oldColumn.getColumnType(), column.getColumnType())
-            || !GeneralAlgorithm.equals(oldColumn.getMaxLength(), column.getMaxLength())
-            || !GeneralAlgorithm.equals(oldColumn.getScale(), column.getScale())) {
-            appendColumnTypeSQL(column, sbsql);
-            modify=true;
+        validateIdentityChange(oldColumn, column);
+        if (StringUtils.equalsIgnoreCase(oldColumn.getColumnType(), column.getColumnType())
+            && GeneralAlgorithm.equals(oldColumn.getMaxLength(), column.getMaxLength())
+            && GeneralAlgorithm.equals(oldColumn.getScale(), column.getScale())
+            && (FieldType.IDENTITY.equalsIgnoreCase(column.getFieldType()) || column.isPrimaryKey() || oldColumn.isMandatory() == column.isMandatory())
+            && StringUtils.equals(StringUtils.trimToEmpty(oldColumn.getDefaultValue()), StringUtils.trimToEmpty(column.getDefaultValue()))
+            && StringUtils.equals(StringUtils.defaultString(oldColumn.getFieldLabelName()), StringUtils.defaultString(column.getFieldLabelName()))) {
+            return List.of();
         }
-
-        if (oldColumn.isMandatory() != column.isMandatory()) {
-            if (!modify) {
-                appendColumnTypeSQL(column, sbsql);
-            }
-            sbsql.append(column.isMandatory() ? " not null" : " null");
-        }
-        if (!oldColumn.getFieldLabelName().equals(column.getFieldLabelName())) {
-            if (!modify) {
-                appendColumnTypeSQL(column, sbsql);
-            }
-            sbsql.append(" comment \'"+ column.getFieldLabelName()+"\'");
-        }
+        StringBuilder sbsql = new StringBuilder("alter table ").append(tableCode).append(" MODIFY COLUMN ");
+        appendColumnDefinitionSQL(column, sbsql);
         return List.of(sbsql.toString());
+    }
+
+    private void appendColumnDefinitionSQL(final TableField column, StringBuilder sbsql) {
+        if (FieldType.IDENTITY.equalsIgnoreCase(column.getFieldType()) && StringUtils.isNotBlank(column.getDefaultValue())) {
+            throw new UnsupportedOperationException("identity 列不能同时指定默认值：" + column.getColumnName());
+        }
+        sbsql.append(column.getColumnName()).append(" ");
+        appendColumnTypeSQL(column, sbsql);
+        if (StringUtils.isNotBlank(column.getDefaultValue())) {
+            sbsql.append(" default ").append(column.getDefaultValue());
+        }
+        sbsql.append(column.isMandatory() || column.isPrimaryKey() || FieldType.IDENTITY.equalsIgnoreCase(column.getFieldType()) ? " not null" : " null");
+        sbsql.append(" comment '").append(StringUtils.defaultString(column.getFieldLabelName()).replace("'", "''")).append("'");
     }
 
     @Override
@@ -88,37 +99,8 @@ public class MySqlDDLOperations extends GeneralDDLOperations {
         sbsql.append(" CHANGE ");
         sbsql.append(columnCode);
         sbsql.append(" ");
-        sbsql.append(column.getColumnName());
-        sbsql.append(" ");
-        appendColumnTypeSQL(column, sbsql);
+        appendColumnDefinitionSQL(column, sbsql);
         return sbsql.toString();
     }
 
-    @Override
-    public List<String> makeReconfigurationColumnSqls(final String tableCode, final String columnCode, final TableField column) {
-        List<String> sqls = new ArrayList<>();
-        SimpleTableField tempColumn = new SimpleTableField();
-        tempColumn.setColumnName(columnCode + "_1");
-        tempColumn.setColumnType(column.getColumnType());
-        tempColumn.setMaxLength(column.getMaxLength());
-        tempColumn.setScale(column.getScale());
-        sqls.add(makeRenameColumnSql(tableCode, columnCode, tempColumn));
-        sqls.add(makeAddColumnSql(tableCode, column));
-
-        if (FieldType.STRING.equals(column.getFieldType()) || FieldType.TEXT.equals(column.getFieldType())
-            || FieldType.FILE_ID.equals(column.getFieldType())) {
-            sqls.add("update " + tableCode + " set " + column.getColumnName() + " = cast(" + columnCode + "_1 as char)");
-        } else if (FieldType.DATE.equals(column.getFieldType())) {
-            sqls.add("update " + tableCode + " set " + column.getColumnName() + " = cast(" + columnCode + "_1 as date)");
-        } else if (FieldType.TIMESTAMP.equals(column.getFieldType()) || FieldType.DATETIME.equals(column.getFieldType())) {
-            sqls.add("update " + tableCode + " set " + column.getColumnName() + " = cast(" + columnCode + "_1 as datetime)");
-        } else if (FieldType.LONG.equals(column.getFieldType()) || FieldType.INTEGER.equals(column.getFieldType())) {
-            sqls.add("update " + tableCode + " set " + column.getColumnName() + " = cast(" + columnCode + "_1 as signed)");
-        } else if (FieldType.FLOAT.equals(column.getFieldType()) || FieldType.DOUBLE.equals(column.getFieldType())) {
-            sqls.add("update " + tableCode + " set " + column.getColumnName() + " = cast(" + columnCode + "_1 as decimal(" + column.getMaxLength()
-                + "," + column.getScale() + ")");
-        }
-        sqls.add(makeDropColumnSql(tableCode, columnCode + "_1"));
-        return sqls;
-    }
 }

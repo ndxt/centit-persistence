@@ -61,7 +61,7 @@ public interface DDLOperations {
     /**
      * 修改列定义 ，比如 修改 varchar 的长度。
      * 部分方言（H2、DB2 等）不支持单条语句替换整列定义，按子句拆分为多条；
-     * 不支持修改列的方言（SQLite）返回空列表。
+     * 不支持的修改操作直接报错，不使用临时列转换数据。
      *
      * @param tableCode 表代码
      * @param oldColumn 老的字段
@@ -88,16 +88,6 @@ public interface DDLOperations {
      * @return sql语句
      */
     String makeRenameColumnSql(final String tableCode, final String columnCode, final TableField column);
-
-    /**
-     * 重构列，涉及到内容格式的转换，需要新建一个列，将旧列中的数据转换到新列中，然后在删除旧列
-     *
-     * @param tableCode  表代码
-     * @param columnCode 字段代码
-     * @param column     字段
-     * @return sql语句列表
-     */
-    List<String> makeReconfigurationColumnSqls(final String tableCode, final String columnCode, final TableField column);
 
     /**
      * 创建sequence
@@ -169,15 +159,5 @@ public interface DDLOperations {
      * @throws SQLException SQLException
      */
     void renameColumn(String tableCode, String columnCode, TableField column) throws SQLException;
-
-    /**
-     * 重构列，涉及到内容格式的转换，需要新建一个列，将旧列中的数据转换到新列中，然后在删除旧列
-     *
-     * @param tableCode  表代码
-     * @param columnCode 字段代码
-     * @param column     字段
-     * @throws SQLException SQLException
-     */
-    void reconfigurationColumn(String tableCode, String columnCode, TableField column) throws SQLException;
 
 }

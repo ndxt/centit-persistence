@@ -9,7 +9,6 @@ import com.centit.support.database.utils.FieldType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,13 +28,13 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
         if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
             sbCreate.append("INTEGER");
         } else {
-            super.appendColumnTypeSQL(field, sbCreate);
+            super.appendColumnDataTypeSQL(field, sbCreate);
         }
     }
 
     @Override
     public List<String> makeTableColumnComments(final TableInfo tableInfo, int commentContent){
-        return new ArrayList<>();
+        throw new UnsupportedOperationException("SQLite 不支持列注释");
     }
 
     @Override
@@ -44,11 +43,12 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
         sbCreate.append(tableInfo.getTableName()).append(" (");
         List<? extends TableField> pkColumns = tableInfo.getPkFields();
         int pkSum = pkColumns.size();
-        TableField pkField;
-        if(pkSum>0){
-            pkField = pkColumns.get(0);
-        } else {
-            pkField = new SimpleTableField();
+        TableField pkField = pkSum == 1 ? pkColumns.get(0) : null;
+        for (TableField field : tableInfo.getColumns()) {
+            if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())
+                && (pkSum != 1 || !StringUtils.equals(field.getColumnName(), pkField.getColumnName()))) {
+                throw new UnsupportedOperationException("SQLite identity 列必须是唯一主键：" + field.getColumnName());
+            }
         }
 
         boolean first = true;
@@ -61,14 +61,9 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
                 sbCreate.append("\r\n");
             }
             appendColumnSQL(field, sbCreate);
-            if (StringUtils.isNotBlank(field.getDefaultValue())) {
-                sbCreate.append(" default ").append(field.getDefaultValue());
-            }
             if(pkSum == 1 && StringUtils.equals(field.getColumnName(), pkField.getColumnName())){
                 sbCreate.append(" primary key ");
-                if(// StringUtils.equalsIgnoreCase("id", pkField.getColumnName()) &&
-                    StringUtils.equalsIgnoreCase(pkField.getColumnType(), FieldType.INTEGER)
-                    || FieldType.IDENTITY.equalsIgnoreCase(pkField.getFieldType())) {
+                if(FieldType.IDENTITY.equalsIgnoreCase(pkField.getFieldType())) {
                     sbCreate.append("AUTOINCREMENT ");
                 }
             }
@@ -90,8 +85,21 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
 
     @Override
     public List<String> makeModifyColumnSqls(String tableCode, TableField oldColumn, TableField column) {
-        // SQLite 不支持修改列定义
-        return List.of();
+        throw new UnsupportedOperationException("SQLite 本方言不支持直接修改列定义");
+    }
+
+    @Override
+    public String makeAddColumnSql(final String tableCode, final TableField column) {
+        if (column.isPrimaryKey() || FieldType.IDENTITY.equalsIgnoreCase(column.getFieldType())) {
+            throw new UnsupportedOperationException("SQLite 不支持通过 ADD COLUMN 添加主键或 identity 列");
+        }
+        return super.makeAddColumnSql(tableCode, column);
+    }
+
+    @Override
+    public String makeCreateViewSql(final String selectSql, final String viewName) {
+        // 仅创建；视图已存在时由数据库报错，不模拟替换。
+        return "create view " + viewName + " as " + selectSql;
     }
 
     private static String mapPropertyNameToColumnName(String propertyName) {

@@ -1,6 +1,5 @@
 package com.centit.support.database.utils;
 
-import com.centit.support.algorithm.BooleanBaseOpt;
 import com.centit.support.algorithm.GeneralAlgorithm;
 import com.centit.support.database.ddl.DDLOperations;
 import com.centit.support.database.ddl.GeneralDDLOperations;
@@ -21,6 +20,15 @@ public abstract class DDLUtils {
         if (oldTable == null) {
             sqlList.add(ddlOpt.makeCreateTableSql(newTable));
         } else {
+            List<String> oldPrimaryKey = oldTable.getPkFields().stream()
+                .map(field -> field.getColumnName().toUpperCase(java.util.Locale.ROOT))
+                .collect(java.util.stream.Collectors.toList());
+            List<String> newPrimaryKey = newTable.getPkFields().stream()
+                .map(field -> field.getColumnName().toUpperCase(java.util.Locale.ROOT))
+                .collect(java.util.stream.Collectors.toList());
+            if (!oldPrimaryKey.equals(newPrimaryKey)) {
+                throw new UnsupportedOperationException("不支持自动修改主键列及顺序：" + newTable.getTableName());
+            }
 
             for (TableField  column : newTable.getColumns()) {
                 TableField ocol = oldTable.findFieldByColumn(column.getColumnName());
@@ -28,6 +36,10 @@ public abstract class DDLUtils {
                     sqlList.add(ddlOpt.makeAddColumnSql(
                         newTable.getTableName(), column));
                 } else {
+                    if (FieldType.IDENTITY.equalsIgnoreCase(column.getFieldType())
+                        != FieldType.IDENTITY.equalsIgnoreCase(ocol.getFieldType())) {
+                        throw new UnsupportedOperationException("不支持切换列的 identity 属性：" + column.getColumnName());
+                    }
                     // 语义等价比较：datetime 与 timestamp 等数据库别名视为同一类型。
                     if (FieldType.sameFieldType(column.getFieldType(), ocol.getFieldType())) {
                         // 定长类型（整数/日期/布尔等）不比较长度与标度：驱动报告的
@@ -36,16 +48,18 @@ public abstract class DDLUtils {
                             (!GeneralAlgorithm.equals(column.getMaxLength(), ocol.getMaxLength()) ||
                             !GeneralAlgorithm.equals(column.getScale(), ocol.getScale()));
                         boolean exits = precisionDiffers ||
-                            !GeneralAlgorithm.equals(BooleanBaseOpt.castObjectToBoolean(column.isMandatory(),false), ocol.isMandatory()) ||
-                            (!StringUtils.equals(column.getFieldLabelName(), ocol.getFieldLabelName())
-                                && dbType.equals(DBType.MySql)); // 修改注释似乎没有意义
+                            (!column.isPrimaryKey() && !FieldType.IDENTITY.equalsIgnoreCase(column.getFieldType())
+                                && column.isMandatory() != ocol.isMandatory()) ||
+                            !StringUtils.equals(StringUtils.trimToNull(column.getDefaultValue()),
+                                StringUtils.trimToNull(ocol.getDefaultValue())) ||
+                            !StringUtils.equals(StringUtils.defaultString(column.getFieldLabelName()),
+                                StringUtils.defaultString(ocol.getFieldLabelName()));
                         if (exits) {
                             sqlList.addAll(ddlOpt.makeModifyColumnSqls(
                                 newTable.getTableName(), ocol, column));
                         }
                     } else {
-                        sqlList.addAll(ddlOpt.makeReconfigurationColumnSqls(
-                            newTable.getTableName(), ocol.getColumnName(), column));
+                        sqlList.addAll(ddlOpt.makeModifyColumnSqls(newTable.getTableName(), ocol, column));
                     }
                 }
             }

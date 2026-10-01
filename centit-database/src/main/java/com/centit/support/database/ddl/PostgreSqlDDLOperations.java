@@ -23,9 +23,35 @@ public class PostgreSqlDDLOperations extends GeneralDDLOperations {
     @Override
     protected void appendColumnTypeSQL(final TableField field, StringBuilder sbCreate) {
         if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
-            sbCreate.append("SERIAL");
+            StringBuilder dataType = new StringBuilder();
+            appendColumnDataTypeSQL(field, dataType);
+            if (StringUtils.equalsAnyIgnoreCase(dataType.toString(), "BIGINT", "INT8")) {
+                sbCreate.append("BIGSERIAL");
+            } else if (StringUtils.equalsAnyIgnoreCase(dataType.toString(), "SMALLINT", "INT2")) {
+                sbCreate.append("SMALLSERIAL");
+            } else {
+                sbCreate.append("SERIAL");
+            }
         } else {
-            super.appendColumnTypeSQL(field, sbCreate);
+            super.appendColumnDataTypeSQL(field, sbCreate);
+        }
+    }
+
+    @Override
+    protected void appendColumnDataTypeSQL(final TableField field, StringBuilder sbCreate) {
+        if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
+            String type = StringUtils.trimToEmpty(field.getColumnType());
+            if (StringUtils.equalsAnyIgnoreCase(type, "SMALLINT", "INT2", "INTEGER", "INT", "INT4", "BIGINT", "INT8")) {
+                sbCreate.append(type);
+            } else if (StringUtils.equalsIgnoreCase(type, "BIGSERIAL")) {
+                sbCreate.append("BIGINT");
+            } else if (StringUtils.equalsIgnoreCase(type, "SMALLSERIAL")) {
+                sbCreate.append("SMALLINT");
+            } else {
+                sbCreate.append("INTEGER");
+            }
+        } else {
+            super.appendColumnDataTypeSQL(field, sbCreate);
         }
     }
 
@@ -44,6 +70,7 @@ public class PostgreSqlDDLOperations extends GeneralDDLOperations {
      */
     @Override
     public List<String> makeModifyColumnSqls(String tableCode, TableField oldColumn, TableField column) {
+        validateIdentityChange(oldColumn, column);
         List<String> sqlList = new ArrayList<>();
         if (!StringUtils.equalsIgnoreCase(oldColumn.getColumnType(), column.getColumnType())
             || !GeneralAlgorithm.equals(oldColumn.getMaxLength(), column.getMaxLength())
@@ -51,17 +78,25 @@ public class PostgreSqlDDLOperations extends GeneralDDLOperations {
             StringBuilder sbsql = new StringBuilder("alter table ");
             sbsql.append(tableCode)
                 .append(" ALTER ").append(column.getColumnName()).append(" type ");
-            appendColumnTypeSQL(column, sbsql);
+            appendColumnDataTypeSQL(column, sbsql);
             sqlList.add(sbsql.toString());
         }
 
-        if (oldColumn.isMandatory() != column.isMandatory()) {
+        if (!FieldType.IDENTITY.equalsIgnoreCase(column.getFieldType()) && oldColumn.isMandatory() != column.isMandatory()) {
             sqlList.add("alter table " + tableCode + " ALTER " + column.getColumnName()
                 + (column.isMandatory() ? " set not null" : " drop not null"));
         }
 
+        if (!StringUtils.equals(StringUtils.trimToEmpty(oldColumn.getDefaultValue()), StringUtils.trimToEmpty(column.getDefaultValue()))) {
+            sqlList.add("alter table " + tableCode + " ALTER " + column.getColumnName()
+                + (StringUtils.isBlank(column.getDefaultValue()) ? " drop default" : " set default " + column.getDefaultValue()));
+        }
+        if (!StringUtils.equals(StringUtils.defaultString(oldColumn.getFieldLabelName()), StringUtils.defaultString(column.getFieldLabelName()))) {
+            sqlList.add("comment on column " + tableCode + "." + column.getColumnName() + " is '"
+                + StringUtils.defaultString(column.getFieldLabelName()).replace("'", "''") + "'");
+        }
+
         return sqlList;
     }
-
 
 }

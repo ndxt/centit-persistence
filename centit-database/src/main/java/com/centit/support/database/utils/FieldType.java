@@ -166,10 +166,13 @@ public abstract class FieldType {
     public static String mapToGBaseColumnType(String ft) {
         if (StringUtils.isBlank(ft))
             return ft;
+        if (IDENTITY.equalsIgnoreCase(ft)) {
+            throw new UnsupportedOperationException("尚未实现 GBase 的原生 identity 列定义");
+        }
         return switch (ft) {
             case STRING -> "lvarchar"; //南大通用 GBase 8s  varchar 最多支持255 个字符，保险起见用这个
             case INTEGER -> "int";
-            case IDENTITY, LONG -> "bigint";
+            case LONG -> "bigint";
             case FLOAT, DOUBLE, NUMBER -> "decimal";
             case MONEY -> "decimal("+MONEY_NUMBER_DIGITS_DESC+")";
             case BOOLEAN -> "varchar(1)";
@@ -269,10 +272,13 @@ public abstract class FieldType {
     public static String mapToClickHouseColumnType(String ft) {
         if (StringUtils.isBlank(ft))
             return ft;
+        if (IDENTITY.equalsIgnoreCase(ft)) {
+            throw new UnsupportedOperationException("ClickHouse 不支持 identity 列");
+        }
         return switch (ft) {
             case STRING -> "String";
             case INTEGER -> "Int32";
-            case IDENTITY, LONG -> "Int64";
+            case LONG -> "Int64";
             case NUMBER -> "DECIMAL";
             case MONEY -> "Decimal32(4)";
             case FLOAT -> "Float32";
@@ -317,6 +323,13 @@ public abstract class FieldType {
     public static String mapToDatabaseType(String ft, DBType dt) {
         if (dt == null || StringUtils.isBlank(ft))
             return ft;
+        if (IDENTITY.equalsIgnoreCase(ft)) {
+            if (!java.util.EnumSet.of(DBType.Oracle, DBType.SqlServer, DBType.DB2,
+                DBType.H2, DBType.MySql, DBType.PostgreSql, DBType.Sqlite).contains(dt)) {
+                throw new UnsupportedOperationException("尚未实现该数据库的原生 identity 列定义：" + dt);
+            }
+            ft = IDENTITY;
+        }
         return switch (dt) {
             case SqlServer -> mapToSqlServerColumnType(ft);
             case DB2 -> mapToDB2ColumnType(ft);

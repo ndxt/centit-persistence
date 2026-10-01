@@ -87,9 +87,6 @@ public class TestJDBCDDL {
             tablfilef2.setScale(2);
             ddl.modifyColumn("ddltemp", tablfilef2, tablfilef2);
 
-            tablfilef2.setColumnType("varchar");
-            tablfilef2.setMaxLength(200);
-            ddl.reconfigurationColumn("ddltemp", "f2", tablfilef2);
             conn.close();
 
         } catch (Exception e) {
@@ -169,10 +166,6 @@ public class TestJDBCDDL {
             tablfilef2.setScale(2);
             ddl.modifyColumn("ddltemp", tablfilef2, tablfilef2);
             conn.commit();
-            tablfilef2.setColumnType("varchar");
-            tablfilef2.setMaxLength(200);
-            ddl.reconfigurationColumn("ddltemp", "fest2", tablfilef2);
-            conn.commit();
             tablfilef2.setColumnName("f3");
             ddl.renameColumn("ddltemp", "fest2", tablfilef2);
             conn.commit();
@@ -232,10 +225,6 @@ public class TestJDBCDDL {
             tablfilef2.setMaxLength(10);
             tablfilef2.setScale(2);
             ddl.modifyColumn("ddltemp", tablfilef2, tablfilef2);
-            conn.commit();
-            tablfilef2.setColumnType("varchar");
-            tablfilef2.setMaxLength(200);
-            ddl.reconfigurationColumn("ddltemp", "fest2", tablfilef2);
             conn.commit();
             tablfilef2.setColumnName("F3");
             ddl.renameColumn("ddltemp", "fest2", tablfilef2);

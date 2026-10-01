@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Locale;
 
 public class SimpleTableField implements TableField {
     //private static final Logger logger
@@ -30,6 +31,7 @@ public class SimpleTableField implements TableField {
     private JavaBeanField beanField;
     private boolean lazyFetch;
     private boolean primaryKey;
+    private int primaryKeyOrder;
 
     public SimpleTableField() {
         mandatory = false;
@@ -42,7 +44,9 @@ public class SimpleTableField implements TableField {
     public void mapToMetadata() {
         //这个和下面的 mapToDatabaseType 不对称
         propertyName = FieldType.mapPropName(columnName);
-        fieldType = FieldType.mapToFieldType(columnType);
+        if (!FieldType.IDENTITY.equalsIgnoreCase(fieldType)) {
+            fieldType = FieldType.mapToFieldType(columnType);
+        }
         lazyFetch = FieldType.TEXT.equals(fieldType) ||
             FieldType.BYTE_ARRAY.equals(fieldType) ||
             FieldType.JSON_OBJECT.equals(fieldType);
@@ -66,7 +70,7 @@ public class SimpleTableField implements TableField {
         if (beanField != null) {
             return beanField.getFieldType();
         }
-        return FieldType.mapToJavaType(this.fieldType);
+        return FieldType.mapToJavaType(getFieldType());
     }
 
     /**
@@ -175,6 +179,15 @@ public class SimpleTableField implements TableField {
     }
 
     @Override
+    public int getPrimaryKeyOrder() {
+        return primaryKeyOrder;
+    }
+
+    public void setPrimaryKeyOrder(int primaryKeyOrder) {
+        this.primaryKeyOrder = primaryKeyOrder;
+    }
+
+    @Override
     public boolean isLazyFetch() {
         return lazyFetch;
     }
@@ -228,13 +241,28 @@ public class SimpleTableField implements TableField {
 
     public void setColumnType(String type) {
         if (type != null) {
+            if (FieldType.IDENTITY.equalsIgnoreCase(FieldType.mapToFieldType(type))) {
+                fieldType = FieldType.IDENTITY;
+            }
             columnType = type.trim();
+            if (FieldType.IDENTITY.equalsIgnoreCase(fieldType)) {
+                String uppercaseType = columnType.toUpperCase(Locale.ROOT);
+                for (String modifier : new String[]{" GENERATED ", " IDENTITY", " AUTO_INCREMENT"}) {
+                    int modifierIndex = uppercaseType.indexOf(modifier);
+                    if (modifierIndex > 0) {
+                        columnType = columnType.substring(0, modifierIndex).trim();
+                        break;
+                    }
+                }
+            }
             int nPos = columnType.indexOf('(');
             if (nPos > 0) {
                 Lexer lexer = new Lexer(columnType.substring(nPos+1));
                 String aWord = lexer.getAWord();
                 if(StringRegularOpt.isDigit(aWord)){
                     maxLength = NumberBaseOpt.castObjectToInteger(aWord, 0);
+                } else if ("MAX".equalsIgnoreCase(aWord)) {
+                    maxLength = -1;
                 }
                 aWord = lexer.getAWord();
                 if(",".equals(aWord)){

@@ -409,17 +409,15 @@ DDL 操作的 JDBC 适配器，通过 `BaseDaoImpl` 获取连接并委托给 `Ge
 | `modifyColumn(String tableCode, TableField oldColumn, TableField column)` | `void` | 修改列 |
 | `dropColumn(String tableCode, String columnCode)` | `void` | 删除列 |
 | `renameColumn(String tableCode, String columnCode, TableField column)` | `void` | 重命名列 |
-| `reconfigurationColumn(String tableCode, String columnCode, TableField column)` | `void` | 重新配置列 |
 | `makeCreateViewSql(String selectSql, String viewName)` | `String` | 生成创建视图 SQL |
 | `makeCreateSequenceSql(String sequenceName)` | `String` | 生成创建序列 SQL |
 | `makeCreateTableSql(TableInfo tableInfo, boolean fieldStartNewLine)` | `String` | 生成建表 SQL |
 | `makeTableColumnComments(TableInfo tableInfo, int commentContent)` | `List<String>` | 生成列注释 SQL |
 | `makeDropTableSql(String tableCode)` | `String` | 生成删表 SQL |
 | `makeAddColumnSql(String tableCode, TableField column)` | `String` | 生成添加列 SQL |
-| `makeModifyColumnSql(String tableCode, TableField oldColumn, TableField column)` | `String` | 生成修改列 SQL |
+| `makeModifyColumnSqls(String tableCode, TableField oldColumn, TableField column)` | `List<String>` | 生成原生修改列 SQL，不支持的操作报错 |
 | `makeDropColumnSql(String tableCode, String columnCode)` | `String` | 生成删除列 SQL |
 | `makeRenameColumnSql(String tableCode, String columnCode, TableField column)` | `String` | 生成重命名列 SQL |
-| `makeReconfigurationsColumnSqls(String tableCode, String columnCode, TableField column)` | `List<String>` | 生成重新配置列 SQL |
 
 ---
 
