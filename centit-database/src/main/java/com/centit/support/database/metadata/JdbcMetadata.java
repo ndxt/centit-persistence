@@ -1,5 +1,6 @@
 package com.centit.support.database.metadata;
 
+import com.centit.support.database.utils.FieldType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +89,11 @@ public class JdbcMetadata implements DatabaseMetadata {
                 field.setFieldLabelName(
                     StringUtils.substring(field.getColumnComment(),0, 80));
                 field.mapToMetadata();
+                if ("YES".equalsIgnoreCase(rs.getString("IS_AUTOINCREMENT"))) {
+                    field.setFieldType(FieldType.IDENTITY);
+                    // 自增列默认值由目标库生成，不复制源库的序列表达式。
+                    field.setDefaultValue(null);
+                }
                 tab.addColumn(field);
             }
             rs.close();

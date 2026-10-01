@@ -23,6 +23,15 @@ public class MySqlDDLOperations extends GeneralDDLOperations {
     }
 
     @Override
+    protected void appendColumnTypeSQL(final TableField field, StringBuilder sbCreate) {
+        if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
+            sbCreate.append("bigint AUTO_INCREMENT");
+        } else {
+            super.appendColumnTypeSQL(field, sbCreate);
+        }
+    }
+
+    @Override
     protected void appendPkSql(final TableInfo tableInfo, StringBuilder sbCreate) {
         sbCreate.append("primary key ");
         appendPkColumnSql(tableInfo, sbCreate);

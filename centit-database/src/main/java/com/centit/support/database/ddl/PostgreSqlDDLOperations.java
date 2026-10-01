@@ -2,6 +2,7 @@ package com.centit.support.database.ddl;
 
 import com.centit.support.algorithm.GeneralAlgorithm;
 import com.centit.support.database.metadata.TableField;
+import com.centit.support.database.utils.FieldType;
 import com.centit.support.database.utils.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,6 +18,15 @@ public class PostgreSqlDDLOperations extends GeneralDDLOperations {
 
     public PostgreSqlDDLOperations(Connection conn) {
         super(conn);
+    }
+
+    @Override
+    protected void appendColumnTypeSQL(final TableField field, StringBuilder sbCreate) {
+        if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
+            sbCreate.append("SERIAL");
+        } else {
+            super.appendColumnTypeSQL(field, sbCreate);
+        }
     }
 
     @Override

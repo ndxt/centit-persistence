@@ -25,6 +25,15 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
     }
 
     @Override
+    protected void appendColumnTypeSQL(final TableField field, StringBuilder sbCreate) {
+        if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
+            sbCreate.append("INTEGER");
+        } else {
+            super.appendColumnTypeSQL(field, sbCreate);
+        }
+    }
+
+    @Override
     public List<String> makeTableColumnComments(final TableInfo tableInfo, int commentContent){
         return new ArrayList<>();
     }
@@ -58,7 +67,8 @@ public class SqliteDDLOperations extends GeneralDDLOperations {
             if(pkSum == 1 && StringUtils.equals(field.getColumnName(), pkField.getColumnName())){
                 sbCreate.append(" primary key ");
                 if(// StringUtils.equalsIgnoreCase("id", pkField.getColumnName()) &&
-                    StringUtils.equalsIgnoreCase(pkField.getColumnType(), FieldType.INTEGER)) {
+                    StringUtils.equalsIgnoreCase(pkField.getColumnType(), FieldType.INTEGER)
+                    || FieldType.IDENTITY.equalsIgnoreCase(pkField.getFieldType())) {
                     sbCreate.append("AUTOINCREMENT ");
                 }
             }

@@ -2,6 +2,7 @@ package com.centit.support.database.ddl;
 
 import com.centit.support.algorithm.GeneralAlgorithm;
 import com.centit.support.database.metadata.TableField;
+import com.centit.support.database.utils.FieldType;
 import com.centit.support.database.metadata.TableInfo;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,6 +29,15 @@ public class SqlSvrDDLOperations extends GeneralDDLOperations {
      * @level1type = N'Table',  @level1name = 'YourTable', -- 表名
      * @level2type = N'Column', @level2name = 'YourColumn'; -- 字段名
      */
+    @Override
+    protected void appendColumnTypeSQL(final TableField field, StringBuilder sbCreate) {
+        if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
+            sbCreate.append("bigint identity(1,1)");
+        } else {
+            super.appendColumnTypeSQL(field, sbCreate);
+        }
+    }
+
     @Override
     public List<String> makeTableColumnComments(final TableInfo tableInfo, int commentContent){
         return new ArrayList<>();
