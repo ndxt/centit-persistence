@@ -226,11 +226,11 @@ public class SimpleTableInfo implements TableInfo {
     }
 
     public SimpleTableReference findReference(String reference) {
-        if (references == null)
+        if (reference == null || references == null)
             return null;
 
         for (SimpleTableReference ref : references) {
-            if (ref.getReferenceName().equals(reference))
+            if (reference.equals(ref.getReferenceName()))
                 return ref;
         }
         return null;

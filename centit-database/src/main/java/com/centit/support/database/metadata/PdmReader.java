@@ -23,6 +23,7 @@ public class PdmReader implements DatabaseMetadata {
     private Document doc = null;
     private String sDBSchema = null;
     public boolean loadPdmFile(InputStream xmlStream) {
+        doc = null;
         try{
             doc = XMLObject.parseXmlStreamIgnoreDtd(xmlStream);
             return true;
@@ -36,6 +37,7 @@ public class PdmReader implements DatabaseMetadata {
         try (FileInputStream is = new FileInputStream(new File(sPath))) {
             return loadPdmFile(is);
         } catch (IOException e) {
+            doc = null;
             logger.error(e.getMessage(), e);//e.printStackTrace();
             return false;
         }
@@ -75,6 +77,8 @@ public class PdmReader implements DatabaseMetadata {
      */
     public List<Pair<String, String>> getAllTableCode() {
         List<Pair<String, String>> tabNames = new ArrayList<>();
+        if (doc == null)
+            return tabNames;
         List<Node> tabNodes = doc.selectNodes("//c:Tables/o:Table");
         for (Node tNode : tabNodes) {
             tabNames.add(new ImmutablePair<String, String>(
@@ -143,13 +147,18 @@ public class PdmReader implements DatabaseMetadata {
         //tab.setPkName(pKCode);
 
         List<Node> pkColAttr = elPK.selectNodes("c:Key.Columns/o:Column/@Ref");
+        int primaryKeyOrder = 0;
         for (Node pkCA : pkColAttr) {
             pkColumnIDs.add(((Attribute) pkCA).getValue());
             Element elPKCol = (Element) eTab.selectSingleNode(
                 "c:Columns/o:Column[@Id='" + ((Attribute) pkCA).getValue() + "']/a:Code");
             if (elPKCol != null) {
                 //System.out.println(elPKCol.asXML());
-                tab.setColumnAsPrimaryKey(elPKCol.getText());
+                SimpleTableField field = tab.findFieldByColumn(elPKCol.getText());
+                if (field != null) {
+                    field.setPrimaryKey(true);
+                    field.setPrimaryKeyOrder(++primaryKeyOrder);
+                }
             }
         }
         //获取所有的外键
@@ -157,7 +166,7 @@ public class PdmReader implements DatabaseMetadata {
         for (Node elRef : elReferences) {
             SimpleTableReference ref = new SimpleTableReference();
             ref.setParentTableName(tabName);
-            ref.setReferenceCode(((Element) elRef).attributeValue("Id"));  //getElementText(elRef,"a","Code"));
+            ref.setReferenceCode(getElementText((Element) elRef, "a", "Code"));
             ref.setReferenceName(getElementText(((Element) elRef), "a", "Name"));
 
             String sChildTabID = getAttributeValue(((Element) elRef), "c:ChildTable/o:Table/@Ref"); //="o501" />
@@ -168,6 +177,8 @@ public class PdmReader implements DatabaseMetadata {
             if (sChildTabID != null) {
                 eChildTab = (Element) doc.selectSingleNode("//c:Tables/o:Table[@Id='" + sChildTabID + "']");
             } else {
+                if (pkColumnIDs.isEmpty())
+                    continue;
                 String fpk = pkColumnIDs.get(0);
                 String ffk = getAttributeValue(((Element) elRef),
                     "c:Joins/o:ReferenceJoin[c:Object1/o:Column/@Ref='" + fpk + "']/c:Object2/o:Column/@Ref");
@@ -189,7 +200,10 @@ public class PdmReader implements DatabaseMetadata {
                 //System.out.println(col.asXML());
                 String columnName = getElementText(col, "a", "Code");
 
-                ref.addReferenceColumn(pkColID, columnName);
+                Element parentColumn = (Element) eTab.selectSingleNode(
+                    "c:Columns/o:Column[@Id='" + pkColID + "']/a:Code");
+                if (parentColumn != null)
+                    ref.addReferenceColumn(parentColumn.getText(), columnName);
             }
             tab.addReference(ref);
         }

@@ -2,8 +2,6 @@ package com.centit.support.database.metadata;
 
 import com.centit.support.database.utils.FieldType;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -12,7 +10,6 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class JdbcMetadata implements DatabaseMetadata {
-    protected static final Logger logger = LoggerFactory.getLogger(JdbcMetadata.class);
     private Connection dbc;
     private String dbSchema;
 
@@ -24,168 +21,198 @@ public class JdbcMetadata implements DatabaseMetadata {
     @Override
     public List<SimpleTableInfo> listTables(boolean withColumn, String[] tableNames) {
         List<SimpleTableInfo> tables = new ArrayList<>(100);
-        String dbSechema = this.getDBSchema();
-        String dbCatalog = this.getDBCatalog();
+        String schema = getDBSchema();
+        String catalog = getDBCatalog();
         try {
             DatabaseMetaData dbmd = dbc.getMetaData();
             Set<String> tableNameSet = null;
             if (tableNames != null) {
                 tableNameSet = new HashSet<>(tableNames.length * 2);
                 for (String name : tableNames) {
-                    tableNameSet.add(name.toUpperCase());
+                    if (StringUtils.isBlank(name)) {
+                        throw new IllegalArgumentException("表名不能为空");
+                    }
+                    tableNameSet.add(name.toUpperCase(Locale.ROOT));
                 }
             }
-            try (ResultSet rs = dbmd.getTables(dbCatalog, dbSechema, null, new String[]{"TABLE", "VIEW"})) {
+            try (ResultSet rs = dbmd.getTables(catalog, metadataPattern(dbmd, schema), null,
+                new String[]{"TABLE", "BASE TABLE", "VIEW"})) {
                 while (rs.next()) {
-                    if (tableNameSet != null && !tableNameSet.contains(rs.getString("TABLE_NAME").toUpperCase())) {
+                    String tableName = rs.getString("TABLE_NAME");
+                    if ((schema != null && !schema.equals(rs.getString("TABLE_SCHEM")))
+                        || (tableNameSet != null && !tableNameSet.contains(tableName.toUpperCase(Locale.ROOT)))) {
                         continue;
                     }
-                    SimpleTableInfo tab = new SimpleTableInfo();
-                    if (dbSechema != null) {
-                        tab.setSchema(dbSechema.toUpperCase());
+                    SimpleTableInfo tab = readTableInfo(rs);
+                    if (withColumn) {
+                        fetchTableDetail(tab, dbmd, rs.getString("TABLE_CAT"));
                     }
-                    tab.setTableName(rs.getString("TABLE_NAME"));
-                    tab.setTableComment(rs.getString("REMARKS"));
-                    tab.setTableLabelName(
-                        StringUtils.substring(tab.getTableComment(), 0, 80));
-                    String tt = rs.getString("TABLE_TYPE");
-                    if ("view".equalsIgnoreCase(tt) || "table".equalsIgnoreCase(tt)) {
-                        if (withColumn) {
-                            fetchTableDetail(tab, dbmd);
-                        }
-                        tab.setTableType("view".equalsIgnoreCase(tt) ? "V" : "T");
-                        tables.add(tab);
-                    }
+                    tables.add(tab);
                 }
             }
-        }catch (SQLException e) {
-            logger.error(e.getMessage(), e);
+            return tables;
+        } catch (SQLException e) {
+            throw new IllegalStateException("读取数据库表列表失败", e);
         }
-        return tables;
     }
 
-    private void fetchTableDetail(SimpleTableInfo tab, DatabaseMetaData dbmd) {
-        String tabName = tab.getTableName();
-        try {
-            String dbSchema = this.getDBSchema();
-            String dbCatalog = this.getDBCatalog();
+    private SimpleTableInfo readTableInfo(ResultSet rs) throws SQLException {
+        SimpleTableInfo tab = new SimpleTableInfo(rs.getString("TABLE_NAME"));
+        tab.setSchema(rs.getString("TABLE_SCHEM"));
+        tab.setTableComment(rs.getString("REMARKS"));
+        tab.setTableLabelName(StringUtils.substring(tab.getTableComment(), 0, 80));
+        String type = rs.getString("TABLE_TYPE");
+        if ("VIEW".equalsIgnoreCase(type)) {
+            tab.setTableType("V");
+        } else if ("TABLE".equalsIgnoreCase(type) || "BASE TABLE".equalsIgnoreCase(type)) {
+            tab.setTableType("T");
+        } else {
+            throw new UnsupportedOperationException("不支持的表类型: " + type);
+        }
+        return tab;
+    }
 
-            ResultSet rs = dbmd.getColumns(dbCatalog, dbSchema, tabName, null);
+    private String metadataPattern(DatabaseMetaData dbmd, String name) throws SQLException {
+        if (name == null) {
+            return null;
+        }
+        String escape = dbmd.getSearchStringEscape();
+        if (StringUtils.isEmpty(escape)) {
+            return name;
+        }
+        return name.replace(escape, escape + escape)
+            .replace("_", escape + "_").replace("%", escape + "%");
+    }
+
+    private void fetchTableDetail(SimpleTableInfo tab, DatabaseMetaData dbmd, String catalog) throws SQLException {
+        String tableName = tab.getTableName();
+        String schema = tab.getSchema();
+        try (ResultSet rs = dbmd.getColumns(catalog, metadataPattern(dbmd, schema),
+            metadataPattern(dbmd, tableName), null)) {
             while (rs.next()) {
+                if (!tableName.equals(rs.getString("TABLE_NAME"))
+                    || !Objects.equals(schema, rs.getString("TABLE_SCHEM"))
+                    || !Objects.equals(catalog, rs.getString("TABLE_CAT"))) {
+                    continue;
+                }
                 SimpleTableField field = new SimpleTableField();
                 field.setColumnName(rs.getString("COLUMN_NAME"));
                 String columnType = rs.getString("TYPE_NAME");
-                // H2 2.x 把 varchar 报告为 SQL 标准官方名 CHARACTER VARYING，
-                // 折叠为 DDL 生成侧的常用名，否则发布前后的结构对比永远不等。
+                // H2 2.x 返回 SQL 标准名称，统一到 DDL 使用的常用名称。
                 if ("CHARACTER VARYING".equalsIgnoreCase(columnType)) {
                     columnType = "VARCHAR";
                 }
                 field.setColumnType(columnType);
                 field.setMaxLength(rs.getInt("COLUMN_SIZE"));
                 field.setScale(rs.getInt("DECIMAL_DIGITS"));
-                field.setNullEnable(rs.getString("NULLABLE"));
+                field.setMandatory(rs.getInt("NULLABLE") == DatabaseMetaData.columnNoNulls);
                 field.setDefaultValue(rs.getString("COLUMN_DEF"));
                 field.setColumnComment(rs.getString("REMARKS"));
-                field.setFieldLabelName(
-                    StringUtils.substring(field.getColumnComment(),0, 80));
+                field.setFieldLabelName(StringUtils.substring(field.getColumnComment(), 0, 80));
                 field.mapToMetadata();
                 if ("YES".equalsIgnoreCase(rs.getString("IS_AUTOINCREMENT"))) {
                     field.setFieldType(FieldType.IDENTITY);
-                    // 自增列默认值由目标库生成，不复制源库的序列表达式。
                     field.setDefaultValue(null);
                 }
                 tab.addColumn(field);
             }
-            rs.close();
-            rs = dbmd.getPrimaryKeys(dbCatalog, dbSchema, tabName);
+        }
+        try (ResultSet rs = dbmd.getPrimaryKeys(catalog, schema, tableName)) {
             while (rs.next()) {
-                tab.setColumnAsPrimaryKey(rs.getString("COLUMN_NAME"));
+                SimpleTableField field = tab.findFieldByColumn(rs.getString("COLUMN_NAME"));
+                if (field == null) {
+                    throw new IllegalStateException("主键列不存在: " + tableName + "." + rs.getString("COLUMN_NAME"));
+                }
+                field.setPrimaryKey(true);
+                field.setPrimaryKeyOrder(rs.getInt("KEY_SEQ"));
                 tab.setPkName(rs.getString("PK_NAME"));
             }
-            rs.close();
-
-            rs = dbmd.getExportedKeys(dbCatalog, dbSchema, tabName);
-            Map<String, SimpleTableReference> referenceHashMap = new HashMap<>();
+        }
+        Map<List<String>, SimpleTableReference> references = new LinkedHashMap<>();
+        try (ResultSet rs = dbmd.getExportedKeys(catalog, schema, tableName)) {
             while (rs.next()) {
                 String fkTableName = rs.getString("FKTABLE_NAME");
-                SimpleTableReference ref = referenceHashMap.get(fkTableName);
+                String fkName = rs.getString("FK_NAME");
+                if (StringUtils.isBlank(fkName)) {
+                    throw new UnsupportedOperationException("无法区分未命名的外键约束: " + fkTableName);
+                }
+                List<String> key = Arrays.asList(rs.getString("FKTABLE_CAT"),
+                    rs.getString("FKTABLE_SCHEM"), fkTableName, fkName);
+                SimpleTableReference ref = references.get(key);
                 if (ref == null) {
                     ref = new SimpleTableReference();
                     ref.setTableName(fkTableName);
-                    ref.setParentTableName(tabName);
-                    ref.setReferenceCode(rs.getString("FK_NAME"));
+                    ref.setParentTableName(tableName);
+                    ref.setReferenceCode(fkName);
+                    references.put(key, ref);
                 }
-                ref.addReferenceColumn(rs.getString("PKCOLUMN_NAME"),
-                    rs.getString("FKCOLUMN_NAME"));
-                referenceHashMap.put(fkTableName, ref);
+                ref.addReferenceColumn(rs.getString("PKCOLUMN_NAME"), rs.getString("FKCOLUMN_NAME"));
             }
-            rs.close();
-
-            for (Map.Entry<String, SimpleTableReference> entry : referenceHashMap.entrySet()) {
-                tab.addReference(entry.getValue());
-            }
-
-        } catch (SQLException e) {
-            logger.error(e.getMessage(), e);//e.printStackTrace();
         }
+        tab.getReferences().addAll(references.values());
     }
 
-    /**
-     * 没有获取外键
-     */
     @Override
-    public SimpleTableInfo getTableMetadata(String tabName) {
-        SimpleTableInfo tab = new SimpleTableInfo(tabName);
+    public SimpleTableInfo getTableMetadata(String tableName) {
+        if (StringUtils.isBlank(tableName)) {
+            throw new IllegalArgumentException("表名不能为空");
+        }
+        String schema = getDBSchema();
+        String catalog = getDBCatalog();
         try {
-            String dbSechema = this.getDBSchema();
-            String dbCatalog = this.getDBCatalog();
             DatabaseMetaData dbmd = dbc.getMetaData();
-            ResultSet rs = dbmd.getTables(dbCatalog, dbSechema, tabName, null);
-            if (!rs.next()) {
+            SimpleTableInfo tab = null;
+            String tableCatalog = null;
+            try (ResultSet rs = dbmd.getTables(catalog, metadataPattern(dbmd, schema),
+                metadataPattern(dbmd, tableName), null)) {
+                while (rs.next()) {
+                    if (!tableName.equals(rs.getString("TABLE_NAME"))
+                        || (schema != null && !schema.equals(rs.getString("TABLE_SCHEM")))) {
+                        continue;
+                    }
+                    if (tab != null) {
+                        throw new IllegalStateException("表名对应多个模式，请指定 schema: " + tableName);
+                    }
+                    tab = readTableInfo(rs);
+                    tableCatalog = rs.getString("TABLE_CAT");
+                }
+            }
+            if (tab == null) {
                 return null;
             }
-            tab.setTableLabelName(rs.getString("REMARKS"));
-            String tt = rs.getString("TABLE_TYPE");
-            if ("view".equalsIgnoreCase(tt) || "table".equalsIgnoreCase(tt)) {
-                tab.setTableType("view".equalsIgnoreCase(tt) ? "V" : "T");
-            }
-            rs.close();
-
-            fetchTableDetail(tab, dbmd);
+            fetchTableDetail(tab, dbmd, tableCatalog);
+            return tab;
         } catch (SQLException e) {
-            logger.error(e.getMessage(), e);//e.printStackTrace();
+            throw new IllegalStateException("读取表元数据失败: " + tableName, e);
         }
-        return tab;
     }
 
     @Override
     public String getDBSchema() {
-        if (StringUtils.isNotBlank(this.dbSchema)) {
-            return this.dbSchema;
+        if (StringUtils.isNotBlank(dbSchema)) {
+            return dbSchema;
         }
         try {
             return dbc.getSchema();
         } catch (AbstractMethodError error) {
-            return null;
+            throw new UnsupportedOperationException("JDBC 驱动不支持读取 schema", error);
         } catch (SQLException e) {
-            logger.error(e.getMessage(), e);//e.printStackTrace();
-            return null;
+            throw new IllegalStateException("读取数据库 schema 失败", e);
         }
     }
 
     @Override
     public void setDBSchema(String schema) {
-        this.dbSchema = schema;
+        dbSchema = schema;
     }
 
     public String getDBCatalog() {
         try {
             return dbc.getCatalog();
         } catch (AbstractMethodError error) {
-            return null;
+            throw new UnsupportedOperationException("JDBC 驱动不支持读取 catalog", error);
         } catch (SQLException e) {
-            logger.error(e.getMessage(), e);//e.printStackTrace();
-            return null;
+            throw new IllegalStateException("读取数据库 catalog 失败", e);
         }
     }
 }
