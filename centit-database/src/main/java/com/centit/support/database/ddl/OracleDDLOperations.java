@@ -47,11 +47,11 @@ public class OracleDDLOperations extends GeneralDDLOperations {
     protected void appendColumnDataTypeSQL(final TableField field, StringBuilder sbCreate) {
         if (FieldType.IDENTITY.equalsIgnoreCase(field.getFieldType())) {
             if (StringUtils.equalsAnyIgnoreCase(field.getColumnType(), "NUMBER", "NUMERIC", "DECIMAL") && field.getMaxLength() <= 0) {
-                sbCreate.append(field.getColumnType()).append("(18,0)");
+                sbCreate.append(field.getColumnType()).append("(").append(FieldType.LONG_NUMBER_DIGITS).append(",0)");
             } else if (StringUtils.equalsAnyIgnoreCase(field.getColumnType(), "NUMBER", "NUMERIC", "DECIMAL", "INTEGER", "INT", "SMALLINT")) {
                 super.appendColumnDataTypeSQL(field, sbCreate);
             } else {
-                sbCreate.append("number(18,0)");
+                sbCreate.append("number(").append(FieldType.LONG_NUMBER_DIGITS).append(",0)");
             }
         } else {
             super.appendColumnDataTypeSQL(field, sbCreate);

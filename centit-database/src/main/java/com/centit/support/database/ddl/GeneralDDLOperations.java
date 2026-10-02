@@ -328,7 +328,13 @@ public abstract class GeneralDDLOperations implements DDLOperations {
         sbCreate.append(field.getColumnType());
         String uppercaseColumnType = field.getColumnType().toUpperCase();
         //StringUtils.equalsIgnoreCase(str1, str2)
-        if (uppercaseColumnType.contains("VARCHAR") || uppercaseColumnType.contains("VARYING")) {
+        if ("DATETIME YEAR TO FRACTION".equals(uppercaseColumnType)) {
+            sbCreate.append("(").append(field.getMaxLength() > 0 ? field.getMaxLength() : 5).append(")");
+        } else if (StringUtils.equalsAny(uppercaseColumnType, "VARBINARY", "BINARY", "BINARY VARYING")) {
+            if (field.getMaxLength() > 0) {
+                sbCreate.append("(").append(field.getMaxLength()).append(")");
+            }
+        } else if (uppercaseColumnType.contains("VARCHAR") || uppercaseColumnType.contains("VARYING")) {
             if (field.getMaxLength() > 0) {
                 sbCreate.append("(").append(field.getMaxLength()).append(")");
             } else {

@@ -70,7 +70,7 @@ public class SimpleTableField implements TableField {
         if (beanField != null) {
             return beanField.getFieldType();
         }
-        return FieldType.mapToJavaType(getFieldType());
+        return FieldType.mapToJavaType(getFieldType(), scale == null ? 0 : scale);
     }
 
     /**
