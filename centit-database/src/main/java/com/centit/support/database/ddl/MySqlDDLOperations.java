@@ -89,7 +89,8 @@ public class MySqlDDLOperations extends GeneralDDLOperations {
             sbsql.append(" default ").append(column.getDefaultValue());
         }
         sbsql.append(column.isMandatory() || column.isPrimaryKey() || FieldType.IDENTITY.equalsIgnoreCase(column.getFieldType()) ? " not null" : " null");
-        sbsql.append(" comment '").append(StringUtils.defaultString(column.getFieldLabelName()).replace("'", "''")).append("'");
+        sbsql.append(" comment '").append(StringUtils.defaultString(column.getFieldLabelName())
+            .replace("\\", "\\\\").replace("'", "''")).append("'");
     }
 
     @Override

@@ -161,30 +161,51 @@ public class JdbcMetadata implements DatabaseMetadata {
         String catalog = getDBCatalog();
         try {
             DatabaseMetaData dbmd = dbc.getMetaData();
-            SimpleTableInfo tab = null;
-            String tableCatalog = null;
-            try (ResultSet rs = dbmd.getTables(catalog, metadataPattern(dbmd, schema),
-                metadataPattern(dbmd, tableName), null)) {
-                while (rs.next()) {
-                    if (!tableName.equals(rs.getString("TABLE_NAME"))
-                        || (schema != null && !schema.equals(rs.getString("TABLE_SCHEM")))) {
-                        continue;
-                    }
-                    if (tab != null) {
-                        throw new IllegalStateException("表名对应多个模式，请指定 schema: " + tableName);
-                    }
-                    tab = readTableInfo(rs);
-                    tableCatalog = rs.getString("TABLE_CAT");
-                }
+            SimpleTableInfo exactTable = readExactTable(dbmd, catalog, schema, tableName);
+            boolean upper = dbmd.storesUpperCaseIdentifiers();
+            boolean lower = dbmd.storesLowerCaseIdentifiers();
+            if (upper && lower) {
+                throw new SQLException("JDBC 标识符大小写规则冲突");
             }
-            if (tab == null) {
-                return null;
+            String normalizedName = upper ? tableName.toUpperCase(Locale.ROOT)
+                : lower ? tableName.toLowerCase(Locale.ROOT) : tableName;
+            if (tableName.equals(normalizedName)) {
+                return exactTable;
             }
-            fetchTableDetail(tab, dbmd, tableCatalog);
-            return tab;
+            SimpleTableInfo normalizedTable = readExactTable(dbmd, catalog, schema, normalizedName);
+            if (exactTable != null && normalizedTable != null) {
+                throw new SQLException("表名同时对应精确标识符与未引用标识符: " + tableName);
+            }
+            return exactTable == null ? normalizedTable : exactTable;
         } catch (SQLException e) {
             throw new IllegalStateException("读取表元数据失败: " + tableName, e);
         }
+    }
+
+    private SimpleTableInfo readExactTable(DatabaseMetaData dbmd, String catalog,
+                                          String schema, String tableName) throws SQLException {
+        SimpleTableInfo tab = null;
+        String tableCatalog = null;
+        try (ResultSet rs = dbmd.getTables(catalog, metadataPattern(dbmd, schema),
+            metadataPattern(dbmd, tableName), null)) {
+            while (rs.next()) {
+                if (!tableName.equals(rs.getString("TABLE_NAME"))
+                    || (schema != null && !schema.equals(rs.getString("TABLE_SCHEM")))
+                    || (catalog != null && !catalog.equals(rs.getString("TABLE_CAT")))) {
+                    continue;
+                }
+                if (tab != null) {
+                    throw new IllegalStateException("表名对应多个模式，请指定 schema: " + tableName);
+                }
+                tab = readTableInfo(rs);
+                tableCatalog = rs.getString("TABLE_CAT");
+            }
+        }
+        if (tab == null) {
+            return null;
+        }
+        fetchTableDetail(tab, dbmd, tableCatalog);
+        return tab;
     }
 
     @Override

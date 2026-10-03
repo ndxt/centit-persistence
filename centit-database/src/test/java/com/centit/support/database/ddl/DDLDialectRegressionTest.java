@@ -57,6 +57,18 @@ class DDLDialectRegressionTest {
     }
 
     @Test
+    void mysqlColumnCommentsPreserveBackslashesQuotesAndWhitespace() {
+        MySqlDDLOperations ddl = new MySqlDDLOperations();
+        SimpleTableField oldField = column("C", "VARCHAR", 16, false, null, "old");
+        SimpleTableField field = column("C", "VARCHAR", 32, false, null, " 路径 C:\\new\\path\\ '中文 ");
+        String expectedComment = "comment ' 路径 C:\\\\new\\\\path\\\\ ''中文 '";
+        assertTrue(ddl.makeCreateTableSql(table("T", field)).endsWith(expectedComment + ")"));
+        assertTrue(ddl.makeAddColumnSql("T", field).endsWith(expectedComment));
+        assertTrue(ddl.makeModifyColumnSqls("T", oldField, field).get(0).endsWith(expectedComment));
+        assertTrue(ddl.makeRenameColumnSql("T", "OLD_C", field).endsWith(expectedComment));
+    }
+
+    @Test
     void oracleDefaultsPrecedeNotNullAndAreIncludedForAddedColumns() {
         OracleDDLOperations ddl = new OracleDDLOperations();
         SimpleTableField field = column("C", "VARCHAR2", 20, true, "'N'", null);

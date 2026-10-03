@@ -124,6 +124,46 @@ class JdbcMetadataTest {
     }
 
     @Test
+    void resolvesUnquotedTableNamesUsingDriverIdentifierCase() throws SQLException {
+        try (Connection lowerConnection = DriverManager.getConnection(
+                "jdbc:h2:mem:metadata_lower_" + UUID.randomUUID()
+                    + ";DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE", "sa", "")) {
+            JdbcMetadata lowerMetadata = new JdbcMetadata();
+            lowerMetadata.setDBConfig(lowerConnection);
+            try (Statement statement = lowerConnection.createStatement()) {
+                statement.execute("create table LOWER_CASE_TABLE (ID bigint primary key, VALUE_TEXT varchar(20))");
+                statement.execute("create table LOWERXCASE_TABLE (WRONG_COLUMN bigint)");
+            }
+            assertTrue(lowerConnection.getMetaData().storesLowerCaseIdentifiers());
+            SimpleTableInfo table = lowerMetadata.getTableMetadata("LOWER_CASE_TABLE");
+            assertNotNull(table);
+            assertEquals("lower_case_table", table.getTableName());
+            assertEquals(2, table.getColumns().size());
+            assertTrue(table.findFieldByColumn("id").isPrimaryKey());
+            assertNull(lowerMetadata.getTableMetadata("NO_SUCH_TABLE"));
+        }
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("create table UPPER_CASE_TABLE (ID bigint primary key)");
+        }
+        assertTrue(connection.getMetaData().storesUpperCaseIdentifiers());
+        assertEquals("UPPER_CASE_TABLE", metadata.getTableMetadata("upper_case_table").getTableName());
+        try (Connection preservedConnection = DriverManager.getConnection(
+                "jdbc:h2:mem:metadata_preserved_" + UUID.randomUUID() + ";DATABASE_TO_UPPER=FALSE", "sa", "")) {
+            JdbcMetadata preservedMetadata = new JdbcMetadata();
+            preservedMetadata.setDBConfig(preservedConnection);
+            try (Statement statement = preservedConnection.createStatement()) {
+                statement.execute("create table \"CaseTable\" (UPPER_COLUMN bigint)");
+                statement.execute("create table \"casetable\" (LOWER_COLUMN bigint)");
+            }
+            assertFalse(preservedConnection.getMetaData().storesUpperCaseIdentifiers());
+            assertFalse(preservedConnection.getMetaData().storesLowerCaseIdentifiers());
+            assertEquals("UPPER_COLUMN", preservedMetadata.getTableMetadata("CaseTable").getColumns().get(0).getColumnName());
+            assertEquals("LOWER_COLUMN", preservedMetadata.getTableMetadata("casetable").getColumns().get(0).getColumnName());
+            assertNull(preservedMetadata.getTableMetadata("CASETABLE"));
+        }
+    }
+
+    @Test
     void propagatesDatabaseErrorsAndRejectsEmptyNames() throws SQLException {
         assertThrows(IllegalArgumentException.class, () -> metadata.getTableMetadata(" "));
         assertThrows(IllegalArgumentException.class, () -> metadata.listTables(false, new String[]{null}));
