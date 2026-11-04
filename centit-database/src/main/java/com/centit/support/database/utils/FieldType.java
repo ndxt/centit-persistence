@@ -594,6 +594,44 @@ public abstract class FieldType {
         return columnType;
     }
 
+    /**
+     * 方言感知的语义类型归一：物理回读的列类型名先剥离精度后缀（(n,m)），
+     * 再把 PostgreSQL JDBC 专有类型名（int2/int4/int8/float4/float8/bool/bpchar）
+     * 和 BIGINT 修饰前缀（unsigned/auto_increment）折叠为 JDBC 标准名，
+     * 最后经 mapToFieldType 归一到平台语义类型。
+     * 方言 DDL 与 JDBC 标准类型名必须归一到相同字段类型，
+     * 设计草稿与物理回读的类型比较才对称（否则发布状态永远无法收敛）。
+     *
+     * @param columnType 数据库方言的列类型名，可含精度后缀
+     * @param dbType     数据库方言，方言专有名只在该方言下归一
+     * @return 平台语义字段类型；无法识别时返回小写归一后的原类型名
+     */
+    public static String mapToFieldType(String columnType, DBType dbType) {
+        if (columnType == null) {
+            return null;
+        }
+        String type = columnType.trim().toUpperCase(Locale.ROOT).replaceFirst("\\(.*\\)", "").trim();
+        if (dbType == DBType.PostgreSql) {
+            type = switch (type) {
+                case "INT2" -> "SMALLINT";
+                case "INT4" -> "INTEGER";
+                case "INT8" -> "BIGINT";
+                case "FLOAT4" -> "REAL";
+                case "FLOAT8" -> "DOUBLE PRECISION";
+                case "BOOL" -> "BOOLEAN";
+                case "BPCHAR" -> "CHAR";
+                default -> type;
+            };
+        }
+        if (type.startsWith("BIGINT ")) {
+            type = "BIGINT"; // BIGINT UNSIGNED / BIGINT AUTO_INCREMENT 等修饰前缀
+        }
+        if (dbType == DBType.H2 && "FLOAT".equals(type)) {
+            return DOUBLE; // H2 的 FLOAT 实为双精度浮点
+        }
+        return normalizeFieldType(type);
+    }
+
     public static String mapToFieldType(Class<?> javaType) {
         // 这个要重写
         if (javaType.equals(BigDecimal.class)) {
