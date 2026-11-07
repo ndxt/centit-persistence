@@ -1113,6 +1113,77 @@ public abstract class SqlStatementAnalyzer {
         return null;
     }
 
+    /**
+     * 检测 Oracle 的 FOR UPDATE 行锁查询：Oracle 不允许 FOR UPDATE 出现在 ROWNUM
+     * 等外层包装内，调用方（如分页/限行包装）检测到锁查询后须保持语句原样，
+     * 改用 JDBC maxRows 兑现行数预算。
+     * <p>
+     * 扫描时跳过 {@code --} 与块注释、单双引号字面量，以及 Oracle 专有备选引号
+     * 字面量（{@code q'[...]'}、{@code q'{...}'}、{@code q'(...)'}、{@code q'<...>'}
+     * 及自定义分隔符），只按裸 token 序列识别 "for update"，不重写 SQL。
+     *
+     * @param sql          SQL 语句文本，可以为 null
+     * @param databaseType 数据库方言；仅 Oracle 可能返回 true
+     * @return 该语句是否为不可被外层包装的 Oracle 锁查询
+     */
+    public static boolean isOracleLockQuery(String sql, DBType databaseType) {
+        if (databaseType != DBType.Oracle || sql == null) return false;
+        boolean previousFor = false;
+        for (int i = 0; i < sql.length();) {
+            char ch = sql.charAt(i);
+            if (Character.isWhitespace(ch)) { i++; continue; }
+            if (ch == '-' && i + 1 < sql.length() && sql.charAt(i + 1) == '-') {
+                i += 2;
+                while (i < sql.length() && sql.charAt(i) != '\n' && sql.charAt(i) != '\r') i++;
+                continue;
+            }
+            if (ch == '/' && i + 1 < sql.length() && sql.charAt(i + 1) == '*') {
+                int end = sql.indexOf("*/", i + 2);
+                i = end < 0 ? sql.length() : end + 2;
+                continue;
+            }
+            // Oracle q'[...]', q'{...}', q'(...)', q'<...>' and custom delimiters.
+            int quotePrefix = (ch == 'n' || ch == 'N') && i + 1 < sql.length() ? i + 1 : i;
+            char prefix = sql.charAt(quotePrefix);
+            if ((prefix == 'q' || prefix == 'Q') && quotePrefix + 2 < sql.length()
+                && sql.charAt(quotePrefix + 1) == '\'') {
+                char opening = sql.charAt(quotePrefix + 2);
+                char closing = switch (opening) { case '[' -> ']'; case '{' -> '}'; case '(' -> ')'; case '<' -> '>'; default -> opening; };
+                int end = sql.indexOf(String.valueOf(closing) + "'", quotePrefix + 3);
+                i = end < 0 ? sql.length() : end + 2;
+                previousFor = false;
+                continue;
+            }
+            if (ch == '\'' || ch == '"') {
+                char quote = ch;
+                i++;
+                while (i < sql.length()) {
+                    if (sql.charAt(i++) == quote) {
+                        if (i < sql.length() && sql.charAt(i) == quote) { i++; }
+                        else { break; }
+                    }
+                }
+                previousFor = false;
+                continue;
+            }
+            if (Character.isLetterOrDigit(ch) || ch == '_' || ch == '$' || ch == '#') {
+                int start = i++;
+                while (i < sql.length()) {
+                    char part = sql.charAt(i);
+                    if (!Character.isLetterOrDigit(part) && part != '_' && part != '$' && part != '#') break;
+                    i++;
+                }
+                String token = sql.substring(start, i);
+                if (previousFor && "update".equalsIgnoreCase(token)) return true;
+                previousFor = "for".equalsIgnoreCase(token);
+            } else {
+                previousFor = false;
+                i++;
+            }
+        }
+        return false;
+    }
+
     /** 从字段表达式中识别聚合函数名 */
     private static void collectAggregates(String expr, List<String> out) {
         if (StringUtils.isBlank(expr)) {
