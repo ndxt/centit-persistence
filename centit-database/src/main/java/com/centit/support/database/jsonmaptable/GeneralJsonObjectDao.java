@@ -70,6 +70,46 @@ public abstract class GeneralJsonObjectDao implements JsonObjectDao {
         return properties;
     }
 
+    /**
+     * 写入方向的统一类型规范化：按列的 fieldType 把 Java 值就地转换为 JDBC 兼容值
+     * （如 BOOLEAN 转单字符 '1'/'0'、TIMESTAMP 转 {@link java.sql.Timestamp}、
+     * MONEY/NUMBER 转 {@link java.math.BigDecimal}、二进制转字节数组）。
+     * null 值与未识别的字段类型保持原样；读取方向的对应转换见结果集装配逻辑。
+     *
+     * @param tableInfo 表元数据（列定义携带 fieldType）
+     * @param object    待写入的行数据（属性名为键，就地修改并返回）
+     * @return 同一 {@code object}，值已按列类型规范化
+     */
+    public static Map<String, Object> prepareObjectForSave(TableInfo tableInfo, Map<String, Object> object) {
+        for (TableField col : tableInfo.getColumns()) {
+            Object fieldValue = object.get(col.getPropertyName());
+            if (fieldValue != null) {
+                switch (col.getFieldType()) {
+                    case FieldType.DATE, FieldType.DATETIME ->
+                        object.put(col.getPropertyName(), DatetimeOpt.castObjectToDate(fieldValue));
+                    case FieldType.TIMESTAMP ->
+                        object.put(col.getPropertyName(), DatetimeOpt.castObjectToSqlTimestamp(fieldValue));
+                    case FieldType.INTEGER, FieldType.LONG ->
+                        object.put(col.getPropertyName(), NumberBaseOpt.castObjectToLong(fieldValue));
+                    case FieldType.MONEY, FieldType.NUMBER ->
+                        object.put(col.getPropertyName(), NumberBaseOpt.castObjectToBigDecimal(fieldValue));
+                    case FieldType.FLOAT, FieldType.DOUBLE ->
+                        object.put(col.getPropertyName(), NumberBaseOpt.castObjectToNumber(fieldValue));
+                    case FieldType.STRING, FieldType.TEXT ->
+                        object.put(col.getPropertyName(), StringBaseOpt.castObjectToString(fieldValue));
+                    case FieldType.BOOLEAN ->
+                        object.put(col.getPropertyName(),
+                                BooleanBaseOpt.castObjectToBoolean(fieldValue, false) ?
+                                        BooleanBaseOpt.ONE_CHAR_TRUE : BooleanBaseOpt.ONE_CHAR_FALSE);
+                    case FieldType.BYTE_ARRAY, FieldType.FILE ->
+                        object.put(col.getPropertyName(), ByteBaseOpt.castObjectToBytes(fieldValue));
+                    default -> { }
+                }
+            }
+        }
+        return object;
+    }
+
     public static GeneralJsonObjectDao createJsonObjectDao(final Connection conn, final TableInfo tableInfo)
         throws SQLException {
         DBType dbtype = DBType.mapDBType(conn.getMetaData().getURL());
